@@ -2,6 +2,24 @@
 
 Use a clean Arma profile where practical. Load only CBA_A3, ACE, RACA, and the content mods needed for the test. Record failures with the exact on-screen message and the newest Arma RPT excerpt containing `RACA`, `Error`, or `Warning`.
 
+## Test flow
+
+```mermaid
+flowchart TD
+    A[Load dependencies and content mods] --> B[Open creator and verify catalogue]
+    B --> C[Select, save, and reload a preset]
+    C --> D[Assign preset in Eden]
+    D --> E[Preview in single-player]
+    E --> F[Verify host and second client]
+    F --> G[Verify join-in-progress client]
+    G --> H{All applicable checks pass?}
+    H -- Yes --> I[Release candidate is acceptable]
+    H -- No --> J[Capture RPT and on-screen evidence]
+    J --> B
+```
+
+The flow separates authoring, Eden persistence, runtime behavior, and multiplayer synchronization so a passing creator screen is not mistaken for a complete release verification.
+
 ## 1. Startup and creator mission
 
 - [ ] Launcher reports CBA_A3, ACE, and RACA as loaded without dependency errors.

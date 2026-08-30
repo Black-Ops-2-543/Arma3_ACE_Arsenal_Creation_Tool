@@ -17,6 +17,19 @@ RACA has two parts:
 1. **The creator** — a searchable catalogue and preset library at **Tutorials > Restricted Arsenal Creator**.
 2. **The Eden integration** — a **Restricted Arsenals** attribute added to Eden objects.
 
+```mermaid
+flowchart LR
+    A[Load Arma 3, CBA, ACE, and content mods] --> B[Open Restricted Arsenal Creator]
+    B --> C[Search and select permitted classes]
+    C --> D[Save named preset to profile]
+    D --> E[Select preset on an Eden object]
+    E --> F[Mission embeds a copy of the preset]
+    F --> G[Server validates and applies ACE Arsenal]
+    G --> H[Players use normal ACE Arsenal interaction]
+```
+
+The important boundary is between authoring and runtime: the profile is used to create and manage presets, while the saved mission carries the selected preset it needs to run.
+
 The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
@@ -104,6 +117,20 @@ Preview the mission and interact with the configured object through ACE. It shou
 
 For a multiplayer release, test with a second client and, when relevant, a client joining in progress. The host, connected client, and JIP client should see the same restricted contents.
 
+```mermaid
+sequenceDiagram
+    participant Author as Mission maker
+    participant Eden as Eden mission
+    participant Server as Server
+    participant Player as Player / JIP client
+    Author->>Eden: Assign preset to object
+    Eden->>Server: Send embedded preset at mission start
+    Server->>Server: Validate classes and remove old arsenal
+    Server->>Server: Initialize restricted ACE Arsenal
+    Server-->>Player: Synchronize configured contents
+    Player->>Eden: Interact with object through ACE
+```
+
 ## Important behavior and limitations
 
 ### Presets and profiles
@@ -166,4 +193,3 @@ Static validation covers configuration structure, SQF syntax, PBO prefixes, miss
 RACA calls public ACE3 and CBA interfaces but does not redistribute either dependency. Add an explicit project license before publishing or accepting outside contributions.
 
 Project page: [github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool](https://github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool)
-
