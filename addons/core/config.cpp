@@ -13,6 +13,7 @@ class CfgPatches {
 };
 
 #include "CfgFunctions.hpp"
+#include "CfgMissions.hpp"
 
 class RscText;
 class RscButton;

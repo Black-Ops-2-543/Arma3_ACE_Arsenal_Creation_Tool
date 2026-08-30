@@ -17,6 +17,9 @@ class RscDisplayMain: RscStandardDisplay {
                     text = "Restricted Arsenal Creator";
                     tooltip = "Create and save restricted ACE Arsenal presets";
                     y = "(4 * 1.5) * (pixelH * pixelGrid * 2) + pixelH";
+                    // Match ACE Arsenal's proven main-menu launch form. The
+                    // PBO prefix is verified at build time, so this path is
+                    // also verified to resolve inside core.pbo.
                     onButtonClick = "playMission ['', '\x\raca\addons\core\missions\Creator.VR']";
                 };
 

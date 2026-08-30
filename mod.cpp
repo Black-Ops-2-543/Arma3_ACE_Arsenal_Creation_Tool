@@ -1,7 +1,7 @@
 name = "Restricted Arsenal Creation Assistant";
 tooltip = "Restricted Arsenal Creation Assistant";
 tooltipOwned = "Restricted Arsenal Creation Assistant";
-overview = "Create, save, and apply restricted arsenal presets in Arma 3 Eden Editor and Zeus.";
+overview = "Create, save, and apply restricted ACE Arsenal presets in the Arma 3 Eden Editor.";
 author = "Connor Walsh";
 actionName = "GitHub";
 action = "https://github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool";

@@ -76,6 +76,96 @@ foreach ($sourceFile in $sourceFiles) {
     }
 }
 
+# Structural checks for integration points that can pass syntax validation but
+# still fail at runtime because Arma resolves them by exact config path.
+$requiredRelativeFiles = @(
+    'addons\core\CfgMissions.hpp',
+    'addons\core\missions\Creator.VR\mission.sqm',
+    'addons\core\missions\Creator.VR\description.ext',
+    'addons\core\missions\Creator.VR\initPlayerLocal.sqf',
+    'addons\eden\ui\PresetAttribute.hpp'
+)
+foreach ($relativeFile in $requiredRelativeFiles) {
+    $requiredFile = Join-Path $repositoryRoot $relativeFile
+    if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+        $failures.Add("Required runtime file is missing: '$requiredFile'.")
+    }
+}
+
+foreach ($addonSource in Get-ChildItem -LiteralPath $addonsDirectory -Directory) {
+    $prefixFile = Join-Path $addonSource.FullName '$PBOPREFIX$'
+    if (-not (Test-Path -LiteralPath $prefixFile -PathType Leaf)) {
+        $failures.Add("PBO prefix file is missing: '$prefixFile'.")
+        continue
+    }
+
+    $expectedPrefix = 'x\raca\addons\' + $addonSource.Name
+    $actualPrefix = (Get-Content -Raw -LiteralPath $prefixFile).Trim()
+    if (-not $actualPrefix.Equals($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $failures.Add("'$prefixFile' contains '$actualPrefix'; expected '$expectedPrefix'.")
+    }
+}
+
+$edenCfgPath = Join-Path $addonsDirectory 'eden\Cfg3DEN.hpp'
+if (Test-Path -LiteralPath $edenCfgPath -PathType Leaf) {
+    $edenCfg = Get-Content -Raw -LiteralPath $edenCfgPath
+    if ($edenCfg -notmatch '(?s)class\s+Cfg3DEN\s*\{\s*class\s+Attributes\s*\{\s*#include\s+"ui\\PresetAttribute\.hpp"') {
+        $failures.Add("The custom Eden control must be registered under Cfg3DEN >> Attributes in '$edenCfgPath'.")
+    }
+    if ($edenCfg -notmatch 'control\s*=\s*"RACA_PresetAttribute"') {
+        $failures.Add("The Eden preset attribute does not reference RACA_PresetAttribute in '$edenCfgPath'.")
+    }
+    if ($edenCfg -notmatch 'expression\s*=\s*"[^"\r\n]*isServer') {
+        $failures.Add("The Eden runtime expression must initialize the global ACE arsenal from the server only in '$edenCfgPath'.")
+    }
+}
+
+$creatorMenuPath = Join-Path $addonsDirectory 'core\RscDisplayMain.hpp'
+if (Test-Path -LiteralPath $creatorMenuPath -PathType Leaf) {
+    $creatorMenu = Get-Content -Raw -LiteralPath $creatorMenuPath
+    if ($creatorMenu -notmatch "playMission\s*\[\s*''\s*,\s*'\\x\\raca\\addons\\core\\missions\\Creator\.VR'\s*\]") {
+        $failures.Add("The Tutorials menu entry does not use the ACE-compatible direct Creator.VR mission path.")
+    }
+}
+
+$cfgMissionsPath = Join-Path $addonsDirectory 'core\CfgMissions.hpp'
+if (Test-Path -LiteralPath $cfgMissionsPath -PathType Leaf) {
+    $cfgMissions = Get-Content -Raw -LiteralPath $cfgMissionsPath
+    if ($cfgMissions -notmatch [regex]::Escape("\x\raca\addons\core\missions\Creator.VR")) {
+        $failures.Add("CfgMissions does not point RACA_Creator at the packaged Creator.VR mission.")
+    }
+}
+
+$creatorMissionPath = Join-Path $addonsDirectory 'core\missions\Creator.VR\mission.sqm'
+if (Test-Path -LiteralPath $creatorMissionPath -PathType Leaf) {
+    $creatorMission = Get-Content -Raw -LiteralPath $creatorMissionPath
+    foreach ($sceneName in @('Mission', 'Intro', 'OutroWin', 'OutroLoose')) {
+        $scenePattern = 'class\s+' + [regex]::Escape($sceneName) + '(?:\s*:\s*\w+)?\s*\{'
+        if ($creatorMission -notmatch $scenePattern) {
+            $failures.Add("The Creator.VR mission must define the legacy '$sceneName' scene section.")
+        }
+    }
+}
+
+$creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
+if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'onMouseButtonUp\s*=\s*"[^"\r\n]*spawn[^"\r\n]*uiSleep[^"\r\n]*RACA_fnc_toggleRow') {
+        $failures.Add("The item list must defer its mouse-up toggle until ListNBox commits the clicked row.")
+    }
+}
+
+$catalogPath = Join-Path $addonsDirectory 'core\functions\catalog\fn_scanItems.sqf'
+if (Test-Path -LiteralPath $catalogPath -PathType Leaf) {
+    $catalogSource = Get-Content -Raw -LiteralPath $catalogPath
+    if ($catalogSource -match 'configSourceAddonList\s+_config\s*;') {
+        $failures.Add("Catalogue search must not index every compatibility patch in configSourceAddonList.")
+    }
+    if ($catalogSource -match 'modParams\s*\[[^\]]*"author"') {
+        $failures.Add("Catalogue scanning must not request the unsupported modParams 'author' option.")
+    }
+}
+
 if (-not $SkipConfig) {
     if (-not (Test-Path -LiteralPath $CfgConvertPath -PathType Leaf)) {
         throw "CfgConvert was not found at '$CfgConvertPath'. Pass its full path with -CfgConvertPath or use -SkipConfig."
@@ -83,12 +173,12 @@ if (-not $SkipConfig) {
 
     $configFiles = @(
         Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File |
-            Where-Object { $_.Name -in @('config.cpp', 'description.ext') } |
+            Where-Object { $_.Name -in @('config.cpp', 'description.ext', 'mission.sqm') } |
             Sort-Object -Property FullName
     )
 
     if ($configFiles.Count -eq 0) {
-        $failures.Add("No config.cpp or description.ext files were found in '$addonsDirectory'.")
+        $failures.Add("No config.cpp, description.ext, or mission.sqm files were found in '$addonsDirectory'.")
     }
     else {
         foreach ($configFile in $configFiles) {

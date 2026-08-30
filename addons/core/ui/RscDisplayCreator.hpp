@@ -48,7 +48,7 @@ class RACA_RscDisplayCreator {
 
         class Search: RscEdit {
             idc = RACA_IDC_SEARCH;
-            tooltip = "Search display name, class name, category, mod, source addon, or author";
+            tooltip = "Search display name, class name, category, mod, owning add-on, or author";
             x = "safeZoneX + 0.12 * safeZoneW";
             y = "safeZoneY + 0.108 * safeZoneH";
             w = "0.37 * safeZoneW";
@@ -71,14 +71,46 @@ class RACA_RscDisplayCreator {
             onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshItemList";
         };
 
-        class ColumnHeaders: RscText {
+        class ColumnHeaderBackground: RscText {
             idc = -1;
-            text = "     INCLUDED     ITEM                              CLASS NAME                         MOD                    AUTHOR";
+            text = "";
             x = "safeZoneX + 0.055 * safeZoneW";
             y = "safeZoneY + 0.153 * safeZoneH";
             w = "0.625 * safeZoneW";
             h = "0.03 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.55};
+        };
+
+        class IncludedHeader: ColumnHeaderBackground {
+            text = "INCLUDED";
+            x = "safeZoneX + 0.055 * safeZoneW";
+            w = "0.0625 * safeZoneW";
+            style = 2;
+            colorBackground[] = {0, 0, 0, 0};
+        };
+
+        class ItemHeader: IncludedHeader {
+            text = "ITEM";
+            x = "safeZoneX + 0.1175 * safeZoneW";
+            w = "0.19375 * safeZoneW";
+        };
+
+        class ClassHeader: IncludedHeader {
+            text = "CLASS NAME";
+            x = "safeZoneX + 0.31125 * safeZoneW";
+            w = "0.1625 * safeZoneW";
+        };
+
+        class ModHeader: IncludedHeader {
+            text = "MOD";
+            x = "safeZoneX + 0.47375 * safeZoneW";
+            w = "0.10 * safeZoneW";
+        };
+
+        class AuthorHeader: IncludedHeader {
+            text = "AUTHOR";
+            x = "safeZoneX + 0.57375 * safeZoneW";
+            w = "0.10625 * safeZoneW";
         };
 
         class ItemList: RscListNBox {
@@ -87,11 +119,15 @@ class RACA_RscDisplayCreator {
             y = "safeZoneY + 0.185 * safeZoneH";
             w = "0.625 * safeZoneW";
             h = "0.675 * safeZoneH";
-            columns[] = {0.015, 0.07, 0.43, 0.68, 0.84};
+            columns[] = {0.015, 0.10, 0.41, 0.67, 0.83};
             drawSideArrows = 0;
             disableOverflow = 1;
             colorBackground[] = {0, 0, 0, 0.45};
-            onMouseButtonClick = "_this call RACA_fnc_toggleRow";
+            // ListNBox commits its new row selection after the mouse event.
+            // Yield one UI frame so the first click toggles the clicked row,
+            // rather than the row that was selected previously.
+            onMouseButtonUp = "_this spawn {uiSleep 0.01; [_this select 0, _this select 1] call RACA_fnc_toggleRow}";
+            onKeyDown = "if ((_this select 1) isEqualTo 57) then {[_this select 0, 0] call RACA_fnc_toggleRow; true} else {false}";
         };
 
         class PresetPanel: RscText {
@@ -174,7 +210,7 @@ class RACA_RscDisplayCreator {
 
         class Instructions: Summary {
             idc = -1;
-            text = "Click a row or press Space to toggle its checkbox. Search covers names, classes, mods, source add-ons, and authors.";
+            text = "Click a row or press Space to toggle its checkbox. Search covers names, classes, mods, owning add-ons, and authors.";
             y = "safeZoneY + 0.515 * safeZoneH";
             h = "0.12 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0};

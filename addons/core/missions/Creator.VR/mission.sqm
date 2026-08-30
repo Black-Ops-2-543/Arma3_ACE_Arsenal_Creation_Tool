@@ -1,40 +1,57 @@
 version = 12;
 
+/*
+ * playMission's legacy mission loader expects all four scene sections even
+ * when the intro and outros are empty. This mirrors the structure used by
+ * ACE Arsenal's own Tutorials mission and avoids a misleading load warning.
+ */
 class Mission {
-    addOns[] = {"A3_Map_VR", "A3_Characters_F_BLUFOR"};
-    addOnsAuto[] = {"A3_Characters_F_BLUFOR", "A3_Map_VR"};
+    addOns[] = {
+        "A3_Map_VR",
+        "A3_Characters_F_BLUFOR",
+        "a3_characters_f_beta",
+        "a3_characters_f"
+    };
+    addOnsAuto[] = {
+        "A3_Characters_F_BLUFOR",
+        "a3_characters_f",
+        "A3_Map_VR"
+    };
     randomSeed = 904100;
 
     class Intel {
         briefingName = "Restricted Arsenal Creation Assistant";
         startWeather = 0;
-        startWind = 0;
+        startWind = 0.1;
         startWaves = 0.1;
         forecastWeather = 0;
-        forecastWind = 0;
+        forecastWind = 0.1;
         forecastWaves = 0.1;
+        forecastLightnings = 0.1;
         year = 2035;
         month = 6;
         day = 15;
         hour = 12;
         minute = 0;
+        startFogDecay = 0.005;
+        forecastFogDecay = 0.005;
     };
 
     class Groups {
         items = 1;
 
         class Item0 {
-            side = "WEST";
+            side = "CIV";
 
             class Vehicles {
                 items = 1;
 
                 class Item0 {
-                    position[] = {0, 0, 0};
-                    azimut = 0;
+                    position[] = {4256, 5, 4192};
+                    azimut = 180;
                     id = 0;
-                    side = "WEST";
-                    vehicle = "B_Soldier_F";
+                    side = "CIV";
+                    vehicle = "C_man_1";
                     player = "PLAYER COMMANDER";
                     leader = 1;
                     skill = 0.6;
@@ -42,4 +59,36 @@ class Mission {
             };
         };
     };
+};
+
+class Intro {
+    addOns[] = {"A3_Map_VR"};
+    addOnsAuto[] = {"A3_Map_VR"};
+    randomSeed = 904101;
+
+    class Intel {
+        timeOfChanges = 1800;
+        startWeather = 0;
+        startWind = 0.1;
+        startWaves = 0.1;
+        forecastWeather = 0;
+        forecastWind = 0.1;
+        forecastWaves = 0.1;
+        forecastLightnings = 0.1;
+        year = 2035;
+        month = 6;
+        day = 15;
+        hour = 12;
+        minute = 0;
+        startFogDecay = 0.005;
+        forecastFogDecay = 0.005;
+    };
+};
+
+class OutroWin: Intro {
+    randomSeed = 904102;
+};
+
+class OutroLoose: Intro {
+    randomSeed = 904103;
 };

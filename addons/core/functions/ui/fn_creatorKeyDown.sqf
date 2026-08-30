@@ -11,14 +11,4 @@ if (_key isEqualTo 1) exitWith {
     true
 };
 
-if (_key isEqualTo 57) exitWith {
-    private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
-    if ((lnbCurSelRow _list) >= 0) then {
-        [_list, 0] call RACA_fnc_toggleRow;
-        true
-    } else {
-        false
-    }
-};
-
 false

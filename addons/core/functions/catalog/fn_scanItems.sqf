@@ -38,37 +38,42 @@ private _total = count _classNames;
 
         private _picture = getText (_config >> "picture");
         private _author = getText (_config >> "author");
-        private _sourceAddons = configSourceAddonList _config;
+        private _sourceAddon = (configSourceAddonList _config) param [0, ""];
         private _addon = _config call ace_common_fnc_getAddon;
         private _modName = "Arma 3";
-        private _modAuthor = "Bohemia Interactive";
 
         if (_addon isNotEqualTo "") then {
             private _cachedMod = _modCache getOrDefault [_addon, []];
             if (_cachedMod isEqualTo []) then {
-                private _params = modParams [_addon, ["name", "author"]];
+                // "author" is not a supported modParams option and produces an
+                // engine error for every add-on encountered during a scan.
+                private _params = modParams [_addon, ["name"]];
                 _modName = _params param [0, _addon];
-                _modAuthor = _params param [1, ""];
                 if (_modName isEqualTo "") then {_modName = _addon};
-                _cachedMod = [_modName, _modAuthor];
+                _cachedMod = [_modName];
                 _modCache set [_addon, _cachedMod];
             } else {
-                _cachedMod params ["_modName", "_modAuthor"];
+                _cachedMod params ["_modName"];
             };
         };
 
-        if (_author isEqualTo "") then {_author = _modAuthor};
         if (_author isEqualTo "") then {_author = "Unknown"};
 
         private _itemType = [_className] call BIS_fnc_itemType;
+        /*
+         * Search the owning add-on, not every config patch touching a class.
+         * A compatibility patch (for example ACE adjusting a vanilla item)
+         * must not make that vanilla item appear to be ACE content.
+         */
         private _searchBlob = toLowerANSI format [
-            "%1 %2 %3 %4 %5 %6 %7",
+            "%1 %2 %3 %4 %5 %6 %7 %8",
             _displayName,
             _className,
             _category,
             _modName,
             _author,
-            _sourceAddons joinString " ",
+            _addon,
+            _sourceAddon,
             _itemType joinString " "
         ];
 

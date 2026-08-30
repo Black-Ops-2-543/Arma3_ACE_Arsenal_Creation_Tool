@@ -19,5 +19,4 @@ class ctrlControlsGroupNoScrollbars;
 class ctrlCombo;
 class ctrlButton;
 
-#include "ui\PresetAttribute.hpp"
 #include "Cfg3DEN.hpp"

@@ -8,6 +8,9 @@ param(
     [string] $ArmaToolsDirectory,
 
     [Parameter()]
+    [string] $BankRevPath,
+
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string] $OutputDirectory = 'build\@RestrictedArsenalCreationAssistant',
 
@@ -41,6 +44,14 @@ $ArmaToolsDirectory = [System.IO.Path]::GetFullPath($ArmaToolsDirectory)
 if (-not (Test-Path -LiteralPath $ArmaToolsDirectory -PathType Container)) {
     throw "The Arma 3 Tools directory was not found at '$ArmaToolsDirectory'. Pass its full path with -ArmaToolsDirectory."
 }
+
+if ([string]::IsNullOrWhiteSpace($BankRevPath)) {
+    $BankRevPath = Join-Path $ArmaToolsDirectory 'BankRev\BankRev.exe'
+}
+if (-not (Test-Path -LiteralPath $BankRevPath -PathType Leaf)) {
+    throw "BankRev was not found at '$BankRevPath'. Pass its full path with -BankRevPath."
+}
+$BankRevPath = [System.IO.Path]::GetFullPath($BankRevPath)
 
 if (-not (Test-Path -LiteralPath $addonsDirectory -PathType Container)) {
     throw "The add-ons source directory was not found at '$addonsDirectory'."
@@ -93,6 +104,18 @@ foreach ($addonSource in $addonSources) {
     if (-not (Test-Path -LiteralPath $expectedPbo -PathType Leaf)) {
         throw "AddonBuilder reported success, but '$expectedPbo' was not created."
     }
+
+    $expectedPrefix = 'x\raca\addons\' + $addonSource.Name + '\'
+    $properties = @(& $BankRevPath '-properties' $expectedPbo)
+    $actualPrefixLine = $properties | Where-Object { $_ -match '^prefix\s*=' } | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($actualPrefixLine)) {
+        throw "The built PBO '$expectedPbo' does not contain a prefix property."
+    }
+
+    $actualPrefix = ($actualPrefixLine -replace '^prefix\s*=\s*', '').Trim()
+    if (-not $actualPrefix.Equals($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "The built PBO '$expectedPbo' has prefix '$actualPrefix'; expected '$expectedPrefix'."
+    }
 }
 
 foreach ($metadataFileName in @('mod.cpp', 'meta.cpp')) {
@@ -101,5 +124,14 @@ foreach ($metadataFileName in @('mod.cpp', 'meta.cpp')) {
         Copy-Item -LiteralPath $metadataSource -Destination $OutputDirectory -Force
     }
 }
+
+$hashManifest = Join-Path $OutputDirectory 'checksums.sha256'
+$hashLines = Get-ChildItem -LiteralPath $outputAddonsDirectory -Filter '*.pbo' -File |
+    Sort-Object -Property Name |
+    ForEach-Object {
+        $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        "$hash  addons/$($_.Name)"
+    }
+[System.IO.File]::WriteAllLines($hashManifest, $hashLines, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "Built $($addonSources.Count) add-on(s) in '$OutputDirectory'."

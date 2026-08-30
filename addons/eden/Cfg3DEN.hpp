@@ -1,4 +1,8 @@
 class Cfg3DEN {
+    class Attributes {
+        #include "ui\PresetAttribute.hpp"
+    };
+
     class Object {
         class AttributeCategories {
             class RACA_RestrictedArsenals {
@@ -11,11 +15,12 @@ class Cfg3DEN {
                         control = "RACA_PresetAttribute";
                         displayName = "Arsenal preset";
                         tooltip = "Embed and apply a saved restricted ACE Arsenal preset when the scenario starts";
-                        expression = "if (!is3DEN && {_value isNotEqualTo []}) then {[_this, _value] call RACA_fnc_applyPreset}";
+                        expression = "if (!is3DEN && {isServer} && {_value isNotEqualTo []}) then {[_this, _value] call RACA_fnc_applyPreset}";
                         defaultValue = "[]";
                         condition = "1";
                         validate = "none";
                         wikiType = "[[Array]]";
+                        value = 0;
                     };
                 };
             };

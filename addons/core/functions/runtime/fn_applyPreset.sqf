@@ -13,7 +13,14 @@ if (_preset isEqualTo []) exitWith {
 };
 
 private _classes = [];
-{_classes append _x} forEach (_preset select 3);
+{
+    {
+        ([_x] call RACA_fnc_classifyClass) params ["_bucket"];
+        if (_bucket >= 0) then {
+            _classes pushBackUnique _x;
+        };
+    } forEach _x;
+} forEach (_preset select 3);
 
 [_object, true] call ace_arsenal_fnc_removeBox;
 if (_classes isEqualTo []) exitWith {
