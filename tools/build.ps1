@@ -80,7 +80,10 @@ foreach ($addonSource in $addonSources) {
     }
 
     $toolsDirectoryArgument = '-toolsDirectory=' + $ArmaToolsDirectory
-    & $AddonBuilderPath $addonSource.FullName $outputAddonsDirectory '-packonly' '-clear' $toolsDirectoryArgument
+    # Keep the packed PBO prefix aligned with the paths used by CfgFunctions,
+    # mission launch entries, and the other runtime references in the source.
+    $prefixArgument = '-prefix=x\raca\addons\' + $addonSource.Name
+    & $AddonBuilderPath $addonSource.FullName $outputAddonsDirectory '-packonly' '-clear' $toolsDirectoryArgument $prefixArgument
     $builderExitCode = $LASTEXITCODE
 
     if ($builderExitCode -ne 0) {
