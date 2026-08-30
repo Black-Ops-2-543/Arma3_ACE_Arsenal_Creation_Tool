@@ -1,0 +1,45 @@
+version = 12;
+
+class Mission {
+    addOns[] = {"A3_Map_VR", "A3_Characters_F_BLUFOR"};
+    addOnsAuto[] = {"A3_Characters_F_BLUFOR", "A3_Map_VR"};
+    randomSeed = 904100;
+
+    class Intel {
+        briefingName = "Restricted Arsenal Creation Assistant";
+        startWeather = 0;
+        startWind = 0;
+        startWaves = 0.1;
+        forecastWeather = 0;
+        forecastWind = 0;
+        forecastWaves = 0.1;
+        year = 2035;
+        month = 6;
+        day = 15;
+        hour = 12;
+        minute = 0;
+    };
+
+    class Groups {
+        items = 1;
+
+        class Item0 {
+            side = "WEST";
+
+            class Vehicles {
+                items = 1;
+
+                class Item0 {
+                    position[] = {0, 0, 0};
+                    azimut = 0;
+                    id = 0;
+                    side = "WEST";
+                    vehicle = "B_Soldier_F";
+                    player = "PLAYER COMMANDER";
+                    leader = 1;
+                    skill = 0.6;
+                };
+            };
+        };
+    };
+};

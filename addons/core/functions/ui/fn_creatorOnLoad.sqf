@@ -1,0 +1,38 @@
+#include "..\..\script_component.hpp"
+params [["_display", displayNull, [displayNull]]];
+
+if (isNull _display) exitWith {};
+
+uiNamespace setVariable ["RACA_builderDisplay", _display];
+uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+uiNamespace setVariable ["RACA_visibleClasses", []];
+
+private _category = _display displayCtrl RACA_IDC_CATEGORY;
+lbClear _category;
+{
+    private _index = _category lbAdd _x;
+    _category lbSetData [_index, _x];
+} forEach ["All", "Weapons", "Magazines", "Equipment", "Backpacks", "Facewear"];
+_category lbSetCurSel 0;
+
+[_display] call RACA_fnc_refreshPresetCombo;
+[_display] call RACA_fnc_updateSummary;
+
+private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
+_list ctrlEnable false;
+
+[_display, _list] spawn {
+    params ["_display", "_list"];
+    private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
+
+    if (_catalog isEqualTo []) then {
+        [_display, "Reading all ACE Arsenal-compatible items from loaded mods..."] call RACA_fnc_setStatus;
+        _catalog = [_display] call RACA_fnc_scanItems;
+        uiNamespace setVariable ["RACA_itemCatalog", _catalog];
+    };
+
+    if (isNull _display) exitWith {};
+    _list ctrlEnable true;
+    [_display] call RACA_fnc_refreshItemList;
+    [_display, format ["Ready. %1 loaded arsenal items are searchable.", count _catalog]] call RACA_fnc_setStatus;
+};

@@ -1,0 +1,7 @@
+author = "* Black Ops *";
+onLoadName = "Restricted Arsenal Creation Assistant";
+overviewText = "Create and save restricted ACE Arsenal presets.";
+briefing = 0;
+debriefing = 0;
+enableDebugConsole = 1;
+showHUD = 0;
