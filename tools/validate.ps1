@@ -744,6 +744,34 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     }
 }
 
+$templateParameterPath = Join-Path $addonsDirectory 'core\functions\templates\fn_applyTemplateParameters.sqf'
+$quickStartOnLoadPath = Join-Path $addonsDirectory 'core\functions\ui\fn_quickStartOnLoad.sqf'
+$quickStartApplyPath = Join-Path $addonsDirectory 'core\functions\ui\fn_quickStartApply.sqf'
+if (-not (Test-Path -LiteralPath $templateParameterPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $quickStartOnLoadPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $quickStartApplyPath -PathType Leaf)) {
+    $failures.Add("Quick Start must provide parameterized concrete-preset generation.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $templateParameters = Get-Content -Raw -LiteralPath $templateParameterPath
+    $quickStartOnLoad = Get-Content -Raw -LiteralPath $quickStartOnLoadPath
+    $quickStartApply = Get-Content -Raw -LiteralPath $quickStartApplyPath
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'RACA PARAMETERIZED QUICK START' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_OPTICS' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_SUPPRESSORS' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_NVG' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_MEDICAL' -or
+        $quickStartOnLoad -notmatch 'RACA_generatorParameters_v1' -or
+        $quickStartApply -notmatch 'RACA_fnc_applyTemplateParameters' -or
+        $templateParameters -notmatch 'Attachments' -or
+        $templateParameters -notmatch 'NVGs' -or
+        $templateParameters -notmatch 'Medical' -or
+        $templateParameters -notmatch 'EXCLUDE') {
+        $failures.Add("Parameterized Quick Start must persist and apply source-aware optic, suppressor, night-vision, and medical policies.")
+    }
+}
+
 $simulatorPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorRefresh.sqf'
 $simulatorOnLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorOnLoad.sqf'
 $simulatorOpenPath = Join-Path $addonsDirectory 'eden\functions\fn_edenOpenAccessSimulator.sqf'

@@ -651,75 +651,123 @@ class RACA_RscDisplayQuickStart {
     class controlsBackground {
         class Background: RscText {
             idc = -1;
-            x = "safeZoneX + 0.25 * safeZoneW";
-            y = "safeZoneY + 0.16 * safeZoneH";
-            w = "0.50 * safeZoneW";
-            h = "0.68 * safeZoneH";
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.05 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.90 * safeZoneH";
             colorBackground[] = {0.02, 0.025, 0.03, 0.98};
         };
         class Title: RscText {
             idc = -1;
-            text = "RACA QUICK START";
+            text = "RACA PARAMETERIZED QUICK START";
             style = 2;
-            x = "safeZoneX + 0.27 * safeZoneW";
-            y = "safeZoneY + 0.22 * safeZoneH";
-            w = "0.46 * safeZoneW";
+            x = "safeZoneX + 0.14 * safeZoneW";
+            y = "safeZoneY + 0.07 * safeZoneH";
+            w = "0.72 * safeZoneW";
             h = "0.05 * safeZoneH";
             colorBackground[] = {0.19, 0.42, 0.19, 0.95};
         };
     };
     class controls {
         class Help: RscText {
-            idc = RACA_IDC_HISTORY_DETAILS;
-            text = "1. Name the arsenal.  2. Start blank or choose a role starter.  3. Review every suggestion on Assignment.  4. Run preflight and save. Role starters are broad loaded-mod suggestions, never an authorization decision.";
+            idc = RACA_IDC_QUICK_HELP;
+            text = "Choose a built-in role or custom unit pack, constrain it to a loaded source mod, then apply optic, suppressor, night-vision, and medical policies. The result is always an unsaved review draft.";
             style = 16;
-            x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.29 * safeZoneH";
-            w = "0.44 * safeZoneW";
-            h = "0.14 * safeZoneH";
+            x = "safeZoneX + 0.15 * safeZoneW";
+            y = "safeZoneY + 0.14 * safeZoneH";
+            w = "0.70 * safeZoneW";
+            h = "0.09 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.25};
         };
         class NameLabel: RscText {
             idc = -1;
             text = "Draft preset name";
-            x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.45 * safeZoneH";
-            w = "0.44 * safeZoneW";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.26 * safeZoneH";
+            w = "0.32 * safeZoneW";
             h = "0.03 * safeZoneH";
         };
         class Name: RscEdit {
             idc = RACA_IDC_QUICK_NAME;
-            x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.485 * safeZoneH";
-            w = "0.44 * safeZoneW";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.295 * safeZoneH";
+            w = "0.32 * safeZoneW";
             h = "0.04 * safeZoneH";
         };
         class RoleLabel: NameLabel {
-            text = "Starting point";
-            y = "safeZoneY + 0.54 * safeZoneH";
+            text = "Starting role or custom pack";
+            y = "safeZoneY + 0.355 * safeZoneH";
         };
         class Role: RscCombo {
             idc = RACA_IDC_QUICK_ROLE;
-            x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.575 * safeZoneH";
-            w = "0.44 * safeZoneW";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.39 * safeZoneH";
+            w = "0.32 * safeZoneW";
             h = "0.04 * safeZoneH";
         };
         class SourceLabel: NameLabel {
             text = "Optional source-mod boundary";
-            y = "safeZoneY + 0.625 * safeZoneH";
+            y = "safeZoneY + 0.45 * safeZoneH";
         };
         class Source: Role {
             idc = RACA_IDC_QUICK_SOURCE;
-            y = "safeZoneY + 0.66 * safeZoneH";
+            y = "safeZoneY + 0.485 * safeZoneH";
             tooltip = "Limit role-starter suggestions to one loaded content source";
+        };
+        class ParameterHelp: Help {
+            idc = -1;
+            text = "Policies modify the generated set after the starter or pack is applied. Add uses matching classes from the source boundary; Exclude removes matching classes. Review broad matches before saving.";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.55 * safeZoneH";
+            w = "0.32 * safeZoneW";
+            h = "0.17 * safeZoneH";
+        };
+        class OpticsLabel: NameLabel {
+            text = "Optic policy";
+            x = "safeZoneX + 0.52 * safeZoneW";
+        };
+        class Optics: Role {
+            idc = RACA_IDC_QUICK_OPTICS;
+            x = "safeZoneX + 0.52 * safeZoneW";
+            y = "safeZoneY + 0.295 * safeZoneH";
+        };
+        class SuppressorLabel: OpticsLabel {
+            text = "Suppressor policy";
+            y = "safeZoneY + 0.355 * safeZoneH";
+        };
+        class Suppressors: Optics {
+            idc = RACA_IDC_QUICK_SUPPRESSORS;
+            y = "safeZoneY + 0.39 * safeZoneH";
+        };
+        class NvgLabel: OpticsLabel {
+            text = "Night-vision policy";
+            y = "safeZoneY + 0.45 * safeZoneH";
+        };
+        class Nvg: Optics {
+            idc = RACA_IDC_QUICK_NVG;
+            y = "safeZoneY + 0.485 * safeZoneH";
+        };
+        class MedicalLabel: OpticsLabel {
+            text = "Medical policy";
+            y = "safeZoneY + 0.545 * safeZoneH";
+        };
+        class Medical: Optics {
+            idc = RACA_IDC_QUICK_MEDICAL;
+            y = "safeZoneY + 0.58 * safeZoneH";
+        };
+        class GeneratorNote: ParameterHelp {
+            text = "Your last role, source, and policy choices are restored the next time Quick Start opens.";
+            x = "safeZoneX + 0.52 * safeZoneW";
+            y = "safeZoneY + 0.64 * safeZoneH";
+            w = "0.32 * safeZoneW";
+            h = "0.08 * safeZoneH";
         };
         class Create: RscButton {
             idc = RACA_IDC_QUICK_CREATE;
-            text = "CREATE REVIEW DRAFT";
-            x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.74 * safeZoneH";
-            w = "0.27 * safeZoneW";
+            text = "GENERATE REVIEW DRAFT";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.83 * safeZoneH";
+            w = "0.32 * safeZoneW";
             h = "0.05 * safeZoneH";
             colorBackground[] = {0.19, 0.42, 0.19, 0.95};
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_quickStartApply";
@@ -727,8 +775,8 @@ class RACA_RscDisplayQuickStart {
         class Cancel: Create {
             idc = 2;
             text = "CANCEL";
-            x = "safeZoneX + 0.57 * safeZoneW";
-            w = "0.15 * safeZoneW";
+            x = "safeZoneX + 0.52 * safeZoneW";
+            w = "0.32 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };

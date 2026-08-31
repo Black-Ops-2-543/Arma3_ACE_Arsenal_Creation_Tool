@@ -53,6 +53,7 @@ class CfgFunctions {
         class Templates {
             file = "\x\raca\addons\core\functions\templates";
             class applyRoleTemplate {};
+            class applyTemplateParameters {};
             class getRolePacks {};
             class getRoleTemplates {};
         };

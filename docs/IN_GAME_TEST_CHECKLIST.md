@@ -28,6 +28,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] The VR scene loads, followed by the creator interface.
 - [ ] With an empty RACA profile, Quick Start opens once and creates either a blank draft or a reviewable role-starter draft without saving automatically.
 - [ ] Quick Start remains available manually after onboarding.
+- [ ] Parameterized Quick Start combines a built-in role or custom pack with source, optic, suppressor, night-vision, and medical policies, and generates only an unsaved review draft.
+- [ ] Add policies include only matching active-catalogue classes inside the selected source boundary; Exclude policies remove matching starter/pack classes; the last valid parameter choices restore after reopening Quick Start.
 - [ ] A Quick Start role draft constrained to one source mod contains no catalogue classes attributed to another source.
 - [ ] Capturing a custom role pack records the current included classes, adds it to both Role starter and Quick Start, and persists after restarting Arma.
 - [ ] Merging a custom pack retains existing draft classes; replacing uses only available pack classes; unavailable mod classes are reported rather than inserted.

@@ -34,7 +34,7 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- provides first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, detailed item inspection, Ctrl/Shift multi-selection, and undo/redo;
+- provides parameterized first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, detailed item inspection, Ctrl/Shift multi-selection, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
@@ -76,6 +76,8 @@ Start Arma 3 after confirming the dependencies load without errors.
 Open **Tutorials > Restricted Arsenal Creator**. RACA loads a catalogue from the current session.
 
 The creator is divided into two tabs. **Preset Management** contains naming, saving, loading, import/export, and adoption maintenance. **Assignment** contains the complete item table, search, category filters, current inclusion state, and bulk include/exclude tools.
+
+**Quick Start** is also a concrete preset generator. Choose a built-in role or custom unit pack, optionally limit it to one loaded source mod, then set optic, suppressor, night-vision, and medical policies. RACA remembers those parameter choices and generates an unsaved draft for review; it never saves or assigns generated content automatically.
 
 The controls include:
 
@@ -124,7 +126,7 @@ For a basic rifleman arsenal:
 
 Bulk actions affect only rows currently visible through the active filters. Use **Exclude Visible** to remove a filtered group, or **Clear All** to start over.
 
-To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue; an active Source filter constrains them to that content pack. Quick Start exposes the same source boundary directly. Review the resulting list rather than treating it as a fixed faction loadout.
+To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue; an active Source filter constrains them to that content pack. Parameterized Quick Start exposes the same source boundary plus optic, suppressor, night-vision, and medical add/exclude policies. Review the resulting list rather than treating it as a fixed faction loadout.
 
 To preserve your unit's own faction, medical, logistics, or doctrine convention, build the desired included set and open **Packs**. Capture the current draft under a descriptive name. A custom pack can later merge its available classes into another draft, replace draft inclusion, or serve as a Quick Start choice. Role packs are profile-wide authoring aids: deleting one never deletes a preset, and unavailable mod classes are reported and skipped.
 
