@@ -198,6 +198,10 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_moduleToggle' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleResetQuotas' -or
         $autotestClientInit -notmatch 'RACA_fnc_openCreatorDiagnostics' -or
+        $autotestClientInit -notmatch 'RACA_fnc_deletePreset' -or
+        $autotestClientInit -notmatch 'RACA_fnc_removePresetFromLibrary' -or
+        $autotestClientInit -notmatch 'RACA_fnc_getPresetHistory' -or
+        $autotestClientInit -notmatch 'Deleted from profile library' -or
         $autotestClientInit -notmatch 'RACA_RscDisplayCreator' -or
         $autotestClientInit -notmatch 'displayCtrl 1616' -or
         $autotestClientInit -notmatch 'endMission' -or
@@ -575,14 +579,21 @@ if (Test-Path -LiteralPath $cyclePath -PathType Leaf) {
 }
 
 $deletePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_deletePreset.sqf'
-if (-not (Test-Path -LiteralPath $deletePresetPath -PathType Leaf)) {
+$removePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_removePresetFromLibrary.sqf'
+if (-not (Test-Path -LiteralPath $deletePresetPath -PathType Leaf) -or -not (Test-Path -LiteralPath $removePresetPath -PathType Leaf)) {
     $failures.Add("The preset library must provide a guarded deletion workflow.")
 }
 else {
     $deletePresetSource = Get-Content -Raw -LiteralPath $deletePresetPath
-    foreach ($requiredPattern in @('BIS_fnc_guiMessage', 'deleteAt', 'saveProfileNamespace', 'unsaved recovery copy')) {
+    $removePresetSource = Get-Content -Raw -LiteralPath $removePresetPath
+    foreach ($requiredPattern in @('BIS_fnc_guiMessage', 'RACA_fnc_removePresetFromLibrary', 'unsaved recovery copy')) {
         if ($deletePresetSource -notmatch [regex]::Escape($requiredPattern)) {
             $failures.Add("Preset deletion is missing required behavior '$requiredPattern'.")
+        }
+    }
+    foreach ($requiredPattern in @('RACA_fnc_archivePreset', 'deleteAt', 'saveProfileNamespace', 'Deleted from profile library')) {
+        if ($removePresetSource -notmatch [regex]::Escape($requiredPattern)) {
+            $failures.Add("Confirmed preset removal is missing required behavior '$requiredPattern'.")
         }
     }
 }

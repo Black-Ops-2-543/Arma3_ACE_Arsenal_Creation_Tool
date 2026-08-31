@@ -44,6 +44,7 @@ class CfgFunctions {
             class migratePreset {};
             class refreshBaseCombo {};
             class refreshPresetCombo {};
+            class removePresetFromLibrary {};
             class saveCurrentPreset {};
             class setPresetRevision {};
             class validatePreset {};

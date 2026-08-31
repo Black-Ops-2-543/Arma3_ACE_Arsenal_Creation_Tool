@@ -69,10 +69,10 @@ if (!_confirmed) exitWith {
     false
 };
 
-[_preset, "Deleted from profile library"] call RACA_fnc_archivePreset;
-_library deleteAt _presetIndex;
-profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
-saveProfileNamespace;
+if !([_preset] call RACA_fnc_removePresetFromLibrary) exitWith {
+    [_display, format ["'%1' could not be deleted because the profile library changed. Refresh and try again.", _name]] call RACA_fnc_setStatus;
+    false
+};
 
 uiNamespace setVariable ["RACA_creatorDirty", true];
 [_name] spawn {

@@ -32,6 +32,7 @@ params ["_player"];
         (!isNil "RACA_fnc_validatePreset" &&
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
+        {!isNil "RACA_fnc_removePresetFromLibrary"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
         {!isNil "RACA_fnc_moduleAssign"} &&
         {!isNil "RACA_fnc_moduleClear"} &&
@@ -45,6 +46,7 @@ params ["_player"];
         !isNil "RACA_fnc_validatePreset" &&
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
+        {!isNil "RACA_fnc_removePresetFromLibrary"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
         {!isNil "RACA_fnc_moduleAssign"} &&
         {!isNil "RACA_fnc_moduleClear"} &&
@@ -286,6 +288,34 @@ params ["_player"];
     private _deleteControl = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1616};
     [!isNull _creatorDisplay, "Creator display opens inside the packaged runtime"] call _record;
     [!isNull _deleteControl && {ctrlText _deleteControl isEqualTo "DELETE"}, "Preset deletion control is present in the live Creator"] call _record;
+    private _wasLibraryMissing = isNil {profileNamespace getVariable "RACA_presetLibrary_v1"};
+    private _oldLibrary = profileNamespace getVariable ["RACA_presetLibrary_v1", []];
+    private _wasHistoryMissing = isNil {profileNamespace getVariable "RACA_presetHistory_v1"};
+    private _oldHistory = profileNamespace getVariable ["RACA_presetHistory_v1", []];
+    private _disposableName = format ["RACA Autotest Delete %1", diag_tickTime];
+    private _disposablePreset = [
+        "RACA_PRESET",
+        1,
+        _disposableName,
+        [["arifle_MX_F"], [], [], []],
+        ["RACA_RUNTIME", 1, [], "", 0, "", [], []]
+    ];
+    profileNamespace setVariable ["RACA_presetLibrary_v1", [_disposablePreset]];
+    profileNamespace setVariable ["RACA_presetHistory_v1", []];
+    private _deletedDisposable = [_disposablePreset] call RACA_fnc_removePresetFromLibrary;
+    private _libraryAfterDelete = profileNamespace getVariable ["RACA_presetLibrary_v1", []];
+    private _historyAfterDelete = [_disposableName] call RACA_fnc_getPresetHistory;
+    [
+        _deletedDisposable &&
+        {_libraryAfterDelete isEqualTo []} &&
+        {_historyAfterDelete isNotEqualTo []} &&
+        {((_historyAfterDelete select 0) param [7, ""]) isEqualTo "Deleted from profile library"},
+        "Confirmed preset deletion archives and removes a disposable profile preset"
+    ] call _record;
+    if (_wasLibraryMissing) then {profileNamespace setVariable ["RACA_presetLibrary_v1", nil]} else {profileNamespace setVariable ["RACA_presetLibrary_v1", _oldLibrary]};
+    if (_wasHistoryMissing) then {profileNamespace setVariable ["RACA_presetHistory_v1", nil]} else {profileNamespace setVariable ["RACA_presetHistory_v1", _oldHistory]};
+    saveProfileNamespace;
+    [_creatorDisplay] call RACA_fnc_refreshPresetCombo;
     private _preflightOpened = if (isNull _creatorDisplay) then {false} else {[_creatorDisplay] call RACA_fnc_openCreatorDiagnostics};
     uiSleep 0.5;
     private _preflightDisplay = findDisplay 904140;
