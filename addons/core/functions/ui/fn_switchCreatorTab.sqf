@@ -64,6 +64,7 @@ private _assignmentControls = [
     RACA_IDC_SET_CATEGORY_LIMIT,
     RACA_IDC_FAVORITE,
     RACA_IDC_VIEW_MODE,
+    RACA_IDC_ITEM_DETAILS_BUTTON,
     RACA_IDC_SUMMARY
 ];
 

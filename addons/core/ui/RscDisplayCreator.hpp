@@ -511,7 +511,7 @@ class RACA_RscDisplayCreator {
             colorBackground[] = {0, 0, 0, 0.45};
             tooltip = "Click to toggle one row. Ctrl-click selects separate rows; Shift-click selects a range. Press Space, Favorite, or Limit Item to apply an action to the complete selection.";
             onMouseButtonUp = "_this spawn {uiSleep 0.01; _this call RACA_fnc_toggleRow}";
-            onKeyDown = "if ((_this select 1) isEqualTo 57) then {[_this select 0, 0] call RACA_fnc_toggleRow; true} else {false}";
+            onKeyDown = "if ((_this select 1) isEqualTo 57) then {[_this select 0, 0] call RACA_fnc_toggleRow; true} else {if ((_this select 1) isEqualTo 28) then {ctrlParent (_this select 0) call RACA_fnc_openItemDetails; true} else {false}}";
         };
 
         class IncludeVisible: RscButton {
@@ -590,6 +590,15 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.805 * safeZoneW";
             w = "0.065 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCatalogView";
+        };
+
+        class ItemDetails: SetLimit {
+            idc = RACA_IDC_ITEM_DETAILS_BUTTON;
+            text = "DETAILS";
+            x = "safeZoneX + 0.875 * safeZoneW";
+            w = "0.06 * safeZoneW";
+            tooltip = "Inspect the selected item's config, source, compatibility metadata, draft state, and effective quantity policy";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openItemDetails";
         };
 
         class Summary: RscText {
@@ -1138,6 +1147,108 @@ class RACA_RscDisplaySavedViews {
             text = "CLOSE";
             x = "safeZoneX + 0.76 * safeZoneW";
             w = "0.15 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayItemDetails {
+    idd = RACA_IDD_ITEM_DETAILS;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_itemDetailsOnLoad";
+    onUnload = "uiNamespace setVariable ['RACA_itemDetailsParent', displayNull]; uiNamespace setVariable ['RACA_itemDetailsClass', '']";
+
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.18 * safeZoneW";
+            y = "safeZoneY + 0.10 * safeZoneH";
+            w = "0.64 * safeZoneW";
+            h = "0.80 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: RscText {
+            idc = RACA_IDC_ITEM_DETAILS_TITLE;
+            text = "ITEM DETAILS";
+            style = 2;
+            x = "safeZoneX + 0.20 * safeZoneW";
+            y = "safeZoneY + 0.12 * safeZoneH";
+            w = "0.60 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Picture: RscPicture {
+            idc = RACA_IDC_ITEM_DETAILS_PICTURE;
+            text = "";
+            x = "safeZoneX + 0.21 * safeZoneW";
+            y = "safeZoneY + 0.20 * safeZoneH";
+            w = "0.16 * safeZoneW";
+            h = "0.20 * safeZoneH";
+        };
+        class PictureHelp: RscText {
+            idc = -1;
+            text = "The image and metadata come from the class currently exposed by ACE Arsenal.";
+            style = 16;
+            x = "safeZoneX + 0.21 * safeZoneW";
+            y = "safeZoneY + 0.42 * safeZoneH";
+            w = "0.16 * safeZoneW";
+            h = "0.15 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.25};
+        };
+        class Details: RscText {
+            idc = RACA_IDC_ITEM_DETAILS_TEXT;
+            text = "Loading item metadata...";
+            style = 16;
+            x = "safeZoneX + 0.39 * safeZoneW";
+            y = "safeZoneY + 0.19 * safeZoneH";
+            w = "0.40 * safeZoneW";
+            h = "0.46 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.40};
+        };
+        class Status: RscText {
+            idc = RACA_IDC_ITEM_DETAILS_STATUS;
+            text = "";
+            style = 16;
+            x = "safeZoneX + 0.21 * safeZoneW";
+            y = "safeZoneY + 0.68 * safeZoneH";
+            w = "0.58 * safeZoneW";
+            h = "0.07 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class Include: RscButton {
+            idc = RACA_IDC_ITEM_DETAILS_INCLUDE;
+            text = "INCLUDE ITEM";
+            x = "safeZoneX + 0.21 * safeZoneW";
+            y = "safeZoneY + 0.78 * safeZoneH";
+            w = "0.14 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_itemDetailsToggleIncluded";
+        };
+        class Favorite: Include {
+            idc = RACA_IDC_ITEM_DETAILS_FAVORITE;
+            text = "ADD FAVORITE";
+            x = "safeZoneX + 0.36 * safeZoneW";
+            colorBackground[] = {0.34, 0.29, 0.08, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_itemDetailsToggleFavorite";
+        };
+        class Copy: Include {
+            idc = RACA_IDC_ITEM_DETAILS_COPY;
+            text = "COPY DETAILS";
+            x = "safeZoneX + 0.51 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_itemDetailsCopy";
+        };
+        class Close: Include {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.66 * safeZoneW";
+            w = "0.13 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };

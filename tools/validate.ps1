@@ -689,6 +689,33 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     }
 }
 
+$itemDetailPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_openItemDetails.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsOnLoad.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsRefresh.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsToggleIncluded.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsToggleFavorite.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsCopy.sqf')
+)
+if ($itemDetailPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("The creator must provide the detailed catalogue-item inspector.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $itemDetails = ($itemDetailPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'RACA_RscDisplayItemDetails' -or
+        $creatorUi -notmatch 'RACA_IDC_ITEM_DETAILS_BUTTON' -or
+        $itemDetails -notmatch 'configSourceAddonList' -or
+        $itemDetails -notmatch 'inheritsFrom' -or
+        $itemDetails -notmatch 'BIS_fnc_itemType' -or
+        $itemDetails -notmatch 'RACA_builderLimits' -or
+        $itemDetails -notmatch 'RACA_fnc_pushCreatorHistory' -or
+        $itemDetails -notmatch 'RACA_favoriteClasses_v1' -or
+        $itemDetails -notmatch 'copyToClipboard') {
+        $failures.Add("Item details must expose config/source/type/policy context and support undoable inclusion, favorites, and report copying.")
+    }
+}
+
 $simulatorPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorRefresh.sqf'
 $simulatorOnLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorOnLoad.sqf'
 $simulatorOpenPath = Join-Path $addonsDirectory 'eden\functions\fn_edenOpenAccessSimulator.sqf'

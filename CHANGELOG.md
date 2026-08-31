@@ -9,6 +9,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Guided Quick Start, role starters, source filtering, favorites, persistent catalogue sorting, item context, and undo/redo for preset authoring.
 - Counted owning-add-on and author filters, Ctrl/Shift range selection, batch favorite/limit actions, and loaded-mod catalogue health evidence.
 - Profile-wide saved catalogue views for complete search, category, mod, add-on, author, and sorting workspaces without draft mutation.
+- Detailed item inspection with config lineage, content source, compatibility metadata, draft state, effective quota policy, and direct authoring actions.
 - Compatibility preflight, required-mod manifests, support bundles, preset comparison, revision history, and rollback.
 - Guarded profile-preset deletion with an unsaved recovery copy and archived outgoing revision.
 - Transactional Eden multi-slot configuration, access rules, mission dashboard, bulk updates, and mission-unit access simulation.

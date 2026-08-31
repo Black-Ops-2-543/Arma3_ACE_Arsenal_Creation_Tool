@@ -34,7 +34,7 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- provides first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, item context tooltips, Ctrl/Shift multi-selection, and undo/redo;
+- provides first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, detailed item inspection, Ctrl/Shift multi-selection, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
@@ -88,6 +88,7 @@ The controls include:
 - **Favorite** — stores the selected class in a profile-wide Favorites view;
 - **Included / Item / Class Name / Mod / Author headers** — sort the filtered catalogue in either direction and remember the chosen order across sessions;
 - **Included** — shows whether a row belongs to the current selection;
+- **Details** (or **Enter**) — opens the selected class's config family, base class, source add-ons, item type, mass/capacity/compatibility metadata, draft state, favorite state, and effective quantity policy;
 - **Saved presets** — chooses a previously saved list;
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
@@ -105,7 +106,7 @@ The controls include:
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk; and
 - **Ctrl-click / Shift-click** — selects separate rows or a continuous range; press **Space**, **Favorite**, or **Limit Item** to change the complete set in one operation. Inclusion and limits remain undoable.
 
-The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows its class, category, source, author, favorite state, and effective limit.
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows a compact summary; **Details** opens the full class/source/config/compatibility report and can include, exclude, favorite, or copy that item without leaving the inspector.
 
 ### 3. Build the selection
 

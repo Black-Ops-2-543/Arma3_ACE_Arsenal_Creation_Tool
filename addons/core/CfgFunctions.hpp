@@ -68,8 +68,14 @@ class CfgFunctions {
             class historyOnLoad {};
             class historySelect {};
             class getSavedCatalogViews {};
+            class itemDetailsCopy {};
+            class itemDetailsOnLoad {};
+            class itemDetailsRefresh {};
+            class itemDetailsToggleFavorite {};
+            class itemDetailsToggleIncluded {};
             class openPresetHistory {};
             class openCreatorDiagnostics {};
+            class openItemDetails {};
             class openSavedCatalogViews {};
             class preflightCopy {};
             class preflightOnLoad {};

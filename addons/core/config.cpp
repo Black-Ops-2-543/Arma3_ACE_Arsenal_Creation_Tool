@@ -126,6 +126,7 @@ class RscEdit;
 class RscCombo;
 class RscListNBox;
 class RscFrame;
+class RscPicture;
 class RscControlsGroupNoScrollbars;
 
 #include "ui\RscDisplayCreator.hpp"

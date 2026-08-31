@@ -48,6 +48,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Re-capturing a case-insensitive duplicate view requires confirmation; deleting a view requires confirmation and leaves every preset and the current draft intact.
 - [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
 - [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.
+- [ ] **Details** and Enter open the selected item inspector; its class/config/source/type/compatibility metadata matches the active row, its draft/favorite/limit state updates immediately, and Copy Details copies the visible report.
+- [ ] Include/Exclude and Favorite actions from the item inspector update the creator row and preserve Undo behavior for draft inclusion.
 - [ ] Clicking Included, Item, Class Name, Mod, and Author headers toggles a deterministic sort, preserves the selected class and filters, and restores the last sort after reopening Arma.
 
 ## 3. Selection-state regressions
