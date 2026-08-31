@@ -8,7 +8,16 @@ private _normalized = [];
         private _limit = floor (_x param [1, -1, [0]]);
         private _scope = toLowerANSI (_x param [2, "arsenal", [""]]);
         private _reset = toLowerANSI (_x param [3, "never", [""]]);
-        if ([_className] call RACA_fnc_isSafeClassName && {_limit >= -1}) then {
+        private _categoryRule = toLowerANSI _className find "category:" isEqualTo 0;
+        private _categoryName = if (_categoryRule) then {toLowerANSI (_className select [9])} else {""};
+        private _categoryNames = createHashMapFromArray [
+            ["weapons", "Weapons"], ["attachments", "Attachments"], ["magazines", "Magazines"],
+            ["uniforms", "Uniforms"], ["vests", "Vests"], ["backpacks", "Backpacks"],
+            ["headgear", "Headgear"], ["nvgs", "NVGs"], ["facewear", "Facewear"], ["equipment", "Equipment"]
+        ];
+        private _categoryValid = _categoryNames getOrDefault [_categoryName, ""] isNotEqualTo "";
+        if (([_className] call RACA_fnc_isSafeClassName || {_categoryRule && {_categoryValid}}) && {_limit >= -1}) then {
+            if (_categoryRule) then {_className = format ["category:%1", _categoryNames get _categoryName]};
             if !(_scope in ["interaction", "player", "life", "mission", "arsenal"]) then {_scope = "arsenal"};
             if !(_reset in ["never", "respawn", "round", "phase", "interaction"]) then {_reset = "never"};
             private _existing = _normalized findIf {(_x select 0) isEqualTo _className};

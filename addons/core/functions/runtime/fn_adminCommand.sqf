@@ -8,9 +8,7 @@ if (!isServer || {!([_unit] call RACA_fnc_isAdminAuthorized)}) exitWith {
     ["DENIED", _unit, objNull, "", ["Unauthorized runtime administration", _operation]] call RACA_fnc_logEvent;
     false
 };
-if !(isNil "remoteExecutedOwner") then {
-    if (remoteExecutedOwner > 0 && {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
-};
+if (isRemoteExecuted && {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
 private _result = switch (toLowerANSI _operation) do {
     case "resetquotas": {["all", objNull, "", ""] call RACA_fnc_resetQuotas; true};
     case "resetround": {["round", objNull, "", ""] call RACA_fnc_resetQuotas; true};

@@ -371,6 +371,73 @@ if (Test-Path -LiteralPath $edenPopulatePath -PathType Leaf) {
     }
 }
 
+$coreConfigPath = Join-Path $addonsDirectory 'core\config.cpp'
+if (Test-Path -LiteralPath $coreConfigPath -PathType Leaf) {
+    $coreConfig = Get-Content -Raw -LiteralPath $coreConfigPath
+    if ($coreConfig -match 'class\s+RACA_fnc_applyObjectConfig\s*\{[^}]*allowedTargets') {
+        $failures.Add("Clients must not be allowed to remotely replace an object's authoritative configuration.")
+    }
+    foreach ($remoteFunction in @('RACA_fnc_requestOpen', 'RACA_fnc_finishSession', 'RACA_fnc_requestLoadoutApply', 'RACA_fnc_applyAuthorizedLoadout')) {
+        if ($coreConfig -notmatch ('class\s+' + $remoteFunction + '\s*\{')) {
+            $failures.Add("CfgRemoteExec is missing the controlled runtime endpoint '$remoteFunction'.")
+        }
+    }
+}
+
+$applyObjectPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_applyObjectConfig.sqf'
+if (Test-Path -LiteralPath $applyObjectPath -PathType Leaf) {
+    $applyObject = Get-Content -Raw -LiteralPath $applyObjectPath
+    if ($applyObject -notmatch '!isServer\s*\|\|' -or
+        $applyObject -notmatch 'RACA_objectConfig"\s*,\s*_config\s*,\s*false' -or
+        $applyObject -notmatch 'RACA_fnc_buildActionManifest') {
+        $failures.Add("Runtime object application must stay server-only, keep full configuration private, and broadcast only an action manifest.")
+    }
+}
+
+$actionManifestPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_buildActionManifest.sqf'
+if (Test-Path -LiteralPath $actionManifestPath -PathType Leaf) {
+    $actionManifest = Get-Content -Raw -LiteralPath $actionManifestPath
+    if ($actionManifest -notmatch 'RACA_ACTION_MANIFEST' -or $actionManifest -notmatch '_slots pushBack \[_id, _name, \[\]') {
+        $failures.Add("The JIP action manifest must omit embedded preset contents and quota policy.")
+    }
+}
+
+$requestOpenPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_requestOpen.sqf'
+if (Test-Path -LiteralPath $requestOpenPath -PathType Leaf) {
+    $requestOpen = Get-Content -Raw -LiteralPath $requestOpenPath
+    foreach ($requiredPattern in @('owner _unit isNotEqualTo remoteExecutedOwner', '_unit distance _object', 'RACA_openSessions', 'RACA_fnc_evaluateAccess')) {
+        if ($requestOpen -notmatch [regex]::Escape($requiredPattern)) {
+            $failures.Add("The arsenal-open endpoint is missing authority check '$requiredPattern'.")
+        }
+    }
+}
+
+$finishSessionPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_finishSession.sqf'
+if (Test-Path -LiteralPath $finishSessionPath -PathType Leaf) {
+    $finishSession = Get-Content -Raw -LiteralPath $finishSessionPath
+    if ($finishSession -match 'RACA_quotaState"\s*,\s*_quota\s*,\s*true' -or
+        $finishSession -notmatch 'getUnitLoadout\s+_unit' -or
+        $finishSession -notmatch '_unauthorized') {
+        $failures.Add("Session completion must use the server-observed loadout, reject unauthorized additions, and keep quota state server-local.")
+    }
+}
+
+$savedLoadoutPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_applyPlayerLoadout.sqf'
+if (Test-Path -LiteralPath $savedLoadoutPath -PathType Leaf) {
+    $savedLoadout = Get-Content -Raw -LiteralPath $savedLoadoutPath
+    if ($savedLoadout -notmatch 'RACA_fnc_requestLoadoutApply' -or $savedLoadout -match '\bsetUnitLoadout\b') {
+        $failures.Add("Saved loadouts must pass through the server authorization and quota session instead of applying directly on the client.")
+    }
+}
+
+$countLoadoutPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_countLoadout.sqf'
+if (Test-Path -LiteralPath $countLoadoutPath -PathType Leaf) {
+    $countLoadout = Get-Content -Raw -LiteralPath $countLoadoutPath
+    if ($countLoadout -notmatch '_quantity' -or $countLoadout -notmatch '_countContainer' -or $countLoadout -notmatch 'floor \(_quantity max 0\)') {
+        $failures.Add("Loadout accounting must preserve container stack quantities rather than counting every cargo entry as one.")
+    }
+}
+
 if (-not $SkipConfig) {
     if (-not (Test-Path -LiteralPath $CfgConvertPath -PathType Leaf)) {
         throw "CfgConvert was not found at '$CfgConvertPath'. Pass its full path with -CfgConvertPath or use -SkipConfig."

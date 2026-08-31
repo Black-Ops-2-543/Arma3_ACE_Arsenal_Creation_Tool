@@ -5,4 +5,5 @@ params [
 ];
 
 if (isNull _object) exitWith {false};
+if (!isServer) exitWith {false};
 [_object, _rawPreset] call RACA_fnc_applyObjectConfig

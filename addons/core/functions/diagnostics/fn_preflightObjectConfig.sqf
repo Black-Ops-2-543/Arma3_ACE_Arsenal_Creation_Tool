@@ -27,12 +27,16 @@ private _slotNames = createHashMap;
     private _optional = _access param [6, [], [[]]];
     ([_preset, _catalog, _optional] call RACA_fnc_analyzePreset) params ["", "_presetEntries"];
     {
+        if ((_x select 1) isEqualTo "MISSING_REQUIRED") then {
+            _x set [0, "WARNING"];
+            _x set [2, format ["%1 Runtime will omit this unavailable class and keep the remaining valid items.", _x select 2]];
+        };
         _x set [2, format ["Slot '%1': %2", _slotName, _x select 2]];
         _entries pushBack _x;
     } forEach _presetEntries;
     {
         _x params ["_className", "_limit", "_scope", "_reset"];
-        if (_limit < 0) then {
+        if (_limit < -1) then {
             _entries pushBack ["ERROR", "NEGATIVE_LIMIT", format ["Slot '%1' gives '%2' a negative quantity limit.", _slotName, _className], _className, "", ""];
         };
         if !(_scope in ["interaction", "player", "life", "mission", "arsenal"]) then {

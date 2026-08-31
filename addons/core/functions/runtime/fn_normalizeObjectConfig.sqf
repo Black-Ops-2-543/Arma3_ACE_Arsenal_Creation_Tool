@@ -27,8 +27,7 @@ if ((_raw param [0, "", [""]]) isEqualTo "RACA_PRESET") then {
             private _preset = [_rawPreset] call RACA_fnc_flattenPreset;
             if (_preset isNotEqualTo []) then {
                 private _enabled = _x param [3, true, [true]];
-                private _access = _x param [4, _defaultAccess, [[]]];
-                if ((_access param [0, "", [""]]) isNotEqualTo "RACA_ACCESS") then {_access = _defaultAccess};
+                private _access = [_x param [4, _defaultAccess, [[]]]] call RACA_fnc_normalizeAccess;
                 private _limits = [_x param [5, ([_preset] call RACA_fnc_getRuntimePolicy) select 2, [[]]]] call RACA_fnc_normalizeLimits;
                 private _icon = _x param [6, "", [""]];
                 private _hideWhenDenied = _x param [7, false, [true]];

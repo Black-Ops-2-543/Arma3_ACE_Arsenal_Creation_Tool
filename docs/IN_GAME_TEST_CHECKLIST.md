@@ -98,8 +98,17 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Every enabled slot creates its own named ACE interaction and opens only its embedded preset's classes.
 - [ ] Disabled slots create no usable interaction.
 - [ ] Hidden denied slots are invisible to an unauthorized player; visible denied slots show the configured denial message without opening.
+- [ ] A client cannot open a slot for another player unit, open from beyond the configured distance, or begin a second session while one is active.
+- [ ] Adding a class outside the slot through any concurrent inventory route causes the complete pre-session loadout to be restored.
+- [ ] Exact-class and category limits enforce quantities stored inside uniform, vest, and backpack cargo stacks.
+- [ ] `-1` remains unlimited; interaction limits reset on each open; player/life/mission/arsenal limits persist and reset only at their documented boundary.
+- [ ] Exhausted exact classes and exhausted categories are absent from the next ACE session and the remaining-quota message is correct.
+- [ ] Saving a personal loadout and reapplying it uses the same access and quota checks; an outside class or exhausted quantity is rejected and restored.
+- [ ] Reconfiguring, clearing, or deleting an arsenal object while it is open closes the session and restores the pre-session loadout.
 - [ ] A preset containing a now-missing mod class still initializes with the remaining valid classes and writes a warning to RPT.
 - [ ] Repeated previews do not accumulate unrestricted ACE virtual cargo.
+- [ ] The client has no public `RACA_objectConfig`, `RACA_quotaState`, or `RACA_openSessions` data containing the full server policy.
+- [ ] A disconnect, respawn, or stale-session timeout leaves no locked session and does not preserve unauthorized equipment.
 - [ ] On a hosted multiplayer server, the host sees the restricted contents.
 - [ ] A connected client sees the same restricted contents.
 - [ ] A client joining in progress sees the same restricted contents.

@@ -4,6 +4,7 @@ params [
     ["_message", "", [""]]
 ];
 if (!hasInterface || {isNull _unit} || {_unit isNotEqualTo player}) exitWith {false};
+if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
 _unit setUnitLoadout [_loadout, true];
 if (_message isNotEqualTo "") then {systemChat format ["RACA: %1", _message]};
 true

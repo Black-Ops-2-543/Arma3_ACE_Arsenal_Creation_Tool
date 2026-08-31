@@ -75,11 +75,14 @@ class CfgFunctions {
         class Runtime {
             file = "\x\raca\addons\core\functions\runtime";
             class adminCommand {};
+            class applyAuthorizedLoadout {};
             class applyCorrectedLoadout {};
             class applyObjectConfig {};
             class applyPlayerLoadout {};
             class applyPreset {};
+            class buildActionManifest {};
             class bulkUpdateObjects {};
+            class cancelObjectSessions {};
             class countLoadout {};
             class deletePlayerLoadout {};
             class evaluateAccess {};
@@ -89,6 +92,7 @@ class CfgFunctions {
             class isAdminAuthorized {};
             class listPlayerLoadouts {};
             class logEvent {};
+            class normalizeAccess {};
             class normalizeLimits {};
             class normalizeObjectConfig {};
             class openAuthorized {};
@@ -96,8 +100,10 @@ class CfgFunctions {
             class registerActions {};
             class registerObject {};
             class requestOpen {};
+            class requestLoadoutApply {};
             class resetQuotas {};
             class savePlayerLoadout {};
+            class unregisterObject {};
         };
 
         class Zeus {

@@ -194,7 +194,9 @@ sequenceDiagram
 
 ## Controlled runtime arsenals
 
-RACA's Eden attribute directly authors one or more named ACE interaction slots on an object. Each slot carries its own standalone embedded preset, enabled state, access rule, icon, visibility behavior, and quantity limits. The server authorizes every open request and checks the player's loadout delta when the session closes; if a quota would be exceeded, it restores the loadout from before that arsenal session. Legacy missions containing the earlier single-preset value are migrated automatically when opened and saved.
+RACA's Eden attribute directly authors one or more named ACE interaction slots on an object. Each slot carries its own standalone embedded preset, enabled state, access rule, icon, visibility behavior, and quantity limits. The server authorizes every open request and checks the server-observed player loadout delta when the session closes; if a quota would be exceeded or an outside class was added, it restores the loadout from before that arsenal session. Legacy missions containing the earlier single-preset value are migrated automatically when opened and saved.
+
+The full embedded preset, quota state, open-session records, and mission registry remain server-local. Clients receive only the minimum action metadata needed to draw ACE interactions. Requests are bound to the network owner of the player unit, limited by distance, and restricted to one active session per unit. Reconfiguring or clearing an object cancels its open sessions and restores each affected player's previous loadout.
 
 ### Access rules and quotas
 
@@ -204,7 +206,7 @@ Quantity limits can be assigned to an individual class or category. Their scope 
 
 ### Player loadouts and administration
 
-Every runtime slot adds ACE actions to save and reapply a personal loadout for that slot. RACA refuses to reapply a saved loadout if it contains classes outside the slot's allowed preset.
+Every runtime slot adds ACE actions to save and reapply a personal loadout for that slot. Personal records stay in the player's profile and are bound to that player's UID and slot. Reapplication is requested through the server and passes through the same access, distance, allowed-class, and quota checks as an interactive arsenal session.
 
 Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. Runtime changes and access decisions are recorded in RACA's mission audit log.
 

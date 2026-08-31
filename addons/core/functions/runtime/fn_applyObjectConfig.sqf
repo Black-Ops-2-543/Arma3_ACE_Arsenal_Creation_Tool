@@ -5,7 +5,7 @@ params [
     ["_allowErrors", false, [true]]
 ];
 if (isNull _object) exitWith {false};
-if (!isServer) exitWith {[_object, _rawConfig, _allowErrors] remoteExecCall ["RACA_fnc_applyObjectConfig", 2]; true};
+if (!isServer || {isRemoteExecuted}) exitWith {false};
 
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 ([_rawConfig, _catalog] call RACA_fnc_preflightObjectConfig) params ["_canApply", "_config", "_entries", "_summary"];
@@ -20,9 +20,12 @@ if (!_canApply && {!_allowErrors}) exitWith {
 };
 
 [_object, true] call ace_arsenal_fnc_removeBox;
-_object setVariable ["RACA_objectConfig", _config, true];
+[_object, "The restricted arsenal changed while it was open. Your pre-arsenal loadout was restored."] call RACA_fnc_cancelObjectSessions;
+_object setVariable ["RACA_objectConfig", nil, true];
+_object setVariable ["RACA_objectConfig", _config, false];
 _object setVariable ["RACA_appliedPreset", nil, true];
 [_object, _config] call RACA_fnc_registerObject;
-[_object, _config] remoteExecCall ["RACA_fnc_registerActions", 0, format ["RACA_actions_%1", netId _object]];
+private _manifest = [_config] call RACA_fnc_buildActionManifest;
+[_object, _manifest] remoteExecCall ["RACA_fnc_registerActions", 0, format ["RACA_actions_%1", netId _object]];
 ["ADMIN_CHANGE", objNull, _object, "", ["Object configuration applied", count (_config select 2)]] call RACA_fnc_logEvent;
 true

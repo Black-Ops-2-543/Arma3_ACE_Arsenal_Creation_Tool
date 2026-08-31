@@ -11,6 +11,7 @@ params [
     ["_reason", "", [""]]
 ];
 if (!hasInterface || {isNull _unit} || {_unit isNotEqualTo player}) exitWith {false};
+if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
 if (!_authorized) exitWith {systemChat format ["RACA: %1", _reason]; false};
 
 if (_remaining isNotEqualTo []) then {
@@ -33,6 +34,7 @@ _holder enableSimulation false;
     };
     private _after = getUnitLoadout _unit;
     deleteVehicle _holder;
+    uiSleep 0.35;
     [_sessionId, _unit, _after] remoteExecCall ["RACA_fnc_finishSession", 2];
 };
 true

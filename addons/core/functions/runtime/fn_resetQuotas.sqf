@@ -19,5 +19,5 @@ private _removed = 0;
         _removed = _removed + 1;
     };
 } forEach keys _quota;
-missionNamespace setVariable ["RACA_quotaState", _quota, true];
+missionNamespace setVariable ["RACA_quotaState", _quota];
 _removed

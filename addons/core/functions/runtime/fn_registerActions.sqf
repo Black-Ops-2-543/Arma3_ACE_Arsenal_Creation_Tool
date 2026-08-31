@@ -3,6 +3,7 @@ params [
     ["_config", [], [[]]]
 ];
 if (isNull _object) exitWith {false};
+if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
 [_object, 0, ["ACE_MainActions", "RACA_Root"]] call ace_interact_menu_fnc_removeActionFromObject;
 if (_config isEqualTo []) exitWith {true};
 private _root = [
