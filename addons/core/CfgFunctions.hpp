@@ -67,6 +67,12 @@ class CfgFunctions {
             class historyOnLoad {};
             class historySelect {};
             class openPresetHistory {};
+            class openCreatorDiagnostics {};
+            class preflightCopy {};
+            class preflightOnLoad {};
+            class preflightRefresh {};
+            class preflightRerun {};
+            class preflightSelect {};
             class openQuickStart {};
             class pushCreatorHistory {};
             class quickStartApply {};
@@ -82,6 +88,7 @@ class CfgFunctions {
             class requestCreatorClose {};
             class setCategoryLimit {};
             class setCatalogView {};
+            class setSortMode {};
             class setItemLimit {};
             class setStatus {};
             class setVisibleSelection {};

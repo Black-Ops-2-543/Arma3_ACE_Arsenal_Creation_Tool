@@ -235,14 +235,23 @@ class RACA_RscDisplayEdenConfig {
             colorBackground[] = {0.45, 0.12, 0.12, 0.9};
             onButtonClick = "[ctrlParent (_this select 0), 'CLEAR'] spawn RACA_fnc_edenDashboardBulk";
         };
+        class SimulateAccess: RefreshDashboard {
+            idc = RACA_EDEN_IDC_SIMULATE_ACCESS;
+            text = "SIMULATE ACCESS";
+            tooltip = "Open the access-rule simulator and choose any unit in the Eden mission";
+            x = "safeZoneX + 0.71 * safeZoneW";
+            y = "safeZoneY + 0.665 * safeZoneH";
+            w = "0.23 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenOpenAccessSimulator";
+        };
         class DashboardHelp: ctrlStatic {
             idc = -1;
-            text = "Double-click an entry to select that object in Eden. Bulk operations show a confirmation preview and are recorded in Eden undo history.";
+            text = "Choose any mission unit in the simulator. UID and mission permission rules remain runtime-only unknowns.";
             style = 16;
             x = "safeZoneX + 0.71 * safeZoneW";
-            y = "safeZoneY + 0.67 * safeZoneH";
+            y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.24 * safeZoneW";
-            h = "0.10 * safeZoneH";
+            h = "0.055 * safeZoneH";
         };
 
         class Status: ctrlStatic {
@@ -269,6 +278,109 @@ class RACA_RscDisplayEdenConfig {
             text = "CANCEL";
             x = "safeZoneX + 0.88 * safeZoneW";
             w = "0.08 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayAccessSimulator {
+    idd = RACA_EDEN_IDD_ACCESS_SIMULATOR;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_edenAccessSimulatorOnLoad";
+    onUnload = "uiNamespace setVariable ['RACA_accessSimulatorParent', displayNull]";
+
+    class controlsBackground {
+        class Background: ctrlStatic {
+            idc = -1;
+            x = "safeZoneX + 0.15 * safeZoneW";
+            y = "safeZoneY + 0.12 * safeZoneH";
+            w = "0.70 * safeZoneW";
+            h = "0.72 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: ctrlStatic {
+            idc = -1;
+            text = "RACA ACCESS-RULE SIMULATOR";
+            style = 2;
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.14 * safeZoneH";
+            w = "0.66 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Summary: ctrlStatic {
+            idc = RACA_EDEN_IDC_SIMULATOR_SUMMARY;
+            text = "Choose a mission unit to simulate.";
+            style = 16;
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.66 * safeZoneW";
+            h = "0.09 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class UnitLabel: ctrlStatic {
+            idc = -1;
+            text = "Mission unit";
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.205 * safeZoneH";
+            w = "0.09 * safeZoneW";
+            h = "0.035 * safeZoneH";
+        };
+        class Unit: ctrlCombo {
+            idc = RACA_EDEN_IDC_SIMULATOR_UNIT;
+            x = "safeZoneX + 0.26 * safeZoneW";
+            y = "safeZoneY + 0.205 * safeZoneH";
+            w = "0.46 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            tooltip = "Choose any playable or AI soldier currently placed in the Eden mission";
+        };
+        class RuleHeading: ctrlStatic {
+            idc = -1;
+            text = "RESULT                RULE                         EXPECTED                                  ACTUAL";
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.33 * safeZoneH";
+            w = "0.66 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Rules: ctrlListNBox {
+            idc = RACA_EDEN_IDC_SIMULATOR_RULES;
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.37 * safeZoneH";
+            w = "0.66 * safeZoneW";
+            h = "0.34 * safeZoneH";
+            columns[] = {0.01, 0.15, 0.36, 0.67};
+            colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class Refresh: ctrlButton {
+            idc = RACA_EDEN_IDC_SIMULATOR_REFRESH;
+            text = "SIMULATE UNIT";
+            tooltip = "Evaluate the current slot's access rules against the chosen Eden unit";
+            x = "safeZoneX + 0.17 * safeZoneW";
+            y = "safeZoneY + 0.74 * safeZoneH";
+            w = "0.19 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenAccessSimulatorRefresh";
+        };
+        class Copy: Refresh {
+            idc = RACA_EDEN_IDC_SIMULATOR_COPY;
+            text = "COPY REPORT";
+            tooltip = "Copy the complete access-rule simulation report to the clipboard";
+            x = "safeZoneX + 0.37 * safeZoneW";
+            w = "0.14 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenAccessSimulatorCopy";
+        };
+        class Close: Refresh {
+            idc = 2;
+            text = "CLOSE";
+            tooltip = "Close the access-rule simulator";
+            x = "safeZoneX + 0.69 * safeZoneW";
+            w = "0.14 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };

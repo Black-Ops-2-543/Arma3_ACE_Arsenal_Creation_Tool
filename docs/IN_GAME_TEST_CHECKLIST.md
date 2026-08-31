@@ -45,6 +45,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Source filtering restricts visible rows to one loaded mod and composes correctly with category and text search.
 - [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
 - [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.
+- [ ] Clicking Included, Item, Class Name, Mod, and Author headers toggles a deterministic sort, preserves the selected class and filters, and restores the last sort after reopening Arma.
 
 ## 3. Selection-state regressions
 
@@ -73,6 +74,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] JSON export is valid UTF-8 JSON and round-trips without losing the name or any bucket.
 - [ ] Required-mod manifest export groups every selected class by source mod and owning add-on.
 - [ ] Support-bundle export contains environment metadata, compatibility analysis, manifest, and the portable preset; Import Auto rejects it as non-preset data.
+- [ ] **View Details** shows color-coded Error/Warning/Information rows, severity filters preserve the full report, copy matches the underlying analysis, and double-clicking an available class selects it in Assignment.
 - [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
 
 ## 5. Preset adoption
@@ -98,6 +100,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A slot can be added, named, assigned a preset, enabled/disabled, reordered, and removed before applying.
 - [ ] A single object can save and reload two differently named slots that reference the same or different presets.
 - [ ] Each slot independently preserves its AND/OR mode, side/faction/group/rank/unit/UID/vehicle-role/item/permission conditions, denial message, icon, and hide-when-denied state.
+- [ ] **Simulate access** lists every playable or AI soldier in the mission; the chosen unit shows correct PASS/FAIL rows for editor-verifiable conditions, labels UID/permission conditions UNKNOWN, computes AND/OR without treating unknown as pass, and copies the same report.
 - [ ] **Cancel** discards the complete editor transaction; **Apply configuration** updates the parent Attributes control.
 - [ ] **Refresh presets** updates matching embedded preset copies while preserving all slot-specific settings.
 - [ ] A legacy single-preset mission value opens as one compatible slot and saves as a standalone object configuration.

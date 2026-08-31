@@ -307,13 +307,22 @@ class RACA_RscDisplayCreator {
             text = "RUN PREFLIGHT";
             tooltip = "Run the same blocking compatibility checks used at runtime";
             y = "safeZoneY + 0.71 * safeZoneH";
+            w = "0.125 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_runCreatorDiagnostics";
         };
 
-        class CopyDiagnostics: RunDiagnostics {
+        class OpenDiagnostics: RunDiagnostics {
+            idc = RACA_IDC_OPEN_DIAGNOSTICS;
+            text = "VIEW DETAILS";
+            tooltip = "Open the filterable visual compatibility report";
+            x = "safeZoneX + 0.655 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openCreatorDiagnostics";
+        };
+
+        class CopyDiagnostics: OpenDiagnostics {
             idc = RACA_IDC_COPY_DIAGNOSTICS;
             text = "COPY REPORT";
-            x = "safeZoneX + 0.7225 * safeZoneW";
+            x = "safeZoneX + 0.795 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_copyCreatorDiagnostics";
         };
 
@@ -400,40 +409,53 @@ class RACA_RscDisplayCreator {
             colorBackground[] = {0, 0, 0, 0.55};
         };
 
-        class IncludedHeader: ColumnHeaderBackground {
+        class IncludedHeader: RscButton {
             idc = RACA_IDC_INCLUDED_HEADER;
             text = "INCLUDED";
+            tooltip = "Sort by inclusion state";
+            x = "safeZoneX + 0.055 * safeZoneW";
+            y = "safeZoneY + 0.215 * safeZoneH";
             w = "0.088 * safeZoneW";
+            h = "0.03 * safeZoneH";
             style = 2;
             colorBackground[] = {0, 0, 0, 0};
+            onButtonClick = "[ctrlParent (_this select 0), 'included'] call RACA_fnc_setSortMode";
         };
 
         class ItemHeader: IncludedHeader {
             idc = RACA_IDC_ITEM_HEADER;
             text = "ITEM";
+            tooltip = "Sort by display name";
             x = "safeZoneX + 0.143 * safeZoneW";
             w = "0.272 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'item'] call RACA_fnc_setSortMode";
         };
 
         class ClassHeader: IncludedHeader {
             idc = RACA_IDC_CLASS_HEADER;
             text = "CLASS NAME";
+            tooltip = "Sort by class name";
             x = "safeZoneX + 0.415 * safeZoneW";
             w = "0.228 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'class'] call RACA_fnc_setSortMode";
         };
 
         class ModHeader: IncludedHeader {
             idc = RACA_IDC_MOD_HEADER;
             text = "MOD";
+            tooltip = "Sort by source mod";
             x = "safeZoneX + 0.643 * safeZoneW";
             w = "0.14 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'mod'] call RACA_fnc_setSortMode";
         };
 
         class AuthorHeader: IncludedHeader {
             idc = RACA_IDC_AUTHOR_HEADER;
             text = "AUTHOR";
+            tooltip = "Sort by author";
             x = "safeZoneX + 0.783 * safeZoneW";
             w = "0.152 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'author'] call RACA_fnc_setSortMode";
         };
 
         class ItemList: RscListNBox {
@@ -840,6 +862,116 @@ class RACA_RscDisplayAdmin {
             h = "0.06 * safeZoneH";
             style = 16;
             colorBackground[] = {0, 0, 0, 0.45};
+        };
+    };
+};
+
+class RACA_RscDisplayPreflight {
+    idd = RACA_IDD_PREFLIGHT;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_preflightOnLoad";
+    onUnload = "uiNamespace setVariable ['RACA_preflightParent', displayNull]";
+
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.07 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.86 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: RscText {
+            idc = -1;
+            text = "RACA COMPATIBILITY PREFLIGHT";
+            style = 2;
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.09 * safeZoneH";
+            w = "0.82 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Summary: RscText {
+            idc = RACA_IDC_PREFLIGHT_SUMMARY;
+            text = "Loading compatibility results...";
+            style = 16;
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.155 * safeZoneH";
+            w = "0.82 * safeZoneW";
+            h = "0.08 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class FilterLabel: RscText {
+            idc = -1;
+            text = "Severity";
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.07 * safeZoneW";
+            h = "0.035 * safeZoneH";
+        };
+        class Filter: RscCombo {
+            idc = RACA_IDC_PREFLIGHT_FILTER;
+            x = "safeZoneX + 0.16 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.20 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_preflightRefresh";
+        };
+        class ListHeading: RscText {
+            idc = -1;
+            text = "SEVERITY            CODE                         MESSAGE                                                      CLASS                                      SOURCE";
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.30 * safeZoneH";
+            w = "0.82 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Entries: RscListNBox {
+            idc = RACA_IDC_PREFLIGHT_LIST;
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.34 * safeZoneH";
+            w = "0.82 * safeZoneW";
+            h = "0.43 * safeZoneH";
+            columns[] = {0.01, 0.12, 0.26, 0.65, 0.80};
+            colorBackground[] = {0, 0, 0, 0.45};
+            onLBDblClick = "ctrlParent (_this select 0) call RACA_fnc_preflightSelect";
+        };
+        class ShowItem: RscButton {
+            idc = RACA_IDC_PREFLIGHT_SHOW_ITEM;
+            text = "SHOW AVAILABLE ITEM";
+            tooltip = "Switch to Assignment and select the affected class when it exists in the loaded catalogue";
+            x = "safeZoneX + 0.09 * safeZoneW";
+            y = "safeZoneY + 0.80 * safeZoneH";
+            w = "0.18 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_preflightSelect";
+        };
+        class Rerun: ShowItem {
+            idc = RACA_IDC_PREFLIGHT_RERUN;
+            text = "RERUN PREFLIGHT";
+            tooltip = "Repeat compatibility analysis for the current draft";
+            x = "safeZoneX + 0.28 * safeZoneW";
+            w = "0.15 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_preflightRerun";
+        };
+        class Copy: Rerun {
+            idc = RACA_IDC_PREFLIGHT_COPY;
+            text = "COPY REPORT";
+            tooltip = "Copy the complete compatibility report to the clipboard";
+            x = "safeZoneX + 0.44 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_preflightCopy";
+        };
+        class Close: Rerun {
+            idc = 2;
+            text = "CLOSE";
+            tooltip = "Close the compatibility report";
+            x = "safeZoneX + 0.76 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };
     };
 };

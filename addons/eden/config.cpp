@@ -21,6 +21,7 @@ class ctrlButton;
 class ctrlCheckbox;
 class ctrlEdit;
 class ctrlListbox;
+class ctrlListNBox;
 class ctrlStatic;
 
 #include "Cfg3DEN.hpp"

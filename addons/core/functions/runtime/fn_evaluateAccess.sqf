@@ -18,25 +18,25 @@ private _rankOrder = ["PRIVATE", "CORPORAL", "SERGEANT", "LIEUTENANT", "CAPTAIN"
     _x params [["_kind", "", [""]], ["_value", "", ["", []]]];
     _kind = toLowerANSI _kind;
     private _matched = switch (_kind) do {
-        case "side": {toUpperANSI str (side group _unit) isEqualTo toUpperANSI str _value};
-        case "faction": {toLowerANSI faction _unit isEqualTo toLowerANSI str _value};
-        case "group": {toLowerANSI groupId group _unit isEqualTo toLowerANSI str _value};
+        case "side": {toUpperANSI str (side group _unit) isEqualTo toUpperANSI _value};
+        case "faction": {toLowerANSI faction _unit isEqualTo toLowerANSI _value};
+        case "group": {toLowerANSI groupId group _unit isEqualTo toLowerANSI _value};
         case "rank": {
             private _actual = _rankOrder find rank _unit;
-            private _required = _rankOrder find toUpperANSI str _value;
+            private _required = _rankOrder find toUpperANSI _value;
             _required >= 0 && {_actual >= _required}
         };
-        case "unit": {typeOf _unit isEqualTo str _value};
+        case "unit": {typeOf _unit isEqualTo _value};
         case "uid": {
             private _uids = if (_value isEqualType []) then {_value} else {[_value]};
             _uid in _uids
         };
         case "vehiclerole": {
             private _role = (assignedVehicleRole _unit) param [0, ""];
-            toLowerANSI _role isEqualTo toLowerANSI str _value
+            toLowerANSI _role isEqualTo toLowerANSI _value
         };
         case "requireditem": {
-            str _value in (items _unit + assignedItems _unit + weapons _unit + magazines _unit)
+            _value in (items _unit + assignedItems _unit + weapons _unit + magazines _unit)
         };
         case "acepermission": {
             private _permission = missionNamespace getVariable [format ["RACA_permission_%1", _value], []];

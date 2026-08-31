@@ -5,6 +5,9 @@ class CfgFunctions {
             class edenAttributeLoad {};
             class edenAttributeOnLoad {};
             class edenAttributeSave {};
+            class edenAccessSimulatorCopy {};
+            class edenAccessSimulatorOnLoad {};
+            class edenAccessSimulatorRefresh {};
             class edenClearAttribute {};
             class edenDashboardBulk {};
             class edenDashboardRefresh {};
@@ -20,6 +23,7 @@ class CfgFunctions {
             class edenEditorRemoveSlot {};
             class edenEditorSelectSlot {};
             class edenOpenEditor {};
+            class edenOpenAccessSimulator {};
             class edenPopulate {};
             class edenRefresh {};
             class edenUpdateSummary {};
