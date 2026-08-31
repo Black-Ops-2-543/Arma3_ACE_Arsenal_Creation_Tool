@@ -4,20 +4,20 @@ This record captures the latest local acceptance evidence for the `0.10.0-dev` d
 
 ## Tested product
 
-- Tested implementation commit: `de4f80cbf5ed8e45eed25ffd4b66ba93611a271f`
+- Tested implementation commit: `61ed5ed15ca5ba60730a37f41445efc2755c9de4`
 - Working tree before packaging: clean
 - Static/configuration/SQF validation: pass
 - Core and Eden PBO build: pass
 - Archive: `RestrictedArsenalCreationAssistant-0.10.0-dev.zip`
-- Archive SHA-256: `5d72e927e47778d5cc0368079477cb328d9b7facf5f6d7a7bb8e5193b0dac888`
-- `addons/core.pbo` SHA-256: `ba7e094e8c66f0dd50788d5df3daab79aa984cbd77e2ef7ddcb1a3d10b99e969`
-- `addons/eden.pbo` SHA-256: `e3670bd07993fc05573a55978cc8f11a734ee684fc2463baaaf4790085603c5e`
+- Archive SHA-256: `88a95a3c52b9192d54f2370950cad8d272d06688d6537900cf0a76b51a9d55a8`
+- `addons/core.pbo` SHA-256: `d7e56ac0ca663ee59d41c65419b24f82a2ff990e57b44f73202df7e5b245d180`
+- `addons/eden.pbo` SHA-256: `ee87771259fed1f3dbc8086fd1339bd9e7721541cd0a334514f1b8c504c687aa`
 
 The generated `dist/release-report.json` and the archive's embedded `checksums.sha256` matched independently calculated hashes.
 
 ## Automated Arma acceptance
 
-Result: **Pass — 55/55 assertions, 0 failures**.
+Result: **Pass — 61/61 assertions, 0 failures**.
 
 The isolated acceptance mission verified:
 
@@ -31,9 +31,14 @@ The isolated acceptance mission verified:
 - server registration, redacted client action manifests, exact/category quota charging, exhausted-policy denial, and atomic unregister cleanup;
 - Zeus assign, disable, quota reset, and clear lifecycle actions;
 - live Creator, Quick Start, item details, role-pack manager, saved-view manager, tag manager, favorites, undo/redo, compatibility details, and the preset-deletion control; and
-- confirmed archive-and-removal of a disposable preset inside the isolated test profile.
+- confirmed archive-and-removal of a disposable preset inside the isolated test profile;
+- stacked uniform, vest, and backpack quantity accounting;
+- rollback for unauthorized classes, quota overruns, and expired sessions;
+- UID-aware respawn quota reset boundaries without disturbing another player's counters;
+- personal-loadout save, server rejection of out-of-preset classes, deletion, and session cleanup; and
+- listen-host request and response routing through the same ownership and validation paths used by remote clients.
 
-Local RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-08-31_15-58-30.rpt`
+Local RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-08-31_16-17-47.rpt`
 
 No RACA configuration error, SQF expression error, undefined variable, missing RACA script, or failed assertion was found in that RPT.
 
