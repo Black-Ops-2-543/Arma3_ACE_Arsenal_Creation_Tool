@@ -1,5 +1,6 @@
 params [["_object", objNull, [objNull]]];
 if (!isServer || {isNull _object}) exitWith {false};
+[_object, "This restricted arsenal was removed while open. Your pre-arsenal loadout was restored."] call RACA_fnc_cancelObjectSessions;
 private _registry = missionNamespace getVariable ["RACA_missionRegistry", createHashMap];
 private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
 _registry deleteAt _objectId;

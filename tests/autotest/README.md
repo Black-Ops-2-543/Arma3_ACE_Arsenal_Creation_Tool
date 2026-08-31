@@ -2,10 +2,12 @@
 
 `RACA_Automated.VR` is an unattended Arma 3 `-autotest` mission. It verifies
 the packaged Core and Eden registrations, live ACE catalogue scanning, JSON,
-SQF, and class-list interchange, fail-closed object preflight, redacted JIP
-manifests, server object registration, the Zeus assign/disable/reset/clear
-lifecycle, combined quota accounting, Creator display creation, and the live
-preset-deletion control.
+SQF, and class-list interchange, fail-closed object preflight, missing-content
+degradation, redacted JIP manifests, access and administrator authorization,
+distance and exhausted-policy denial, server object registration and atomic
+unregister cleanup, the Zeus assign/disable/reset/clear lifecycle, combined
+quota accounting, Creator display creation, and the live preset-deletion
+control.
 
 Every assertion is written to the RPT with the prefix `[RACA AUTOTEST]`. The
 mission ends with `END1` only when every assertion passes, allowing Arma's

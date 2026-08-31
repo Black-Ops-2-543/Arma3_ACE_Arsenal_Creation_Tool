@@ -192,6 +192,10 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_decodeSqfPreset' -or
         $autotestClientInit -notmatch 'RACA_fnc_preflightObjectConfig' -or
         $autotestClientInit -notmatch 'RACA_fnc_applyObjectConfig' -or
+        $autotestClientInit -notmatch 'RACA_fnc_evaluateAccess' -or
+        $autotestClientInit -notmatch 'RACA_fnc_requestOpen' -or
+        $autotestClientInit -notmatch 'RACA_fnc_isAdminAuthorized' -or
+        $autotestClientInit -notmatch 'RACA_fnc_unregisterObject' -or
         $autotestClientInit -notmatch 'RACA_fnc_finishSession' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleAssign' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleClear' -or

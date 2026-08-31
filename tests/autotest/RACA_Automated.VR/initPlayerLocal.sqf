@@ -319,6 +319,138 @@ params ["_player"];
     ] call _record;
     [(_localActions getOrDefault [netId _box, []]) isNotEqualTo [], "Client receives the redacted ACE action registration"] call _record;
 
+    private _matchingAccess = [
+        "RACA_ACCESS",
+        1,
+        "AND",
+        [["side", str (side group player)], ["unit", typeOf player]],
+        false,
+        "Autotest access denied.",
+        []
+    ];
+    private _deniedAccess = [
+        "RACA_ACCESS",
+        1,
+        "OR",
+        [["side", "EAST"], ["unit", "O_Soldier_F"]],
+        false,
+        "Autotest access denied.",
+        []
+    ];
+    ([_matchingAccess] call RACA_fnc_normalizeAccess) params ["", "", "", "_normalizedConditions"];
+    ([player, _matchingAccess] call RACA_fnc_evaluateAccess) params ["_accessAllowed"];
+    ([player, _deniedAccess] call RACA_fnc_evaluateAccess) params ["_accessDenied", "_accessReason"];
+    [
+        (count _normalizedConditions) isEqualTo 2 &&
+        {_accessAllowed} &&
+        {!_accessDenied} &&
+        {_accessReason isEqualTo "Autotest access denied."},
+        "Access policies normalize and evaluate AND, OR, and denial-message semantics",
+        format [
+            "conditions=%1 allowed=%2 deniedResult=%3 reason='%4' side=%5 unit=%6",
+            count _normalizedConditions,
+            _accessAllowed,
+            _accessDenied,
+            _accessReason,
+            str (side group player),
+            typeOf player
+        ]
+    ] call _record;
+
+    private _missingClass = "RACA_Missing_Class_Autotest";
+    private _missingPreset = [
+        "RACA_PRESET",
+        1,
+        "Missing Content Acceptance",
+        [["arifle_MX_F", _missingClass], [], [], []],
+        ["RACA_RUNTIME", 1, [], "", 0, "", [], [[_missingClass, "Missing Test Mod", "raca_missing_test"]]]
+    ];
+    ([_missingPreset] call RACA_fnc_validatePreset) params ["_validatedMissingPreset", "_missingNotices"];
+    private _missingSlot = ["missing", "Missing Content", _validatedMissingPreset, true, _access, [], "", false];
+    private _missingConfig = ["RACA_OBJECT_CONFIG", 1, [_missingSlot], []];
+    ([_missingConfig, _catalog] call RACA_fnc_preflightObjectConfig) params ["_missingCanApply", "_normalizedMissingConfig", "_missingEntries"];
+    [
+        _validatedMissingPreset isNotEqualTo [] &&
+        {_missingClass in ([_validatedMissingPreset] call RACA_fnc_flattenPresetClasses)} &&
+        {_missingCanApply} &&
+        {_normalizedMissingConfig isNotEqualTo []} &&
+        {(_missingEntries findIf {(_x select 1) isEqualTo "MISSING_REQUIRED" && {(_x select 0) isEqualTo "WARNING"}}) >= 0},
+        "Missing content remains portable while object preflight degrades it to an explicit runtime warning",
+        format ["validationNotices=%1", count _missingNotices]
+    ] call _record;
+
+    private _distanceBox = createVehicle ["Box_NATO_Ammo_F", player modelToWorld [100, 0, 0], [], 0, "CAN_COLLIDE"];
+    private _sessionsBeforeDistance = count keys (missionNamespace getVariable ["RACA_openSessions", createHashMap]);
+    private _distanceDenied = [_distanceBox, player, "autotest"] call RACA_fnc_requestOpen;
+    private _sessionsAfterDistance = count keys (missionNamespace getVariable ["RACA_openSessions", createHashMap]);
+    [
+        !_distanceDenied && {_sessionsAfterDistance isEqualTo _sessionsBeforeDistance},
+        "Server denies a distant arsenal request without creating a session"
+    ] call _record;
+    deleteVehicle _distanceBox;
+
+    private _exhaustedBox = createVehicle ["Box_NATO_Ammo_F", player modelToWorld [2, 0, 0], [], 0, "CAN_COLLIDE"];
+    private _exhaustedPreset = ["RACA_PRESET", 1, "Exhausted Acceptance", [["arifle_MX_F"], [], [], []]];
+    private _exhaustedSlot = [
+        "exhausted",
+        "Exhausted Acceptance",
+        _exhaustedPreset,
+        true,
+        _access,
+        [["arifle_MX_F", 0, "player", "never"], ["category:Weapons", 0, "mission", "never"]],
+        "",
+        false
+    ];
+    private _exhaustedConfig = ["RACA_OBJECT_CONFIG", 1, [_exhaustedSlot], []];
+    private _exhaustedApplied = [_exhaustedBox, _exhaustedConfig] call RACA_fnc_applyObjectConfig;
+    private _sessionsBeforeExhausted = count keys (missionNamespace getVariable ["RACA_openSessions", createHashMap]);
+    private _exhaustedOpened = [_exhaustedBox, player, "exhausted"] call RACA_fnc_requestOpen;
+    private _sessionsAfterExhausted = count keys (missionNamespace getVariable ["RACA_openSessions", createHashMap]);
+    [
+        _exhaustedApplied && {!_exhaustedOpened} && {_sessionsAfterExhausted isEqualTo _sessionsBeforeExhausted},
+        "Exhausted exact and category policies remove the final class and refuse an empty session"
+    ] call _record;
+    [_exhaustedBox] call RACA_fnc_unregisterObject;
+    [_exhaustedBox, []] remoteExecCall ["RACA_fnc_registerActions", 0, _exhaustedBox];
+    deleteVehicle _exhaustedBox;
+
+    private _oldAdminUIDs = missionNamespace getVariable ["RACA_adminUIDs", []];
+    missionNamespace setVariable ["RACA_adminUIDs", [getPlayerUID player]];
+    private _whitelistedAdmin = [player] call RACA_fnc_isAdminAuthorized;
+    private _nonAdminUnit = createAgent ["B_Soldier_F", player modelToWorld [4, 0, 0], [], 0, "CAN_COLLIDE"];
+    missionNamespace setVariable ["RACA_adminUIDs", ["__raca_no_matching_uid__"]];
+    private _unlistedDenied = !([_nonAdminUnit] call RACA_fnc_isAdminAuthorized);
+    missionNamespace setVariable ["RACA_adminUIDs", _oldAdminUIDs];
+    [_whitelistedAdmin && {_unlistedDenied}, "Administration authorization accepts an allowlisted UID and rejects an unlisted unit"] call _record;
+    deleteVehicle _nonAdminUnit;
+
+    private _cleanupBox = createVehicle ["Box_NATO_Ammo_F", player modelToWorld [6, 0, 0], [], 0, "CAN_COLLIDE"];
+    private _cleanupApplied = [_cleanupBox, _normalizedConfig] call RACA_fnc_applyObjectConfig;
+    private _cleanupObjectId = [_cleanupBox] call RACA_fnc_getRuntimeObjectId;
+    private _cleanupSessionId = "raca_autotest_unregister_cleanup";
+    private _cleanupSessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    _cleanupSessions set [_cleanupSessionId, [_cleanupBox, player, _slot, getUnitLoadout player, owner player, diag_tickTime]];
+    missionNamespace setVariable ["RACA_openSessions", _cleanupSessions];
+    private _cleanupQuotaKey = format ["%1|autotest|mission|arifle_MX_F", _cleanupObjectId];
+    private _cleanupQuota = missionNamespace getVariable ["RACA_quotaState", createHashMap];
+    _cleanupQuota set [_cleanupQuotaKey, [1, "mission", "never", _cleanupObjectId, "autotest", getPlayerUID player, "arifle_MX_F"]];
+    missionNamespace setVariable ["RACA_quotaState", _cleanupQuota];
+    private _cleanupUnregistered = [_cleanupBox] call RACA_fnc_unregisterObject;
+    uiSleep 0.1;
+    private _cleanupRegistry = call RACA_fnc_getMissionRegistry;
+    private _sessionsAfterCleanup = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    private _quotaAfterCleanup = missionNamespace getVariable ["RACA_quotaState", createHashMap];
+    [
+        _cleanupApplied &&
+        {_cleanupUnregistered} &&
+        {!(_cleanupSessionId in keys _sessionsAfterCleanup)} &&
+        {!(_cleanupQuotaKey in keys _quotaAfterCleanup)} &&
+        {(_cleanupRegistry findIf {(_x param [4, ""]) isEqualTo _cleanupObjectId}) < 0},
+        "Unregistering an arsenal atomically cancels sessions and prunes registry and quota state"
+    ] call _record;
+    [_cleanupBox, []] remoteExecCall ["RACA_fnc_registerActions", 0, _cleanupBox];
+    deleteVehicle _cleanupBox;
+
     private _originalLoadout = getUnitLoadout player;
     removeAllWeapons player;
     private _beforeLoadout = getUnitLoadout player;
