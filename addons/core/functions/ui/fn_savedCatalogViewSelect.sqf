@@ -10,18 +10,19 @@ private _display = ctrlParent _list;
 private _views = call RACA_fnc_getSavedCatalogViews;
 private _index = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
 if (_index >= 0) then {
-    (_views select _index) params ["", "", "", "_search", "_category", "_source", "_addon", "_author", "_sortField", "_ascending"];
+    (_views select _index) params ["", "", "", "_search", "_category", "_source", "_addon", "_author", "_tag", "_sortField", "_ascending"];
     private _show = {
         params ["_value"];
         if (_value isEqualTo "") then {"All"} else {_value}
     };
     (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText format [
-        "Search: %1 | Category: %2 | Mod: %3 | Add-on: %4 | Author: %5 | Sort: %6 %7. Applying this view leaves the draft selection unchanged.",
+        "Search: %1 | Category: %2 | Mod: %3 | Add-on: %4 | Author: %5 | Tag: %6 | Sort: %7 %8. Applying this view leaves the draft selection unchanged.",
         [_search] call _show,
         [_category] call _show,
         [_source] call _show,
         [_addon] call _show,
         [_author] call _show,
+        [_tag] call _show,
         toUpperANSI _sortField,
         ["descending", "ascending"] select _ascending
     ];

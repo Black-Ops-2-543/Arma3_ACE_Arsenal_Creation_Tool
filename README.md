@@ -34,7 +34,7 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- provides parameterized first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, detailed item inspection, Ctrl/Shift multi-selection, and undo/redo;
+- provides parameterized first-run Quick Start, counted source-mod/owning-add-on/author/tag filters, reusable saved catalogue views, persistent favorites and catalogue tags, clickable persistent sorting, detailed item inspection, Ctrl/Shift multi-selection, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
@@ -86,7 +86,8 @@ The controls include:
 - **Mod** — filters to one loaded source mod and shows the number of available classes per source;
 - **Add-on** — filters to one owning `CfgPatches` add-on and shows its available-class count;
 - **Author** — filters to one config author and shows its available-class count;
-- **Saved Views** — captures and restores a named combination of search, Category, Mod, Add-on, Author, and sort order without changing the draft selection;
+- **Tag** — filters to a reusable profile-wide item tag; **Edit** creates tags and adds or removes them from the current multi-row selection without touching any preset;
+- **Saved Views** — captures and restores a named combination of search, Category, Mod, Add-on, Author, Tag, and sort order without changing the draft selection;
 - **Favorite** — stores the selected class in a profile-wide Favorites view;
 - **Included / Item / Class Name / Mod / Author headers** — sort the filtered catalogue in either direction and remember the chosen order across sessions;
 - **Included** — shows whether a row belongs to the current selection;
@@ -114,7 +115,9 @@ The Preset Management tab also provides **Role starter**, **Apply Starter**, **P
 
 Use Category, Mod, Add-on, Author, and Search to narrow the catalogue. Click a row to toggle it, or select a row and press **Space**. Ctrl-click selects separate rows and Shift-click selects a range; then press **Space**, **Favorite**, or **Limit Item** to apply the operation consistently to the selected set. A selection remains intact when an item is temporarily hidden by another filter.
 
-Use **Saved Views** to keep reusable workspaces such as “ACE medical”, “RHS uniforms”, or “Current mod audit”. Enter a view name and capture the current search, filters, and sorting. Applying or deleting a view never includes, excludes, saves, overwrites, or deletes an arsenal preset.
+Use **Tags > Edit** to group classes under unit-defined labels such as “medical”, “logistics”, “faction”, or “event kit”. Tags accept the same Ctrl/Shift multi-row selection used by Favorite and Limit Item, persist in the profile even when a content mod is temporarily unloaded, participate in normal text search, and appear in item details. Removing or deleting a tag never removes a class from a preset.
+
+Use **Saved Views** to keep reusable workspaces such as “ACE medical”, “RHS uniforms”, or “Current mod audit”. Enter a view name and capture the current search, Category, Mod, Add-on, Author, Tag, and sorting. Existing saved views are migrated with an empty tag filter. Applying or deleting a view never includes, excludes, saves, overwrites, or deletes an arsenal preset.
 
 For a basic rifleman arsenal:
 

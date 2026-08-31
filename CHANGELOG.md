@@ -18,6 +18,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Server-authoritative sessions, access enforcement, scoped quotas, remaining-allowance checks, personal loadouts, runtime administration, audit records, and Zeus modules.
 - Object-bound sanitized JIP action registration for late-joining clients.
 - Authenticated multiplayer rehearsal with server, listen-host, initial-client, and JIP probes, explicit synchronization gates, and copyable evidence.
+- Profile-wide catalogue tags with multi-row assignment, search/filter integration, item-detail context, and backward-compatible saved views.
 
 ### Changed
 

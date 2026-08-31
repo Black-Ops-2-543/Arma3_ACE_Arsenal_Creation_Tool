@@ -426,10 +426,37 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUiSource -notmatch 'RACA_IDC_DELETE_PRESET' -or $creatorUiSource -notmatch 'RACA_fnc_deletePreset') {
         $failures.Add("The creator must expose preset deletion from Preset Management.")
     }
-    foreach ($creatorFeature in @('QUICK START', 'REVISION HISTORY', 'COMPARE DRAFT', 'LIMIT CATEGORY', 'FAVORITE', 'RACA_IDC_SOURCE_FILTER', 'RACA_fnc_requestCreatorClose')) {
+    foreach ($creatorFeature in @('QUICK START', 'REVISION HISTORY', 'COMPARE DRAFT', 'LIMIT CATEGORY', 'FAVORITE', 'RACA_IDC_SOURCE_FILTER', 'RACA_IDC_TAG_FILTER', 'RACA_RscDisplayCatalogTags', 'RACA_fnc_requestCreatorClose')) {
         if ($creatorUiSource -notmatch [regex]::Escape($creatorFeature)) {
             $failures.Add("The creator excellence workflow is missing '$creatorFeature'.")
         }
+    }
+}
+
+$catalogTagPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_getCatalogTags.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshCatalogTagIndex.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_catalogTagsExecute.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshItemList.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_savedCatalogViewCapture.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_getSavedCatalogViews.sqf')
+)
+if ($catalogTagPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("The creator must provide profile-wide catalogue tagging and tag-aware saved views.")
+}
+else {
+    $catalogTags = ($catalogTagPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    if ($catalogTags -notmatch 'RACA_catalogTags_v1' -or
+        $catalogTags -notmatch 'RACA_CATALOG_TAG' -or
+        $catalogTags -notmatch 'RACA_fnc_isSafeClassName' -or
+        $catalogTags -notmatch 'RACA_catalogTagIndex' -or
+        $catalogTags -notmatch '_matchesTag' -or
+        $catalogTags -notmatch 'RACA_IDC_TAG_FILTER' -or
+        $catalogTags -notmatch 'saveProfileNamespace' -or
+        $catalogTags -notmatch 'BIS_fnc_guiMessage' -or
+        $catalogTags -notmatch 'RACA_CATALOG_VIEW"\s*,\s*2' -or
+        $catalogTags -notmatch '_version\s+in\s+\[1,\s*2\]') {
+        $failures.Add("Catalogue tags must be bounded, safe-class-only, profile-persistent, searchable/filterable, confirmation-protected, and backward-compatible with saved views.")
     }
 }
 

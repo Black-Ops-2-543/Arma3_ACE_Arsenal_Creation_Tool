@@ -11,7 +11,7 @@ private _name = _list lnbData [_row, 0];
 private _views = call RACA_fnc_getSavedCatalogViews;
 private _index = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
 if (_index < 0) exitWith {false};
-(_views select _index) params ["", "", "", "_search", "_category", "_source", "_addon", "_author", "_sortField", "_ascending"];
+(_views select _index) params ["", "", "", "_search", "_category", "_source", "_addon", "_author", "_tag", "_sortField", "_ascending"];
 private _selectData = {
     params ["_control", "_data"];
     private _match = 0;
@@ -25,6 +25,7 @@ private _selectData = {
 [_parent displayCtrl RACA_IDC_SOURCE_FILTER, _source] call _selectData;
 [_parent displayCtrl RACA_IDC_ADDON_FILTER, _addon] call _selectData;
 [_parent displayCtrl RACA_IDC_AUTHOR_FILTER, _author] call _selectData;
+[_parent displayCtrl RACA_IDC_TAG_FILTER, _tag] call _selectData;
 uiNamespace setVariable ["RACA_catalogSort", [_sortField, _ascending]];
 profileNamespace setVariable ["RACA_catalogSort_v1", [_sortField, _ascending]];
 saveProfileNamespace;

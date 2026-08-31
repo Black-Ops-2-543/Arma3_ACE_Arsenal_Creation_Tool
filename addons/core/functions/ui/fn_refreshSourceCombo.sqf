@@ -43,3 +43,16 @@ private _populate = {
     _catalog apply {_x param [5, "", [""]]},
     "All authors"
 ] call _populate;
+
+private _tagIndex = uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap];
+private _tagValues = [];
+{
+    {
+        _tagValues pushBack _x;
+    } forEach (_tagIndex getOrDefault [_x param [1, "", [""]], []]);
+} forEach _catalog;
+[
+    _display displayCtrl RACA_IDC_TAG_FILTER,
+    _tagValues,
+    "All tags"
+] call _populate;

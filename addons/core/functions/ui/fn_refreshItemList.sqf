@@ -18,10 +18,14 @@ private _addon = if (_addonIndex < 0) then {""} else {_addonControl lbData _addo
 private _authorControl = _display displayCtrl RACA_IDC_AUTHOR_FILTER;
 private _authorIndex = lbCurSel _authorControl;
 private _authorFilter = if (_authorIndex < 0) then {""} else {_authorControl lbData _authorIndex};
+private _tagControl = _display displayCtrl RACA_IDC_TAG_FILTER;
+private _tagIndex = lbCurSel _tagControl;
+private _tagFilter = if (_tagIndex < 0) then {""} else {_tagControl lbData _tagIndex};
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _inherited = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
 private _favorites = uiNamespace getVariable ["RACA_catalogFavorites", createHashMap];
+private _tagsByClass = uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap];
 private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 private _showIcons = uiNamespace getVariable ["RACA_catalogShowIcons", true];
 private _visibleClasses = [];
@@ -34,18 +38,21 @@ private _filtered = [];
 
 {
     _x params ["_displayName", "_className", "_itemCategory", "", "_modName", "_author", "_picture", "_searchBlob", ["_sourceAddon", ""]];
+    private _classTags = _tagsByClass getOrDefault [_className, []];
     private _matchesCategory =
         _category isEqualTo "All" ||
         {_category isEqualTo "Included" && {_selected getOrDefault [_className, false]}} ||
         {_category isEqualTo "Favorites" && {_favorites getOrDefault [_className, false]}} ||
         {_category isEqualTo "Inherited" && {_inherited getOrDefault [_className, false]}} ||
         {_itemCategory isEqualTo _category};
-    private _matchesSearch = ({(_searchBlob find _x) >= 0} count _terms) isEqualTo count _terms;
+    private _tagSearchBlob = toLowerANSI (_classTags joinString " ");
+    private _matchesSearch = ({((_searchBlob + " " + _tagSearchBlob) find _x) >= 0} count _terms) isEqualTo count _terms;
     private _matchesSource = _source isEqualTo "" || {_modName isEqualTo _source};
     private _matchesAddon = _addon isEqualTo "" || {_sourceAddon isEqualTo _addon};
     private _matchesAuthor = _authorFilter isEqualTo "" || {_author isEqualTo _authorFilter};
+    private _matchesTag = _tagFilter isEqualTo "" || {_tagFilter in _classTags};
 
-    if (_matchesCategory && _matchesSearch && _matchesSource && _matchesAddon && _matchesAuthor) then {
+    if (_matchesCategory && _matchesSearch && _matchesSource && _matchesAddon && _matchesAuthor && _matchesTag) then {
         _filtered pushBack _x;
     };
 } forEach _catalog;
@@ -95,6 +102,8 @@ private _restoreRow = -1;
         format ["Author: %1", _author],
         _limitText
     ];
+    private _classTags = _tagsByClass getOrDefault [_className, []];
+    if (_classTags isNotEqualTo []) then {_tooltipLines pushBack format ["Tags: %1", _classTags joinString ", "]};
     if (_favorites getOrDefault [_className, false]) then {_tooltipLines pushBack "Favorite"};
     private _tooltip = _tooltipLines joinString (toString [10]);
     {_list lnbSetTooltip [[_row, _x], _tooltip]} forEach [0, 1, 2, 3, 4];

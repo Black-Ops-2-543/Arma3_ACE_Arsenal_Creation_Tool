@@ -427,9 +427,9 @@ class RACA_RscDisplayCreator {
 
         class AddonFilter: Category {
             idc = RACA_IDC_ADDON_FILTER;
-            x = "safeZoneX + 0.12 * safeZoneW";
+            x = "safeZoneX + 0.115 * safeZoneW";
             y = "safeZoneY + 0.212 * safeZoneH";
-            w = "0.37 * safeZoneW";
+            w = "0.25 * safeZoneW";
             tooltip = "Filter by the owning CfgPatches add-on; counts reflect the active Arma session";
             onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshItemList";
         };
@@ -437,15 +437,40 @@ class RACA_RscDisplayCreator {
         class AuthorFilterLabel: AddonFilterLabel {
             idc = RACA_IDC_AUTHOR_FILTER_LABEL;
             text = "Author";
-            x = "safeZoneX + 0.505 * safeZoneW";
-            w = "0.06 * safeZoneW";
+            x = "safeZoneX + 0.375 * safeZoneW";
+            w = "0.05 * safeZoneW";
         };
 
         class AuthorFilter: AddonFilter {
             idc = RACA_IDC_AUTHOR_FILTER;
-            x = "safeZoneX + 0.57 * safeZoneW";
-            w = "0.365 * safeZoneW";
+            x = "safeZoneX + 0.43 * safeZoneW";
+            w = "0.19 * safeZoneW";
             tooltip = "Filter by the item config author; counts reflect the active Arma session";
+        };
+
+        class TagFilterLabel: AddonFilterLabel {
+            idc = RACA_IDC_TAG_FILTER_LABEL;
+            text = "Tag";
+            x = "safeZoneX + 0.63 * safeZoneW";
+            w = "0.035 * safeZoneW";
+        };
+
+        class TagFilter: AddonFilter {
+            idc = RACA_IDC_TAG_FILTER;
+            x = "safeZoneX + 0.67 * safeZoneW";
+            w = "0.205 * safeZoneW";
+            tooltip = "Filter by a profile-wide catalogue tag; counts include only classes loaded in this session";
+        };
+
+        class CatalogTags: RscButton {
+            idc = RACA_IDC_CATALOG_TAGS_BUTTON;
+            text = "EDIT";
+            x = "safeZoneX + 0.885 * safeZoneW";
+            y = "safeZoneY + 0.212 * safeZoneH";
+            w = "0.05 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            tooltip = "Create tags and add or remove them from the currently selected catalogue rows";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openCatalogTags";
         };
 
         class ColumnHeaderBackground: RscText {
@@ -1125,7 +1150,7 @@ class RACA_RscDisplaySavedViews {
     class controls {
         class Help: RscText {
             idc = -1;
-            text = "Save a reusable catalogue workspace. Views store text, category, mod, add-on, author, and sort order; they never include or exclude arsenal items.";
+            text = "Save a reusable catalogue workspace. Views store text, category, mod, add-on, author, tag, and sort order; they never include or exclude arsenal items.";
             style = 16;
             x = "safeZoneX + 0.09 * safeZoneW";
             y = "safeZoneY + 0.15 * safeZoneH";
@@ -1162,7 +1187,7 @@ class RACA_RscDisplaySavedViews {
         };
         class ListHeading: RscText {
             idc = -1;
-            text = "NAME                         SEARCH                    CATEGORY          MOD              ADD-ON           AUTHOR           SORT";
+            text = "NAME                  SEARCH              CATEGORY       MOD          ADD-ON       AUTHOR       TAG          SORT";
             x = "safeZoneX + 0.09 * safeZoneW";
             y = "safeZoneY + 0.29 * safeZoneH";
             w = "0.82 * safeZoneW";
@@ -1175,7 +1200,7 @@ class RACA_RscDisplaySavedViews {
             y = "safeZoneY + 0.33 * safeZoneH";
             w = "0.82 * safeZoneW";
             h = "0.41 * safeZoneH";
-            columns[] = {0.01, 0.20, 0.36, 0.49, 0.61, 0.73, 0.85};
+            columns[] = {0.01, 0.16, 0.30, 0.42, 0.53, 0.64, 0.74, 0.85};
             colorBackground[] = {0, 0, 0, 0.45};
             onLBSelChanged = "(_this select 0) call RACA_fnc_savedCatalogViewSelect";
             onLBDblClick = "ctrlParent (_this select 0) call RACA_fnc_savedCatalogViewApply";
@@ -1575,6 +1600,149 @@ class RACA_RscDisplayRehearsal {
             text = "CLOSE";
             x = "safeZoneX + 0.78 * safeZoneW";
             w = "0.15 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayCatalogTags {
+    idd = RACA_IDD_CATALOG_TAGS;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_catalogTagsOnLoad";
+    onUnload = "uiNamespace setVariable ['RACA_catalogTagsParent', displayNull]; uiNamespace setVariable ['RACA_catalogTagsSelection', []]";
+
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.08 * safeZoneW";
+            y = "safeZoneY + 0.08 * safeZoneH";
+            w = "0.84 * safeZoneW";
+            h = "0.84 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: RscText {
+            idc = -1;
+            text = "CATALOGUE TAGS";
+            style = 2;
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.10 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Help: RscText {
+            idc = -1;
+            text = "Organize loaded items into reusable profile-wide tags such as medical, logistics, faction, or event kit. Add/remove applies to the creator's current multi-row selection; tags never change presets or missions.";
+            style = 16;
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.17 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.075 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class NameLabel: RscText {
+            idc = -1;
+            text = "Tag name";
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.265 * safeZoneH";
+            w = "0.09 * safeZoneW";
+            h = "0.04 * safeZoneH";
+        };
+        class Name: RscEdit {
+            idc = RACA_IDC_CATALOG_TAG_NAME;
+            x = "safeZoneX + 0.19 * safeZoneW";
+            y = "safeZoneY + 0.265 * safeZoneH";
+            w = "0.49 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            maxChars = 48;
+        };
+        class AssignTop: RscButton {
+            idc = RACA_IDC_CATALOG_TAG_ASSIGN;
+            text = "ADD TO SELECTED";
+            tooltip = "Create this tag if needed and add it to every selected catalogue row";
+            x = "safeZoneX + 0.70 * safeZoneW";
+            y = "safeZoneY + 0.265 * safeZoneH";
+            w = "0.20 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "[ctrlParent (_this select 0), 'ASSIGN'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class ListHeading: RscText {
+            idc = -1;
+            text = "TAG                                                        CLASSES       IN SELECTION";
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.325 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Tags: RscListNBox {
+            idc = RACA_IDC_CATALOG_TAG_LIST;
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.365 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.31 * safeZoneH";
+            columns[] = {0.01, 0.70, 0.84};
+            colorBackground[] = {0, 0, 0, 0.45};
+            onLBSelChanged = "(_this select 0) call RACA_fnc_catalogTagsSelect";
+            onLBDblClick = "[ctrlParent (_this select 0), 'FILTER'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class Details: RscText {
+            idc = RACA_IDC_CATALOG_TAG_DETAILS;
+            text = "No catalogue tags exist yet.";
+            style = 16;
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.695 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.085 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class Remove: RscButton {
+            idc = RACA_IDC_CATALOG_TAG_REMOVE;
+            text = "REMOVE SELECTED";
+            tooltip = "Remove the selected tag only from catalogue rows selected when this manager opened";
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.81 * safeZoneH";
+            w = "0.14 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            onButtonClick = "[ctrlParent (_this select 0), 'REMOVE'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class Filter: Remove {
+            idc = RACA_IDC_CATALOG_TAG_FILTER;
+            text = "FILTER TO TAG";
+            tooltip = "Close this manager and show only catalogue classes carrying the selected tag";
+            x = "safeZoneX + 0.25 * safeZoneW";
+            w = "0.13 * safeZoneW";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "[ctrlParent (_this select 0), 'FILTER'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class ClearFilter: Filter {
+            idc = RACA_IDC_CATALOG_TAG_CLEAR_FILTER;
+            text = "CLEAR FILTER";
+            x = "safeZoneX + 0.39 * safeZoneW";
+            w = "0.12 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "[ctrlParent (_this select 0), 'CLEAR'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class Delete: Filter {
+            idc = RACA_IDC_CATALOG_TAG_DELETE;
+            text = "DELETE TAG";
+            tooltip = "Delete only this catalogue tag after confirmation; presets and mission objects are unaffected";
+            x = "safeZoneX + 0.63 * safeZoneW";
+            w = "0.12 * safeZoneW";
+            colorBackground[] = {0.45, 0.12, 0.12, 0.9};
+            onButtonClick = "[ctrlParent (_this select 0), 'DELETE'] spawn RACA_fnc_catalogTagsExecute";
+        };
+        class Close: Filter {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.76 * safeZoneW";
+            w = "0.14 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };

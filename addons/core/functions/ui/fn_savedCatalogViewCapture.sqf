@@ -21,13 +21,14 @@ private _readCombo = {
 };
 private _record = [
     "RACA_CATALOG_VIEW",
-    1,
+    2,
     _name,
     (ctrlText (_parent displayCtrl RACA_IDC_SEARCH)) select [0, 256],
     [_parent displayCtrl RACA_IDC_CATEGORY] call _readCombo,
     [_parent displayCtrl RACA_IDC_SOURCE_FILTER] call _readCombo,
     [_parent displayCtrl RACA_IDC_ADDON_FILTER] call _readCombo,
     [_parent displayCtrl RACA_IDC_AUTHOR_FILTER] call _readCombo,
+    [_parent displayCtrl RACA_IDC_TAG_FILTER] call _readCombo,
     (uiNamespace getVariable ["RACA_catalogSort", ["item", true]]) select 0,
     (uiNamespace getVariable ["RACA_catalogSort", ["item", true]]) select 1
 ];

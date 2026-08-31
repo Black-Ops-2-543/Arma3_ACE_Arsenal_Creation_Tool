@@ -4,26 +4,31 @@ if !(_raw isEqualType []) exitWith {[]};
 private _views = [];
 private _seenNames = [];
 {
-    if (_x isEqualType [] && {(count _x) >= 10} && {(_x param [0, "", [""]]) isEqualTo "RACA_CATALOG_VIEW"} && {(_x param [1, -1, [0]]) isEqualTo 1}) then {
-        private _name = _x param [2, "", [""]];
-        private _search = _x param [3, "", [""]];
-        private _category = _x param [4, "All", [""]];
-        private _source = _x param [5, "", [""]];
-        private _addon = _x param [6, "", [""]];
-        private _author = _x param [7, "", [""]];
-        private _sortField = toLowerANSI (_x param [8, "item", [""]]);
-        private _ascending = _x param [9, true, [true]];
-        if !(_sortField in ["included", "item", "class", "mod", "author"]) then {_sortField = "item"};
-        private _nameKey = toLowerANSI _name;
-        if (
-            _name isNotEqualTo "" &&
-            {(count _name) <= 64} &&
-            {(count _search) <= 256} &&
-            {!(_nameKey in _seenNames)} &&
-            {(count _views) < 50}
-        ) then {
-            _seenNames pushBack _nameKey;
-            _views pushBack ["RACA_CATALOG_VIEW", 1, _name, _search, _category, _source, _addon, _author, _sortField, _ascending];
+    if (_x isEqualType [] && {(count _x) >= 10} && {(_x param [0, "", [""]]) isEqualTo "RACA_CATALOG_VIEW"}) then {
+        private _version = _x param [1, -1, [0]];
+        if (_version in [1, 2] && {_version isEqualTo 1 || {(count _x) >= 11}}) then {
+            private _name = _x param [2, "", [""]];
+            private _search = _x param [3, "", [""]];
+            private _category = _x param [4, "All", [""]];
+            private _source = _x param [5, "", [""]];
+            private _addon = _x param [6, "", [""]];
+            private _author = _x param [7, "", [""]];
+            private _tag = if (_version >= 2) then {_x param [8, "", [""]]} else {""};
+            private _sortField = toLowerANSI (_x param [[8, 9] select (_version >= 2), "item", [""]]);
+            private _ascending = _x param [[9, 10] select (_version >= 2), true, [true]];
+            if !(_sortField in ["included", "item", "class", "mod", "author"]) then {_sortField = "item"};
+            private _nameKey = toLowerANSI _name;
+            if (
+                _name isNotEqualTo "" &&
+                {(count _name) <= 64} &&
+                {(count _search) <= 256} &&
+                {(count _tag) <= 48} &&
+                {!(_nameKey in _seenNames)} &&
+                {(count _views) < 50}
+            ) then {
+                _seenNames pushBack _nameKey;
+                _views pushBack ["RACA_CATALOG_VIEW", 2, _name, _search, _category, _source, _addon, _author, _tag, _sortField, _ascending];
+            };
         };
     };
 } forEach _raw;

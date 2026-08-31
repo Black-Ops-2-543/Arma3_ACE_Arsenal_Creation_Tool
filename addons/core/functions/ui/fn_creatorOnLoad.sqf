@@ -27,6 +27,7 @@ private _favorites = createHashMap;
     if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {_favorites set [_x, true]};
 } forEach _favoriteClasses;
 uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
+call RACA_fnc_refreshCatalogTagIndex;
 
 [_display] call RACA_fnc_refreshCategoryCombo;
 

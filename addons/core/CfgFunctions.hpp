@@ -60,6 +60,10 @@ class CfgFunctions {
 
         class UI {
             file = "\x\raca\addons\core\functions\ui";
+            class catalogTagsExecute {};
+            class catalogTagsOnLoad {};
+            class catalogTagsRefresh {};
+            class catalogTagsSelect {};
             class clearSelection {};
             class copyCreatorDiagnostics {};
             class creatorKeyDown {};
@@ -70,6 +74,7 @@ class CfgFunctions {
             class historyOnLoad {};
             class historySelect {};
             class getSavedCatalogViews {};
+            class getCatalogTags {};
             class itemDetailsCopy {};
             class itemDetailsOnLoad {};
             class itemDetailsRefresh {};
@@ -77,6 +82,7 @@ class CfgFunctions {
             class itemDetailsToggleIncluded {};
             class openPresetHistory {};
             class openCreatorDiagnostics {};
+            class openCatalogTags {};
             class openItemDetails {};
             class openRolePacks {};
             class openSavedCatalogViews {};
@@ -91,6 +97,7 @@ class CfgFunctions {
             class quickStartOnLoad {};
             class queueRefresh {};
             class refreshHistoryButtons {};
+            class refreshCatalogTagIndex {};
             class refreshSourceCombo {};
             class refreshCategoryCombo {};
             class refreshItemList {};

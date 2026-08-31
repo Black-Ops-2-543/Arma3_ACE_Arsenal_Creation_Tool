@@ -49,7 +49,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Searching a display name, exact class, content mod name, author, and owning add-on each finds the expected item.
 - [ ] Source filtering restricts visible rows to one loaded mod and composes correctly with category and text search.
 - [ ] Mod, Add-on, and Author filters show plausible per-value counts, compose with each other/category/search, and restore **All** without changing the draft.
-- [ ] **Saved Views** captures the complete search/category/mod/add-on/author/sort workspace, restores it after other filters change, persists after restarting Arma, and never changes the draft selection.
+- [ ] **Tags > Edit** creates a profile-wide tag for the current Ctrl/Shift multi-row selection; tagged classes appear in free-text search, the counted Tag filter, row tooltips, and item details after restarting Arma.
+- [ ] Removing a tag from selected rows and confirmed tag deletion change only tag metadata; current draft inclusion, favorites, presets, and mission objects remain unchanged, and temporarily unavailable tagged classes return when their content mod is reloaded.
+- [ ] **Saved Views** captures the complete search/category/mod/add-on/author/tag/sort workspace, migrates older views with **All tags**, restores it after other filters change, persists after restarting Arma, and never changes the draft selection.
 - [ ] Re-capturing a case-insensitive duplicate view requires confirmation; deleting a view requires confirmation and leaves every preset and the current draft intact.
 - [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
 - [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.

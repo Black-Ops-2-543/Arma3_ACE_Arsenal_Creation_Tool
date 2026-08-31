@@ -63,6 +63,7 @@ private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 private _selected = _selectedMap getOrDefault [_className, false];
 private _inherited = _inheritedMap getOrDefault [_className, false];
 private _favorite = _favoriteMap getOrDefault [_className, false];
+private _tags = (uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap]) getOrDefault [_className, []];
 private _selectionState = if (_inherited) then {
     ["Inherited from the adopted source but explicitly removed", "Inherited from the adopted source and included"] select _selected
 } else {
@@ -91,6 +92,7 @@ private _lines = [
     format ["Model: %1", _model],
     format ["ACE catalogue availability: Yes — present in this running Arma session"],
     format ["Draft state: %1 | Favorite: %2", _selectionState, ["No", "Yes"] select _favorite],
+    format ["Catalogue tags: %1", if (_tags isEqualTo []) then {"None"} else {_tags joinString ", "}],
     format ["Effective quantity policy: %1", _limitText],
     format ["Compatibility: %1", _compatibility joinString " | "]
 ];
