@@ -12,4 +12,17 @@ _combo lbSetData [_blank, ""];
     _combo lbSetTooltip [_index, _x select 2];
 } forEach call RACA_fnc_getRoleTemplates;
 _combo lbSetCurSel 1;
+private _sourceCombo = _display displayCtrl RACA_IDC_QUICK_SOURCE;
+lbClear _sourceCombo;
+private _all = _sourceCombo lbAdd "All loaded sources";
+_sourceCombo lbSetData [_all, ""];
+private _sources = [];
+{_sources pushBackUnique (_x param [4, "Unknown"])} forEach (uiNamespace getVariable ["RACA_itemCatalog", []]);
+_sources = _sources select {_x isNotEqualTo ""};
+_sources sort true;
+{
+    private _index = _sourceCombo lbAdd _x;
+    _sourceCombo lbSetData [_index, _x];
+} forEach _sources;
+_sourceCombo lbSetCurSel 0;
 (_display displayCtrl RACA_IDC_QUICK_NAME) ctrlSetText "My First Restricted Arsenal";

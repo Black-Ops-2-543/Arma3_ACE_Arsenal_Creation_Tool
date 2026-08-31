@@ -13,6 +13,11 @@ private _result = switch (toLowerANSI _operation) do {
     case "resetquotas": {["all", objNull, "", ""] call RACA_fnc_resetQuotas; true};
     case "resetround": {["round", objNull, "", ""] call RACA_fnc_resetQuotas; true};
     case "resetphase": {["phase", objNull, "", ""] call RACA_fnc_resetQuotas; true};
+    case "resetobject": {
+        private _removed = 0;
+        {_removed = _removed + (["all", _x, "", ""] call RACA_fnc_resetQuotas)} forEach _objects;
+        _removed >= 0
+    };
     case "clear": {([_objects, "clear", [], true] call RACA_fnc_bulkUpdateObjects) >= 0};
     case "enable": {([_objects, "enable", [], true] call RACA_fnc_bulkUpdateObjects) >= 0};
     case "disable": {([_objects, "disable", [], true] call RACA_fnc_bulkUpdateObjects) >= 0};

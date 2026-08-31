@@ -93,7 +93,11 @@ class CfgFunctions {
 
         class Runtime {
             file = "\x\raca\addons\core\functions\runtime";
+            class adminCopyAudit {};
             class adminCommand {};
+            class adminExecute {};
+            class adminOnLoad {};
+            class adminRefresh {};
             class applyAuthorizedLoadout {};
             class applyCorrectedLoadout {};
             class applyObjectConfig {};
@@ -108,6 +112,7 @@ class CfgFunctions {
             class finishSession {};
             class getMissionRegistry {};
             class initRuntime {preInit = 1;};
+            class initClient {postInit = 1;};
             class isAdminAuthorized {};
             class listPlayerLoadouts {};
             class logEvent {};
@@ -118,6 +123,12 @@ class CfgFunctions {
             class previewPreset {};
             class registerActions {};
             class registerObject {};
+            class receiveAdminSnapshot {};
+            class receiveAdminAccess {};
+            class receiveQuotaStatus {};
+            class requestAdminAccess {};
+            class requestAdminSnapshot {};
+            class requestQuotaStatus {};
             class requestOpen {};
             class requestLoadoutApply {};
             class resetQuotas {};

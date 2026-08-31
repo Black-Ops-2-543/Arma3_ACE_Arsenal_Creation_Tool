@@ -17,7 +17,11 @@ private _roleCombo = _display displayCtrl RACA_IDC_QUICK_ROLE;
 private _templateId = _roleCombo lbData (lbCurSel _roleCombo);
 private _warnings = [];
 if (_templateId isNotEqualTo "") then {
-    private _result = [_templateId, uiNamespace getVariable ["RACA_itemCatalog", []], true] call RACA_fnc_applyRoleTemplate;
+    private _sourceCombo = _display displayCtrl RACA_IDC_QUICK_SOURCE;
+    private _source = _sourceCombo lbData (lbCurSel _sourceCombo);
+    private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
+    if (_source isNotEqualTo "") then {_catalog = _catalog select {(_x select 4) isEqualTo _source}};
+    private _result = [_templateId, _catalog, true] call RACA_fnc_applyRoleTemplate;
     _warnings = _result param [1, []];
 };
 (_parent displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText _name;

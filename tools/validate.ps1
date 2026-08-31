@@ -415,7 +415,7 @@ if (Test-Path -LiteralPath $coreConfigPath -PathType Leaf) {
     if ($coreConfig -match 'class\s+RACA_fnc_applyObjectConfig\s*\{[^}]*allowedTargets') {
         $failures.Add("Clients must not be allowed to remotely replace an object's authoritative configuration.")
     }
-    foreach ($remoteFunction in @('RACA_fnc_requestOpen', 'RACA_fnc_finishSession', 'RACA_fnc_requestLoadoutApply', 'RACA_fnc_applyAuthorizedLoadout')) {
+    foreach ($remoteFunction in @('RACA_fnc_requestOpen', 'RACA_fnc_finishSession', 'RACA_fnc_requestLoadoutApply', 'RACA_fnc_applyAuthorizedLoadout', 'RACA_fnc_requestAdminAccess', 'RACA_fnc_receiveAdminAccess', 'RACA_fnc_requestAdminSnapshot', 'RACA_fnc_receiveAdminSnapshot', 'RACA_fnc_requestQuotaStatus', 'RACA_fnc_receiveQuotaStatus')) {
         if ($coreConfig -notmatch ('class\s+' + $remoteFunction + '\s*\{')) {
             $failures.Add("CfgRemoteExec is missing the controlled runtime endpoint '$remoteFunction'.")
         }
@@ -473,6 +473,38 @@ if (Test-Path -LiteralPath $countLoadoutPath -PathType Leaf) {
     $countLoadout = Get-Content -Raw -LiteralPath $countLoadoutPath
     if ($countLoadout -notmatch '_quantity' -or $countLoadout -notmatch '_countContainer' -or $countLoadout -notmatch 'floor \(_quantity max 0\)') {
         $failures.Add("Loadout accounting must preserve container stack quantities rather than counting every cargo entry as one.")
+    }
+}
+
+$adminSnapshotPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_requestAdminSnapshot.sqf'
+$adminUiPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_adminRefresh.sqf'
+if (-not (Test-Path -LiteralPath $adminSnapshotPath -PathType Leaf) -or -not (Test-Path -LiteralPath $adminUiPath -PathType Leaf)) {
+    $failures.Add("Authenticated runtime administration must provide both a server snapshot endpoint and a client dashboard renderer.")
+}
+else {
+    $adminSnapshot = Get-Content -Raw -LiteralPath $adminSnapshotPath
+    if ($adminSnapshot -notmatch 'owner _unit isNotEqualTo remoteExecutedOwner' -or
+        $adminSnapshot -notmatch 'RACA_fnc_isAdminAuthorized' -or
+        $adminSnapshot -match 'RACA_objectConfig') {
+        $failures.Add("The administration snapshot must bind to the requesting owner, recheck authorization, and avoid broadcasting full object configurations.")
+    }
+}
+
+$zeusAssignPath = Join-Path $addonsDirectory 'core\functions\zeus\fn_moduleAssign.sqf'
+if (Test-Path -LiteralPath $zeusAssignPath -PathType Leaf) {
+    $zeusAssign = Get-Content -Raw -LiteralPath $zeusAssignPath
+    if ($zeusAssign -notmatch 'RACA_fnc_getMissionRegistry' -or $zeusAssign -notmatch 'embedded mission slot') {
+        $failures.Add("Zeus assignment must fall back to presets already embedded in registered mission objects for dedicated-server use.")
+    }
+}
+
+$quotaStatusPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_requestQuotaStatus.sqf'
+if (Test-Path -LiteralPath $quotaStatusPath -PathType Leaf) {
+    $quotaStatus = Get-Content -Raw -LiteralPath $quotaStatusPath
+    if ($quotaStatus -notmatch 'owner _unit isNotEqualTo remoteExecutedOwner' -or
+        $quotaStatus -notmatch '_unit distance _object' -or
+        $quotaStatus -notmatch 'RACA_fnc_evaluateAccess') {
+        $failures.Add("Player quota inspection must be owner-bound, distance-limited, and access-authorized on the server.")
     }
 }
 

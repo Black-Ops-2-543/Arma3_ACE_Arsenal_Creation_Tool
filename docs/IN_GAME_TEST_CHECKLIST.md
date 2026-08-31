@@ -28,6 +28,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] The VR scene loads, followed by the creator interface.
 - [ ] With an empty RACA profile, Quick Start opens once and creates either a blank draft or a reviewable role-starter draft without saving automatically.
 - [ ] Quick Start remains available manually after onboarding.
+- [ ] A Quick Start role draft constrained to one source mod contains no catalogue classes attributed to another source.
 - [ ] Closing the creator returns to the scene or menu without a script error.
 
 ## 2. Catalogue and presentation
@@ -116,15 +117,21 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Exact-class and category limits enforce quantities stored inside uniform, vest, and backpack cargo stacks.
 - [ ] `-1` remains unlimited; interaction limits reset on each open; player/life/mission/arsenal limits persist and reset only at their documented boundary.
 - [ ] Exhausted exact classes and exhausted categories are absent from the next ACE session and the remaining-quota message is correct.
+- [ ] **Check remaining allowance** reports the same server-side exact/category values without opening ACE Arsenal and denies unauthorized or distant requests.
 - [ ] Saving a personal loadout and reapplying it uses the same access and quota checks; an outside class or exhausted quantity is rejected and restored.
 - [ ] Reconfiguring, clearing, or deleting an arsenal object while it is open closes the session and restores the pre-session loadout.
 - [ ] A preset containing a now-missing mod class still initializes with the remaining valid classes and writes a warning to RPT.
 - [ ] Repeated previews do not accumulate unrestricted ACE virtual cargo.
 - [ ] The client has no public `RACA_objectConfig`, `RACA_quotaState`, or `RACA_openSessions` data containing the full server policy.
 - [ ] A disconnect, respawn, or stale-session timeout leaves no locked session and does not preserve unauthorized equipment.
+- [ ] Only a logged-in server admin or a UID in `RACA_adminUIDs` sees the **RACA Administration** ACE self-action.
+- [ ] The admin dashboard reports every registered object, slot names/states, quota-record count, active-session count, and the newest audit records without exposing full embedded presets.
+- [ ] Admin refresh, object quota reset, global quota reset, enable, disable, and confirmed clear execute on the server and refresh the displayed snapshot.
+- [ ] Copy Audit produces a readable clipboard record and a non-admin client cannot request a snapshot or execute an admin command by remote call.
 - [ ] On a hosted multiplayer server, the host sees the restricted contents.
 - [ ] A connected client sees the same restricted contents.
 - [ ] A client joining in progress sees the same restricted contents.
+- [ ] On a dedicated server, Zeus Assign/Replace can resolve a preset already embedded in another registered mission object even when the server profile library is empty.
 
 ## Release gate
 

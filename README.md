@@ -49,6 +49,7 @@ The current release:
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
 - provides server-authoritative access checks, controlled ACE interactions, quota enforcement, audit logging, and saved player loadouts for runtime-configured arsenals;
+- gives authenticated server administrators an ACE self-interaction dashboard for configured objects, live sessions, quota records, and recent audit events;
 - provides Zeus modules to assign or replace, clear, enable or disable, and reset quotas on restricted arsenals; and
 - validates preset data, skips unavailable classes, and logs diagnostics with the `[RACA]` prefix.
 
@@ -87,7 +88,7 @@ The controls include:
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
 - **Delete** — removes the selected preset from the active profile after confirmation while keeping the current items as an unsaved recovery copy;
-- **Quick Start** — creates an unsaved blank or role-based draft and leads directly to review;
+- **Quick Start** — creates an unsaved blank or role-based draft, optionally constrained to one loaded source mod, and leads directly to review;
 - **Revision History** — compares automatically archived versions and restores one as a new revision;
 - **Compare Draft** — copies the exact added/removed class and quantity-policy difference against the selected saved preset;
 - **Undo / Redo** — reverses creator item and policy changes, also available with `Ctrl+Z` / `Ctrl+Y`;
@@ -115,7 +116,7 @@ For a basic rifleman arsenal:
 
 Bulk actions affect only rows currently visible through the active filters. Use **Exclude Visible** to remove a filtered group, or **Clear All** to start over.
 
-To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue, so review the resulting list rather than treating it as a fixed faction loadout.
+To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue; an active Source filter constrains them to that content pack. Quick Start exposes the same source boundary directly. Review the resulting list rather than treating it as a fixed faction loadout.
 
 To set an exact limit, select an item row, choose its scope, enter a quantity, and select **Limit Item**. To share one allowance across a complete equipment category, choose that category and select **Limit Category**. Use `-1` for unlimited. Limits are stored with the preset; full server-side enforcement applies when the preset is used by RACA's controlled runtime-object configuration.
 
@@ -215,17 +216,17 @@ The full embedded preset, quota state, open-session records, and mission registr
 
 An access rule may require side, faction, group, minimum rank, unit type, player UID, vehicle role, a required item, or a mission-defined ACE permission. Rules support AND/OR matching and a custom denial message. A restricted slot can remain visible when denied, or hide itself from unauthorized players.
 
-Quantity limits can be assigned to an individual class or category. Their scope is one interaction, one player, one life, the mission, or the shared arsenal; they can be reset on interaction, respawn, round, phase, or manually. RACA reports remaining limited quantities when an authorized player opens the slot.
+Quantity limits can be assigned to an individual class or category. Their scope is one interaction, one player, one life, the mission, or the shared arsenal; they can be reset on interaction, respawn, round, phase, or manually. RACA reports remaining limited quantities when an authorized player opens the slot, and every slot has a server-checked **Check remaining allowance** child action so players can inspect the same values before opening.
 
 ### Player loadouts and administration
 
 Every runtime slot adds ACE actions to save and reapply a personal loadout for that slot. Personal records stay in the player's profile and are bound to that player's UID and slot. Reapplication is requested through the server and passes through the same access, distance, allowed-class, and quota checks as an interactive arsenal session.
 
-Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. Runtime changes and access decisions are recorded in RACA's mission audit log.
+Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. An authorized player's ACE self-interaction menu exposes **RACA Administration**, which shows sanitized object/slot summaries, active-session and quota counts, the newest 100 audit events, scoped controls, and a clipboard audit export. The server rechecks authorization for every snapshot and command; the client display is never authoritative.
 
 ### Zeus modules
 
-The **Restricted Arsenals** Zeus category includes modules to assign/replace a preset, clear an arsenal, enable/disable an arsenal, and reset quotas. Zeus modules run on the server and can be disabled for a mission by setting `RACA_allowZeusModules` to `false` in `missionNamespace`. The assignment module resolves its named preset from the server's RACA preset library, so ensure the server profile has that preset before using it.
+The **Restricted Arsenals** Zeus category includes modules to assign/replace a preset, clear an arsenal, enable/disable an arsenal, and reset quotas. Zeus modules run on the server and can be disabled for a mission by setting `RACA_allowZeusModules` to `false` in `missionNamespace`. The assignment module resolves its named preset first from the server profile and then from presets already embedded in registered mission objects. This fallback makes a dedicated-server Zeus workflow independent of the curator's local profile once at least one mission object carries that preset.
 
 ## Important behavior and limitations
 

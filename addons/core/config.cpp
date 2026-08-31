@@ -34,6 +34,12 @@ class CfgRemoteExec {
         class RACA_fnc_applyAuthorizedLoadout {allowedTargets = 1;};
         class RACA_fnc_requestLoadoutApply {allowedTargets = 2;};
         class RACA_fnc_adminCommand {allowedTargets = 2;};
+        class RACA_fnc_requestAdminSnapshot {allowedTargets = 2;};
+        class RACA_fnc_receiveAdminSnapshot {allowedTargets = 1;};
+        class RACA_fnc_requestAdminAccess {allowedTargets = 2;};
+        class RACA_fnc_receiveAdminAccess {allowedTargets = 1;};
+        class RACA_fnc_requestQuotaStatus {allowedTargets = 2;};
+        class RACA_fnc_receiveQuotaStatus {allowedTargets = 1;};
         class RACA_fnc_registerActions {allowedTargets = 0;};
     };
 };

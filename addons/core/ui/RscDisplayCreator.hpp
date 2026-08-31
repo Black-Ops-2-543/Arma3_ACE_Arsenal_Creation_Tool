@@ -571,9 +571,9 @@ class RACA_RscDisplayQuickStart {
         class Background: RscText {
             idc = -1;
             x = "safeZoneX + 0.25 * safeZoneW";
-            y = "safeZoneY + 0.20 * safeZoneH";
+            y = "safeZoneY + 0.16 * safeZoneH";
             w = "0.50 * safeZoneW";
-            h = "0.56 * safeZoneH";
+            h = "0.68 * safeZoneH";
             colorBackground[] = {0.02, 0.025, 0.03, 0.98};
         };
         class Title: RscText {
@@ -624,11 +624,20 @@ class RACA_RscDisplayQuickStart {
             w = "0.44 * safeZoneW";
             h = "0.04 * safeZoneH";
         };
+        class SourceLabel: NameLabel {
+            text = "Optional source-mod boundary";
+            y = "safeZoneY + 0.625 * safeZoneH";
+        };
+        class Source: Role {
+            idc = RACA_IDC_QUICK_SOURCE;
+            y = "safeZoneY + 0.66 * safeZoneH";
+            tooltip = "Limit role-starter suggestions to one loaded content source";
+        };
         class Create: RscButton {
             idc = RACA_IDC_QUICK_CREATE;
             text = "CREATE REVIEW DRAFT";
             x = "safeZoneX + 0.28 * safeZoneW";
-            y = "safeZoneY + 0.66 * safeZoneH";
+            y = "safeZoneY + 0.74 * safeZoneH";
             w = "0.27 * safeZoneW";
             h = "0.05 * safeZoneH";
             colorBackground[] = {0.19, 0.42, 0.19, 0.95};
@@ -708,6 +717,129 @@ class RACA_RscDisplayHistory {
             w = "0.15 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayAdmin {
+    idd = RACA_IDD_ADMIN;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_adminOnLoad";
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.03 * safeZoneW";
+            y = "safeZoneY + 0.035 * safeZoneH";
+            w = "0.94 * safeZoneW";
+            h = "0.93 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.98};
+        };
+        class Title: RscText {
+            idc = -1;
+            text = "RACA RUNTIME ADMINISTRATION";
+            style = 2;
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.055 * safeZoneH";
+            w = "0.90 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+    class controls {
+        class ObjectHeading: RscText {
+            idc = -1;
+            text = "CONFIGURED OBJECTS — NAME | TYPE | SLOTS | QUOTAS | SESSIONS";
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.12 * safeZoneH";
+            w = "0.90 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Objects: RscListNBox {
+            idc = RACA_IDC_ADMIN_OBJECTS;
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.16 * safeZoneH";
+            w = "0.90 * safeZoneW";
+            h = "0.27 * safeZoneH";
+            columns[] = {0.01, 0.18, 0.37, 0.82, 0.91};
+            colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class AuditHeading: ObjectHeading {
+            text = "RECENT SERVER AUDIT — TIME | EVENT | PLAYER | UID | OBJECT | SLOT | DETAILS";
+            y = "safeZoneY + 0.45 * safeZoneH";
+        };
+        class Audit: Objects {
+            idc = RACA_IDC_ADMIN_AUDIT;
+            y = "safeZoneY + 0.49 * safeZoneH";
+            h = "0.27 * safeZoneH";
+            columns[] = {0.01, 0.17, 0.29, 0.43, 0.57, 0.69, 0.79};
+        };
+        class Refresh: RscButton {
+            idc = RACA_IDC_ADMIN_REFRESH;
+            text = "REFRESH";
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.785 * safeZoneH";
+            w = "0.10 * safeZoneW";
+            h = "0.045 * safeZoneH";
+            onButtonClick = "[ctrlParent (_this select 0), 'refresh'] spawn RACA_fnc_adminExecute";
+        };
+        class ResetAll: Refresh {
+            idc = RACA_IDC_ADMIN_RESET_ALL;
+            text = "RESET ALL QUOTAS";
+            x = "safeZoneX + 0.16 * safeZoneW";
+            w = "0.14 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'resetquotas'] spawn RACA_fnc_adminExecute";
+        };
+        class ResetObject: Refresh {
+            idc = RACA_IDC_ADMIN_RESET_OBJECT;
+            text = "RESET OBJECT";
+            x = "safeZoneX + 0.31 * safeZoneW";
+            w = "0.12 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'resetobject'] spawn RACA_fnc_adminExecute";
+        };
+        class Enable: Refresh {
+            idc = RACA_IDC_ADMIN_ENABLE;
+            text = "ENABLE";
+            x = "safeZoneX + 0.44 * safeZoneW";
+            w = "0.09 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'enable'] spawn RACA_fnc_adminExecute";
+        };
+        class Disable: Enable {
+            idc = RACA_IDC_ADMIN_DISABLE;
+            text = "DISABLE";
+            x = "safeZoneX + 0.54 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'disable'] spawn RACA_fnc_adminExecute";
+        };
+        class Clear: Enable {
+            idc = RACA_IDC_ADMIN_CLEAR;
+            text = "CLEAR";
+            x = "safeZoneX + 0.64 * safeZoneW";
+            colorBackground[] = {0.45, 0.12, 0.12, 0.9};
+            onButtonClick = "[ctrlParent (_this select 0), 'clear'] spawn RACA_fnc_adminExecute";
+        };
+        class CopyAudit: Refresh {
+            idc = RACA_IDC_ADMIN_COPY_AUDIT;
+            text = "COPY AUDIT";
+            x = "safeZoneX + 0.74 * safeZoneW";
+            w = "0.10 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_adminCopyAudit";
+        };
+        class Close: Refresh {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.85 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+        class Status: RscText {
+            idc = RACA_IDC_ADMIN_STATUS;
+            text = "Requesting server state...";
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.85 * safeZoneH";
+            w = "0.90 * safeZoneW";
+            h = "0.06 * safeZoneH";
+            style = 16;
+            colorBackground[] = {0, 0, 0, 0.45};
         };
     };
 };

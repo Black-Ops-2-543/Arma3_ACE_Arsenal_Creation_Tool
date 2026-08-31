@@ -60,6 +60,17 @@ private _root = [
             [_slotId]
         ] call ace_interact_menu_fnc_createAction;
         [_object, 0, ["ACE_MainActions", "RACA_Root", _actionId], _applyAction] call ace_interact_menu_fnc_addActionToObject;
+
+        private _quotaAction = [
+            format ["RACA_Quota_%1", _slotId],
+            format ["Check remaining allowance for %1", _slotName],
+            "",
+            {params ["_target", "_player", "_args"]; [_target, _player, _args select 0] remoteExecCall ["RACA_fnc_requestQuotaStatus", 2]},
+            {true},
+            {},
+            [_slotId]
+        ] call ace_interact_menu_fnc_createAction;
+        [_object, 0, ["ACE_MainActions", "RACA_Root", _actionId], _quotaAction] call ace_interact_menu_fnc_addActionToObject;
     };
 } forEach (_config select 2);
 
