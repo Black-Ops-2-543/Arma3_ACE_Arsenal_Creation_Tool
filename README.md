@@ -20,12 +20,12 @@ RACA has two parts:
 ```mermaid
 flowchart LR
     A[Load Arma 3, CBA, ACE, and content mods] --> B[Open Restricted Arsenal Creator]
-    B --> C[Search and select permitted classes]
-    C --> D[Save named preset to profile]
-    D --> E[Select preset on an Eden object]
-    E --> F[Mission embeds a copy of the preset]
-    F --> G[Server validates and applies ACE Arsenal]
-    G --> H[Players use normal ACE Arsenal interaction]
+    B --> C[Choose a role starter or select permitted classes]
+    C --> D[Set optional item limits and run preflight]
+    D --> E[Save or adopt a preset]
+    E --> F[Assign in Eden or through a Zeus module]
+    F --> G[Server validates access and quota rules]
+    G --> H[Players use controlled ACE Arsenal slots]
 ```
 
 The important boundary is between authoring and runtime: the profile is used to create and manage presets, while the saved mission carries the selected preset it needs to run.
@@ -40,13 +40,16 @@ The current release:
 - saves named presets in the active Arma profile and supports loading and case-insensitive overwriting;
 - adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
+- includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
+- provides creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources;
+- saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
 - adds a preset selector and Refresh button to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
-- applies the selection through ACE's public arsenal API;
-- validates preset data, skips unavailable classes, and logs diagnostics with the \`[RACA]\` prefix; and
-- initializes the restricted arsenal on the server and synchronizes it for multiplayer and JIP clients.
+- provides server-authoritative access checks, controlled ACE interactions, quota enforcement, audit logging, and saved player loadouts for runtime-configured arsenals;
+- provides Zeus modules to assign or replace, clear, enable or disable, and reset quotas on restricted arsenals; and
+- validates preset data, skips unavailable classes, and logs diagnostics with the `[RACA]` prefix.
 
-Zeus authoring is not included in this release. The runtime result is a regular ACE Arsenal interaction on the configured object.
+The player-facing result remains ACE Arsenal. RACA adds the authoring, access, and accounting layer around it.
 
 ## Requirements
 
@@ -60,7 +63,7 @@ Load the same content mods while creating a preset, editing the mission, and pla
 
 ### 1. Install and load RACA
 
-Build RACA or obtain the \`@RestrictedArsenalCreationAssistant\` folder, then place it somewhere Arma 3 can load as a mod. In the Arma 3 Launcher, enable CBA_A3, ACE3, RACA, and every content mod containing equipment you want to use.
+Build RACA or obtain the `@RestrictedArsenalCreationAssistant` folder, then place it somewhere Arma 3 can load as a mod. In the Arma 3 Launcher, enable CBA_A3, ACE3, RACA, and every content mod containing equipment you want to use.
 
 Start Arma 3 after confirming the dependencies load without errors.
 
@@ -86,6 +89,8 @@ The controls include:
 - **Import Auto** — detects and safely imports RACA JSON, an existing SQF arsenal, or a class list from the clipboard; and
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk.
 
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, and **Copy Report**. Assignment includes an optional quantity-limit control for the selected class; **View** switches between the current included items and the full adopted-source snapshot.
+
 ### 3. Build the selection
 
 Use Category and Search to narrow the catalogue. Click a row to toggle it, or select a row and press **Space**. A selection remains intact when an item is temporarily hidden by another filter.
@@ -100,11 +105,17 @@ For a basic rifleman arsenal:
 
 Bulk actions affect only rows currently visible through the active filters. Use **Exclude Visible** to remove a filtered group, or **Clear All** to start over.
 
+To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue, so review the resulting list rather than treating it as a fixed faction loadout.
+
+To set a limit, select an item row, choose its scope, enter a quantity, and select **Set Limit**. Use `-1` for unlimited. Limits are stored with the preset; full server-side enforcement applies when the preset is used by RACA's controlled runtime-object configuration.
+
 ### 4. Save the preset
 
-Enter a descriptive name such as \`Rifleman - Training\`, \`Pilot - Rotary Wing\`, or \`Logistics - Restricted\`, then select **Save / Overwrite**.
+Enter a descriptive name such as `Rifleman - Training`, `Pilot - Rotary Wing`, or `Logistics - Restricted`, then select **Save / Overwrite**.
 
 RACA rejects an empty name and an empty selection. Saving the same name again updates the existing preset instead of creating a case-variant duplicate. Presets are stored in the active Arma profile.
+
+Before saving a preset intended for another mod set, select **Run Preflight**. It identifies blocking invalid data, unavailable required classes, duplicates, bucket corrections, and likely source mods/add-ons. Select **Copy Report** to place the full report on the clipboard for testing notes or bug reports.
 
 ### 5. Adopt a source preset
 
@@ -159,22 +170,44 @@ For a multiplayer release, test with a second client and, when relevant, a clien
 ```mermaid
 sequenceDiagram
     participant Author as Mission maker
-    participant Eden as Eden mission
+    participant Object as Configured object
     participant Server as Server
     participant Player as Player / JIP client
-    Author->>Eden: Assign preset to object
-    Eden->>Server: Send embedded preset at mission start
-    Server->>Server: Validate classes and remove old arsenal
-    Server->>Server: Initialize restricted ACE Arsenal
-    Server-->>Player: Synchronize configured contents
-    Player->>Eden: Interact with object through ACE
+    Author->>Object: Assign embedded preset or runtime slot
+    Object->>Server: Register configuration at mission start
+    Player->>Object: Select restricted ACE action
+    Object->>Server: Request an authorized session
+    Server->>Server: Check access, available classes, and quotas
+    Server-->>Player: Open controlled ACE Arsenal session
+    Player-->>Server: Close session with updated loadout
+    Server->>Server: Commit quota use or restore prior loadout
 ```
+
+## Controlled runtime arsenals
+
+RACA's Eden attribute turns one embedded preset into a single restricted arsenal. The runtime object configuration expands that model into one or more named ACE interaction slots on an object. Each slot can carry its own preset, enabled state, access rule, icon, visibility behavior, and quantity limits. The server authorizes every open request and checks the player's loadout delta when the session closes; if a quota would be exceeded, it restores the loadout from before that arsenal session.
+
+### Access rules and quotas
+
+An access rule may require side, faction, group, minimum rank, unit type, player UID, vehicle role, a required item, or a mission-defined ACE permission. Rules support AND/OR matching and a custom denial message. A restricted slot can remain visible when denied, or hide itself from unauthorized players.
+
+Quantity limits can be assigned to an individual class or category. Their scope is one interaction, one player, one life, the mission, or the shared arsenal; they can be reset on interaction, respawn, round, phase, or manually. RACA reports remaining limited quantities when an authorized player opens the slot.
+
+### Player loadouts and administration
+
+Every runtime slot adds ACE actions to save and reapply a personal loadout for that slot. RACA refuses to reapply a saved loadout if it contains classes outside the slot's allowed preset.
+
+Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. Runtime changes and access decisions are recorded in RACA's mission audit log.
+
+### Zeus modules
+
+The **Restricted Arsenals** Zeus category includes modules to assign/replace a preset, clear an arsenal, enable/disable an arsenal, and reset quotas. Zeus modules run on the server and can be disabled for a mission by setting `RACA_allowZeusModules` to `false` in `missionNamespace`. The assignment module resolves its named preset from the server's RACA preset library, so ensure the server profile has that preset before using it.
 
 ## Important behavior and limitations
 
 ### Presets and profiles
 
-Presets are stored in the profile variable \`RACA_presetLibrary_v1\`. They are authoring data, not a runtime dependency of a saved mission. Eden embeds the selected preset in the scenario.
+Presets are stored in the profile variable `RACA_presetLibrary_v1`. They are authoring data, not a runtime dependency of a saved mission. Eden embeds the selected preset in the scenario.
 
 Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, and unsupported versions are rejected. RACA imposes no fixed byte ceiling; the practical limit is the memory available to Arma and the operating-system clipboard. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 
@@ -182,7 +215,7 @@ Adopted presets remain authoring conveniences. Their stored final buckets are al
 
 ### Missing content mods
 
-RACA validates the embedded selection at mission start. Classes unavailable in the active mod set are skipped while valid classes are applied. Missing-content warnings are written to the RPT with the \`[RACA]\` prefix.
+RACA validates the embedded selection at mission start. Classes unavailable in the active mod set are skipped while valid classes are applied. Missing-content warnings are written to the RPT with the `[RACA]` prefix.
 
 Keep the authoring and runtime mod sets aligned. A missing mod can make an intentionally restricted arsenal smaller than expected.
 
@@ -204,7 +237,7 @@ The generated **Reusable SQF** export is separate from RACA's Eden integration: 
 
 **A preset is not visible in Eden.** Press **Refresh**. If it is still missing, check that Eden is using the same Arma profile in which the preset was saved.
 
-**The runtime arsenal is smaller than expected.** Inspect the newest Arma RPT for \`[RACA]\` warnings about unavailable classes and verify the runtime mod set.
+**The runtime arsenal is smaller than expected.** Inspect the newest Arma RPT for `[RACA]` warnings about unavailable classes and verify the runtime mod set.
 
 **The object has no usable arsenal.** Confirm that a preset—not **<None>**—is selected, that it contains at least one item, and that its classes are available.
 
@@ -214,25 +247,27 @@ See the focused [in-game release checklist](docs/IN_GAME_TEST_CHECKLIST.md) for 
 
 Building requires Arma 3 Tools, including AddonBuilder and BankRev. From the repository root:
 
-\`\`\`powershell
-.\\tools\\validate.ps1
-.\\tools\\build.ps1 -Clean
-\`\`\`
+```powershell
+.\tools\validate.ps1
+.\tools\build.ps1 -Clean
+```
 
-The default output is \`build\\@RestrictedArsenalCreationAssistant\`. The build packages the add-ons, verifies PBO prefixes, copies mod metadata, and creates \`checksums.sha256\`.
+The default output is `build\@RestrictedArsenalCreationAssistant`. The build packages the add-ons, verifies PBO prefixes, copies mod metadata, and creates `checksums.sha256`.
 
-If Arma 3 Tools is installed elsewhere, provide \`-AddonBuilderPath\`, \`-ArmaToolsDirectory\`, and \`-BankRevPath\`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use \`-SkipConfig\` or \`-SkipSqf\` only when the corresponding tool is unavailable.
+If Arma 3 Tools is installed elsewhere, provide `-AddonBuilderPath`, `-ArmaToolsDirectory`, and `-BankRevPath`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use `-SkipConfig` or `-SkipSqf` only when the corresponding tool is unavailable.
 
 Static validation covers configuration structure, SQF syntax, PBO prefixes, mission registration, and known integration regressions. Final acceptance still requires in-game testing.
 
 ## Project layout
 
-- \`addons/core\` — creator mission, catalogue scanning, preset storage, validation, and ACE application;
-- \`addons/eden\` — Eden object attribute and preset selection controls;
-- \`docs/IN_GAME_TEST_CHECKLIST.md\` — in-game release checklist;
-- \`docs/PORTABLE_PRESET_FORMAT.md\` — JSON, SQF, and class-list interchange formats and file workflows;
-- \`tools/validate.ps1\` — source and configuration validation; and
-- \`tools/build.ps1\` — PBO packaging and checksum generation.
+- `addons/core` — creator mission, catalogue scanning, preset storage, validation, and ACE application;
+- `addons/core/functions/runtime` — server-authoritative sessions, access rules, quotas, player loadouts, and administration;
+- `addons/core/functions/templates`, `diagnostics`, and `zeus` — role starters, preflight reporting, and Zeus modules;
+- `addons/eden` — Eden object attribute and preset selection controls;
+- `docs/IN_GAME_TEST_CHECKLIST.md` — in-game release checklist;
+- `docs/PORTABLE_PRESET_FORMAT.md` — JSON, SQF, and class-list interchange formats and file workflows;
+- `tools/validate.ps1` — source and configuration validation; and
+- `tools/build.ps1` — PBO packaging and checksum generation.
 
 ## License and dependencies
 
