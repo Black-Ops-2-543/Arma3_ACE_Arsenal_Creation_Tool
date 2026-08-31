@@ -5,6 +5,14 @@ private _preset = [_display] call RACA_fnc_buildPreset;
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 private _analysis = [_preset, _catalog, []] call RACA_fnc_analyzePreset;
 _analysis params ["_ok", "_entries", "_summary"];
+_entries append ([_catalog, _preset] call RACA_fnc_analyzeEnvironment);
+_summary = [
+    {(_x select 0) isEqualTo "ERROR"} count _entries,
+    {(_x select 0) isEqualTo "WARNING"} count _entries,
+    {(_x select 0) isEqualTo "INFO"} count _entries
+];
+_ok = (_summary select 0) isEqualTo 0;
+_analysis = [_ok, _entries, _summary];
 private _report = [_preset param [2, "Current selection"], _entries, _summary] call RACA_fnc_formatDiagnosticReport;
 uiNamespace setVariable ["RACA_creatorDiagnostics", [_analysis, _report]];
 private _diagnostics = _display displayCtrl RACA_IDC_DIAGNOSTICS;

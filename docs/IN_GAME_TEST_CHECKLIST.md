@@ -43,6 +43,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Searching `ACE_` does not return the vanilla `.338 LM 10Rnd Mag` / `10Rnd_338_Mag` solely because ACE patches it.
 - [ ] Searching a display name, exact class, content mod name, author, and owning add-on each finds the expected item.
 - [ ] Source filtering restricts visible rows to one loaded mod and composes correctly with category and text search.
+- [ ] Mod, Add-on, and Author filters show plausible per-value counts, compose with each other/category/search, and restore **All** without changing the draft.
+- [ ] **Saved Views** captures the complete search/category/mod/add-on/author/sort workspace, restores it after other filters change, persists after restarting Arma, and never changes the draft selection.
+- [ ] Re-capturing a case-insensitive duplicate view requires confirmation; deleting a view requires confirmation and leaves every preset and the current draft intact.
 - [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
 - [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.
 - [ ] Clicking Included, Item, Class Name, Mod, and Author headers toggles a deterministic sort, preserves the selected class and filters, and restores the last sort after reopening Arma.
@@ -51,6 +54,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 
 - [ ] A single left-click toggles the row that was clicked immediately.
 - [ ] Space toggles the currently selected row immediately.
+- [ ] Ctrl-click selects separate rows and Shift-click selects a continuous range without immediately changing inclusion; **Space**, **Favorite**, and **Limit Item** each affect the complete selected set, while inclusion/limit changes reverse in one Undo step.
 - [ ] Typing a space in the Search box does not toggle an item.
 - [ ] Exclude one item, change category or search so it disappears, then return: it remains excluded.
 - [ ] **Include Visible** and **Exclude Visible** affect only the filtered rows.
@@ -75,6 +79,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Required-mod manifest export groups every selected class by source mod and owning add-on.
 - [ ] Support-bundle export contains environment metadata, compatibility analysis, manifest, and the portable preset; Import Auto rejects it as non-preset data.
 - [ ] **View Details** shows color-coded Error/Warning/Information rows, severity filters preserve the full report, copy matches the underlying analysis, and double-clicking an available class selects it in Assignment.
+- [ ] Preflight reports ACE3, CBA_A3, and RACA Eden health plus active catalogue class/mod/add-on/author/category counts; the support bundle contains the same environment evidence.
 - [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
 
 ## 5. Preset adoption

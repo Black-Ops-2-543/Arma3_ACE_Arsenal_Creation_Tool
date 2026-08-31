@@ -34,7 +34,7 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- provides first-run Quick Start, source-mod filtering, persistent favorites, clickable persistent sorting, item context tooltips, and undo/redo;
+- provides first-run Quick Start, counted source-mod/owning-add-on/author filters, reusable saved catalogue views, persistent favorites, clickable persistent sorting, item context tooltips, Ctrl/Shift multi-selection, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
@@ -44,7 +44,7 @@ The current release:
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
-- provides color-coded, severity-filterable creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items;
+- provides color-coded, severity-filterable creator preflight reports for ACE/CBA/Eden availability, active catalogue scope, invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items;
 - saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
@@ -81,7 +81,10 @@ The controls include:
 
 - **Search** — searches names, class names, categories, mods, owning add-ons, and authors;
 - **Category** — filters by item type;
-- **Source** — filters to one loaded source mod, while search still covers owning add-ons and authors;
+- **Mod** — filters to one loaded source mod and shows the number of available classes per source;
+- **Add-on** — filters to one owning `CfgPatches` add-on and shows its available-class count;
+- **Author** — filters to one config author and shows its available-class count;
+- **Saved Views** — captures and restores a named combination of search, Category, Mod, Add-on, Author, and sort order without changing the draft selection;
 - **Favorite** — stores the selected class in a profile-wide Favorites view;
 - **Included / Item / Class Name / Mod / Author headers** — sort the filtered catalogue in either direction and remember the chosen order across sessions;
 - **Included** — shows whether a row belongs to the current selection;
@@ -99,13 +102,16 @@ The controls include:
 - **Export format** — chooses round-trip JSON, reusable mission SQF, a simple class list, a required-mod manifest, or a support bundle;
 - **Export** — copies the selected preset in that format;
 - **Import Auto** — detects and safely imports RACA JSON, an existing SQF arsenal, or a class list from the clipboard; and
-- **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk.
+- **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk; and
+- **Ctrl-click / Shift-click** — selects separate rows or a continuous range; press **Space**, **Favorite**, or **Limit Item** to change the complete set in one operation. Inclusion and limits remain undoable.
 
 The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows its class, category, source, author, favorite state, and effective limit.
 
 ### 3. Build the selection
 
-Use Category and Search to narrow the catalogue. Click a row to toggle it, or select a row and press **Space**. A selection remains intact when an item is temporarily hidden by another filter.
+Use Category, Mod, Add-on, Author, and Search to narrow the catalogue. Click a row to toggle it, or select a row and press **Space**. Ctrl-click selects separate rows and Shift-click selects a range; then press **Space**, **Favorite**, or **Limit Item** to apply the operation consistently to the selected set. A selection remains intact when an item is temporarily hidden by another filter.
+
+Use **Saved Views** to keep reusable workspaces such as “ACE medical”, “RHS uniforms”, or “Current mod audit”. Enter a view name and capture the current search, filters, and sorting. Applying or deleting a view never includes, excludes, saves, overwrites, or deletes an arsenal preset.
 
 For a basic rifleman arsenal:
 
@@ -127,7 +133,7 @@ Enter a descriptive name such as `Rifleman - Training`, `Pilot - Rotary Wing`, o
 
 RACA rejects an empty name and an empty selection. Saving the same name again updates the existing preset instead of creating a case-variant duplicate. Presets are stored in the active Arma profile.
 
-Before saving a preset intended for another mod set, select **Run Preflight**. It identifies blocking invalid data, unavailable required classes, duplicates, bucket corrections, and likely source mods/add-ons. Select **Copy Report** to place the full report on the clipboard for testing notes or bug reports.
+Before saving a preset intended for another mod set, select **Run Preflight**. It verifies ACE3, CBA_A3, and RACA Eden availability; explains exactly how many classes, source mods, owning add-ons, authors, and categories make up the active session; then identifies blocking invalid data, unavailable required classes, duplicates, bucket corrections, and likely source mods/add-ons. Select **Copy Report** to place the full report on the clipboard for testing notes or bug reports.
 
 ### 5. Adopt a source preset
 

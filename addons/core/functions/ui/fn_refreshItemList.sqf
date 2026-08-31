@@ -12,6 +12,12 @@ private _category = if (_categoryIndex < 0) then {"All"} else {_categoryControl 
 private _sourceControl = _display displayCtrl RACA_IDC_SOURCE_FILTER;
 private _sourceIndex = lbCurSel _sourceControl;
 private _source = if (_sourceIndex < 0) then {""} else {_sourceControl lbData _sourceIndex};
+private _addonControl = _display displayCtrl RACA_IDC_ADDON_FILTER;
+private _addonIndex = lbCurSel _addonControl;
+private _addon = if (_addonIndex < 0) then {""} else {_addonControl lbData _addonIndex};
+private _authorControl = _display displayCtrl RACA_IDC_AUTHOR_FILTER;
+private _authorIndex = lbCurSel _authorControl;
+private _authorFilter = if (_authorIndex < 0) then {""} else {_authorControl lbData _authorIndex};
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _inherited = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
@@ -27,7 +33,7 @@ private _ascending = _sortMode param [1, true, [true]];
 private _filtered = [];
 
 {
-    _x params ["_displayName", "_className", "_itemCategory", "", "_modName", "_author", "_picture", "_searchBlob"];
+    _x params ["_displayName", "_className", "_itemCategory", "", "_modName", "_author", "_picture", "_searchBlob", ["_sourceAddon", ""]];
     private _matchesCategory =
         _category isEqualTo "All" ||
         {_category isEqualTo "Included" && {_selected getOrDefault [_className, false]}} ||
@@ -36,8 +42,10 @@ private _filtered = [];
         {_itemCategory isEqualTo _category};
     private _matchesSearch = ({(_searchBlob find _x) >= 0} count _terms) isEqualTo count _terms;
     private _matchesSource = _source isEqualTo "" || {_modName isEqualTo _source};
+    private _matchesAddon = _addon isEqualTo "" || {_sourceAddon isEqualTo _addon};
+    private _matchesAuthor = _authorFilter isEqualTo "" || {_author isEqualTo _authorFilter};
 
-    if (_matchesCategory && _matchesSearch && _matchesSource) then {
+    if (_matchesCategory && _matchesSearch && _matchesSource && _matchesAddon && _matchesAuthor) then {
         _filtered pushBack _x;
     };
 } forEach _catalog;

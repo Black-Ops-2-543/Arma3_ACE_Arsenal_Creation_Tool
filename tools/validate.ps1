@@ -587,6 +587,10 @@ if (Test-Path -LiteralPath $quotaStatusPath -PathType Leaf) {
 
 $catalogSortPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setSortMode.sqf'
 $catalogRefreshPath = Join-Path $addonsDirectory 'core\functions\ui\fn_refreshItemList.sqf'
+$catalogFilterPath = Join-Path $addonsDirectory 'core\functions\ui\fn_refreshSourceCombo.sqf'
+$catalogTogglePath = Join-Path $addonsDirectory 'core\functions\ui\fn_toggleRow.sqf'
+$favoritePath = Join-Path $addonsDirectory 'core\functions\ui\fn_toggleFavorite.sqf'
+$itemLimitPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setItemLimit.sqf'
 $creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
 if (-not (Test-Path -LiteralPath $catalogSortPath -PathType Leaf)) {
     $failures.Add("The creator must provide the persistent catalogue sorting controller.")
@@ -607,6 +611,81 @@ elseif ((Test-Path -LiteralPath $catalogRefreshPath -PathType Leaf) -and (Test-P
         $catalogRefresh -notmatch '_previousClass' -or
         $catalogRefresh -notmatch 'lnbSetCurSelRow') {
         $failures.Add("Catalogue sorting must persist its mode, sort filtered rows deterministically, and restore the selected class.")
+    }
+    if (-not (Test-Path -LiteralPath $catalogFilterPath -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $catalogTogglePath -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $favoritePath -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $itemLimitPath -PathType Leaf)) {
+        $failures.Add("Advanced catalogue filtering and multi-row action controllers are missing.")
+    }
+    else {
+        $catalogFilters = Get-Content -Raw -LiteralPath $catalogFilterPath
+        $catalogToggle = Get-Content -Raw -LiteralPath $catalogTogglePath
+        $favorite = Get-Content -Raw -LiteralPath $favoritePath
+        $itemLimit = Get-Content -Raw -LiteralPath $itemLimitPath
+        if ($catalogFilters -notmatch 'RACA_IDC_ADDON_FILTER' -or
+            $catalogFilters -notmatch 'RACA_IDC_AUTHOR_FILTER' -or
+            $catalogFilters -notmatch '_counts\s+getOrDefault' -or
+            $catalogRefresh -notmatch '_matchesAddon' -or
+            $catalogRefresh -notmatch '_matchesAuthor' -or
+            $creatorUi -notmatch 'multiSelect\s*=\s*1' -or
+            $creatorUi -notmatch 'Ctrl-click' -or
+            $catalogToggle -notmatch 'lbSelection\s+_list' -or
+            $favorite -notmatch 'lbSelection\s+_list' -or
+            $itemLimit -notmatch 'lbSelection\s+_list') {
+            $failures.Add("Catalogue filters must expose counted mod/add-on/author dimensions, and selection, favorite, and item limits must honor Ctrl/Shift multi-selection.")
+        }
+    }
+}
+
+$environmentHealthPath = Join-Path $addonsDirectory 'core\functions\diagnostics\fn_analyzeEnvironment.sqf'
+$creatorPreflightPath = Join-Path $addonsDirectory 'core\functions\ui\fn_runCreatorDiagnostics.sqf'
+$supportBundlePath = Join-Path $addonsDirectory 'core\functions\presets\fn_buildSupportBundle.sqf'
+if (-not (Test-Path -LiteralPath $environmentHealthPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $creatorPreflightPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $supportBundlePath -PathType Leaf)) {
+    $failures.Add("Creator preflight must include a reusable loaded-mod and catalogue-health analysis.")
+}
+else {
+    $environmentHealth = Get-Content -Raw -LiteralPath $environmentHealthPath
+    $creatorPreflight = Get-Content -Raw -LiteralPath $creatorPreflightPath
+    $supportBundle = Get-Content -Raw -LiteralPath $supportBundlePath
+    if ($environmentHealth -notmatch 'ace_main' -or
+        $environmentHealth -notmatch 'cba_main' -or
+        $environmentHealth -notmatch 'RACA_Eden' -or
+        $environmentHealth -notmatch 'CATALOG_SCOPE' -or
+        $environmentHealth -notmatch 'The catalogue reflects only mods loaded before Arma started' -or
+        $creatorPreflight -notmatch 'RACA_fnc_analyzeEnvironment' -or
+        $supportBundle -notmatch 'RACA_fnc_analyzeEnvironment') {
+        $failures.Add("Preflight and support bundles must explain dependency health and the session-scoped catalogue.")
+    }
+}
+
+$savedViewPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_getSavedCatalogViews.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_openSavedCatalogViews.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_savedCatalogViewApply.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_savedCatalogViewCapture.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_savedCatalogViewDelete.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_savedCatalogViewRefresh.sqf')
+)
+if ($savedViewPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("The creator must provide a complete saved-catalogue-view manager.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $savedViews = ($savedViewPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'RACA_RscDisplaySavedViews' -or
+        $creatorUi -notmatch 'RACA_IDC_SAVED_VIEWS' -or
+        $savedViews -notmatch 'RACA_savedCatalogViews_v1' -or
+        $savedViews -notmatch 'RACA_IDC_CATEGORY' -or
+        $savedViews -notmatch 'RACA_IDC_SOURCE_FILTER' -or
+        $savedViews -notmatch 'RACA_IDC_ADDON_FILTER' -or
+        $savedViews -notmatch 'RACA_IDC_AUTHOR_FILTER' -or
+        $savedViews -notmatch 'RACA_catalogSort_v1' -or
+        $savedViews -notmatch 'BIS_fnc_guiMessage' -or
+        $savedViews -notmatch 'saveProfileNamespace') {
+        $failures.Add("Saved catalogue views must persist and restore search, category, mod, add-on, author, and sort state with guarded replacement/deletion.")
     }
 }
 

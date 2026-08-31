@@ -10,6 +10,7 @@ class CfgFunctions {
 
         class Diagnostics {
             file = "\x\raca\addons\core\functions\diagnostics";
+            class analyzeEnvironment {};
             class analyzePreset {};
             class formatDiagnosticReport {};
             class preflightObjectConfig {};
@@ -66,8 +67,10 @@ class CfgFunctions {
             class applySelectedRoleTemplate {};
             class historyOnLoad {};
             class historySelect {};
+            class getSavedCatalogViews {};
             class openPresetHistory {};
             class openCreatorDiagnostics {};
+            class openSavedCatalogViews {};
             class preflightCopy {};
             class preflightOnLoad {};
             class preflightRefresh {};
@@ -85,6 +88,12 @@ class CfgFunctions {
             class runCreatorDiagnostics {};
             class restoreCreatorHistory {};
             class restorePresetRevision {};
+            class savedCatalogViewApply {};
+            class savedCatalogViewCapture {};
+            class savedCatalogViewDelete {};
+            class savedCatalogViewOnLoad {};
+            class savedCatalogViewRefresh {};
+            class savedCatalogViewSelect {};
             class requestCreatorClose {};
             class setCategoryLimit {};
             class setCatalogView {};
