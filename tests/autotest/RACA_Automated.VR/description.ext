@@ -1,0 +1,9 @@
+author = "* Black Ops *";
+onLoadName = "RACA Automated Acceptance";
+overviewText = "Unattended regression coverage for packaged RACA creator, interchange, Eden, and runtime behavior.";
+briefing = 0;
+debriefing = 0;
+enableDebugConsole = 1;
+showHUD = 0;
+saving = 0;
+

@@ -113,7 +113,12 @@ $requiredRelativeFiles = @(
     'tests\multiplayer\RACA_Rehearsal.VR\initPlayerLocal.sqf',
     'tests\multiplayer\server.cfg',
     'tests\multiplayer\README.md',
-    'tools\prepare-multiplayer-smoke.ps1'
+    'tools\prepare-multiplayer-smoke.ps1',
+    'tests\autotest\RACA_Automated.VR\mission.sqm',
+    'tests\autotest\RACA_Automated.VR\description.ext',
+    'tests\autotest\RACA_Automated.VR\initPlayerLocal.sqf',
+    'tests\autotest\README.md',
+    'tools\prepare-autotest.ps1'
 )
 foreach ($relativeFile in $requiredRelativeFiles) {
     $requiredFile = Join-Path $repositoryRoot $relativeFile
@@ -157,6 +162,46 @@ else {
         $multiplayerPrepare -notmatch 'arma3server_x64\.exe' -or
         $multiplayerPrepare -notmatch 'Profiles\\') {
         $failures.Add("The dedicated multiplayer smoke harness must configure a real RACA object and distinguish initial-client, reconnect, and JIP pathways.")
+    }
+}
+
+$autotestMissionPath = Join-Path $repositoryRoot 'tests\autotest\RACA_Automated.VR\mission.sqm'
+$autotestDescriptionPath = Join-Path $repositoryRoot 'tests\autotest\RACA_Automated.VR\description.ext'
+$autotestClientInitPath = Join-Path $repositoryRoot 'tests\autotest\RACA_Automated.VR\initPlayerLocal.sqf'
+$autotestReadmePath = Join-Path $repositoryRoot 'tests\autotest\README.md'
+$autotestPreparePath = Join-Path $repositoryRoot 'tools\prepare-autotest.ps1'
+if (@(
+    $autotestMissionPath,
+    $autotestDescriptionPath,
+    $autotestClientInitPath,
+    $autotestReadmePath,
+    $autotestPreparePath
+).Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add('The unattended Arma automated acceptance harness is incomplete.')
+}
+else {
+    $autotestMission = Get-Content -Raw -LiteralPath $autotestMissionPath
+    $autotestDescription = Get-Content -Raw -LiteralPath $autotestDescriptionPath
+    $autotestClientInit = Get-Content -Raw -LiteralPath $autotestClientInitPath
+    $autotestReadme = Get-Content -Raw -LiteralPath $autotestReadmePath
+    $autotestPrepare = Get-Content -Raw -LiteralPath $autotestPreparePath
+    if ($autotestMission -notmatch 'briefingName\s*=\s*"RACA Automated Acceptance"\s*;' -or
+        $autotestDescription -notmatch 'debriefing\s*=\s*0\s*;' -or
+        $autotestClientInit -notmatch '\[RACA AUTOTEST\] BEGIN' -or
+        $autotestClientInit -notmatch 'RACA_fnc_decodePortablePreset' -or
+        $autotestClientInit -notmatch 'RACA_fnc_decodeSqfPreset' -or
+        $autotestClientInit -notmatch 'RACA_fnc_preflightObjectConfig' -or
+        $autotestClientInit -notmatch 'RACA_fnc_applyObjectConfig' -or
+        $autotestClientInit -notmatch 'RACA_fnc_finishSession' -or
+        $autotestClientInit -notmatch 'RACA_RscDisplayCreator' -or
+        $autotestClientInit -notmatch 'displayCtrl 1616' -or
+        $autotestClientInit -notmatch 'endMission' -or
+        $autotestReadme -notmatch '\[RACA AUTOTEST\]' -or
+        $autotestPrepare -notmatch 'arma3_x64\.exe' -or
+        $autotestPrepare -notmatch 'RACA_Automated\.VR' -or
+        $autotestPrepare -notmatch '-autotest=' -or
+        $autotestPrepare -notmatch 'Profiles\\') {
+        $failures.Add('The unattended acceptance harness must exercise packaged creator, interchange, Eden, runtime, quota, and deletion registrations and emit a machine-readable result.')
     }
 }
 
@@ -281,6 +326,11 @@ else {
     foreach ($requiredPattern in @('RACA_fnc_preflightObjectConfig', 'lbSetColor', 'BLOCKED', 'WARN', 'READY', 'RACA_dashboardMissionReport', 'copyToClipboard')) {
         if ($edenDashboard -notmatch $requiredPattern) {
             $failures.Add("The Eden mission preflight dashboard is missing '$requiredPattern'.")
+        }
+    }
+    foreach ($requiredPattern in @('RACA_transactionPreflightReport', 'RACA_transactionPreflightSummary')) {
+        if ($edenDashboard -notmatch $requiredPattern) {
+            $failures.Add("The Eden dashboard cannot copy the last unsaved preflight because '$requiredPattern' is missing.")
         }
     }
 }
@@ -1219,7 +1269,7 @@ if (-not $SkipConfig) {
             Where-Object { $_.Name -in @('config.cpp', 'description.ext', 'mission.sqm') } |
             Sort-Object -Property FullName
     ) + @(
-        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\multiplayer') -Recurse -File |
+        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests') -Recurse -File |
             Where-Object { $_.Name -in @('description.ext', 'mission.sqm') } |
             Sort-Object -Property FullName
     )
@@ -1259,7 +1309,7 @@ if (-not $SkipSqf) {
             Where-Object { $_.Extension -in @('.sqf', '.sqfc') } |
             Sort-Object -Property FullName
     ) + @(
-        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\multiplayer') -Recurse -File |
+        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests') -Recurse -File |
             Where-Object { $_.Extension -in @('.sqf', '.sqfc') } |
             Sort-Object -Property FullName
     )

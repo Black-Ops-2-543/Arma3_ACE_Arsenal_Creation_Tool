@@ -2,6 +2,12 @@
 
 Use a clean Arma profile where practical. Load only CBA_A3, ACE, RACA, and the content mods needed for the test. Record failures with the exact on-screen message and the newest Arma RPT excerpt containing `RACA`, `Error`, or `Warning`.
 
+Before the manual flow, stage and run `tools\prepare-autotest.ps1`. Require
+every `[RACA AUTOTEST]` assertion to pass, the summary to report zero failures,
+and no `<AutoTest result="FAILED">` record. This unattended gate covers packaged
+registration and core behavior; it complements, but does not replace, the
+visual Creator, Eden, Zeus, and multiplayer checks below.
+
 ## Test flow
 
 ```mermaid

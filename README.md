@@ -312,6 +312,19 @@ For the isolated dedicated-server synchronization rehearsal, build first and the
 
 The command validates the local server, CBA, ACE, and built RACA paths and prints reusable server/client launch arguments. See [the multiplayer smoke harness](tests/multiplayer/README.md) for the initial-client, reconnect, and distinct-JIP evidence sequence.
 
+For the unattended single-process acceptance gate, build first and stage the
+source-controlled VR autotest beneath an isolated Arma profile:
+
+```powershell
+.\tools\prepare-autotest.ps1 -ArmaDirectory 'F:\SteamLibrary\steamapps\common\Arma 3'
+```
+
+The command prints the exact client arguments for Arma's `-autotest` mode.
+Every assertion appears in the RPT as `[RACA AUTOTEST]`; the mission returns
+`END1` only when packaged Creator, interchange, Eden, runtime, quota, and live
+preset-deletion-control checks all pass. See [the automated acceptance
+harness](tests/autotest/README.md).
+
 After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch.
 
 If Arma 3 Tools is installed elsewhere, provide `-AddonBuilderPath`, `-ArmaToolsDirectory`, and `-BankRevPath`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use `-SkipConfig` or `-SkipSqf` only when the corresponding tool is unavailable.
@@ -327,6 +340,7 @@ Static validation covers configuration structure, SQF syntax, PBO prefixes, miss
 - `docs/IN_GAME_TEST_CHECKLIST.md` — in-game release checklist;
 - `docs/PORTABLE_PRESET_FORMAT.md` — JSON, SQF, and class-list interchange formats and file workflows;
 - `docs/RELEASE_PROCESS.md` and `CHANGELOG.md` — versioning, migration, evidence, and packaging gates;
+- `tests/autotest` and `tools/prepare-autotest.ps1` — unattended packaged Creator, interchange, Eden, and runtime acceptance;
 - `tests/multiplayer` and `tools/prepare-multiplayer-smoke.ps1` — isolated dedicated-server synchronization and identity evidence;
 - `tools/validate.ps1` — source and configuration validation;
 - `tools/build.ps1` — PBO packaging and checksum generation;
