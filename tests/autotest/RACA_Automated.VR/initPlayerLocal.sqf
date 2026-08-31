@@ -286,6 +286,21 @@ params ["_player"];
     private _deleteControl = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1616};
     [!isNull _creatorDisplay, "Creator display opens inside the packaged runtime"] call _record;
     [!isNull _deleteControl && {ctrlText _deleteControl isEqualTo "DELETE"}, "Preset deletion control is present in the live Creator"] call _record;
+    private _preflightOpened = if (isNull _creatorDisplay) then {false} else {[_creatorDisplay] call RACA_fnc_openCreatorDiagnostics};
+    uiSleep 0.5;
+    private _preflightDisplay = findDisplay 904140;
+    private _preflightSummaryControl = if (isNull _preflightDisplay) then {controlNull} else {_preflightDisplay displayCtrl 1030};
+    private _preflightListControl = if (isNull _preflightDisplay) then {controlNull} else {_preflightDisplay displayCtrl 1530};
+    [
+        _preflightOpened &&
+        {!isNull _preflightDisplay} &&
+        {!isNull _preflightSummaryControl} &&
+        {(ctrlText _preflightSummaryControl) find "PASSED" >= 0} &&
+        {!isNull _preflightListControl} &&
+        {((lnbSize _preflightListControl) select 0) > 0},
+        "Compatibility details render a completed report without a UI script error"
+    ] call _record;
+    if (!isNull _preflightDisplay) then {_preflightDisplay closeDisplay 2};
     if (!isNull _creatorDisplay) then {_creatorDisplay closeDisplay 2};
     if (_wasOnboardingMissing) then {profileNamespace setVariable ["RACA_onboardingSeen_v1", nil]} else {profileNamespace setVariable ["RACA_onboardingSeen_v1", _oldOnboarding]};
     if (_wasRecoveryMissing) then {profileNamespace setVariable ["RACA_creatorDraftRecovery_v1", nil]} else {profileNamespace setVariable ["RACA_creatorDraftRecovery_v1", _oldRecovery]};

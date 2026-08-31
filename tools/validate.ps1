@@ -197,6 +197,7 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_moduleClear' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleToggle' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleResetQuotas' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openCreatorDiagnostics' -or
         $autotestClientInit -notmatch 'RACA_RscDisplayCreator' -or
         $autotestClientInit -notmatch 'displayCtrl 1616' -or
         $autotestClientInit -notmatch 'endMission' -or
@@ -206,6 +207,17 @@ else {
         $autotestPrepare -notmatch '-autotest=' -or
         $autotestPrepare -notmatch 'Profiles\\') {
         $failures.Add('The unattended acceptance harness must exercise packaged creator, interchange, Eden, runtime, Zeus, quota, and deletion behavior and emit a machine-readable result.')
+    }
+}
+
+$preflightRefreshPath = Join-Path $addonsDirectory 'core\functions\ui\fn_preflightRefresh.sqf'
+if (-not (Test-Path -LiteralPath $preflightRefreshPath -PathType Leaf)) {
+    $failures.Add('The Creator compatibility-detail renderer is missing.')
+}
+else {
+    $preflightRefresh = Get-Content -Raw -LiteralPath $preflightRefreshPath
+    if ($preflightRefresh -notmatch '_modName\s*\+\s*\(if\s*\(') {
+        $failures.Add('The Creator compatibility-detail source label must parenthesize its conditional suffix before concatenation.')
     }
 }
 

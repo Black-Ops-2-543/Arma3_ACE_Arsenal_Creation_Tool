@@ -18,7 +18,11 @@ lnbClear _list;
 
 {
     _x params ["_severity", "_code", "_message", "_className", "_modName", "_sourceAddon"];
-    private _source = if (_modName isEqualTo "") then {_sourceAddon} else {_modName + if (_sourceAddon isEqualTo "") then {""} else {" / " + _sourceAddon}};
+    private _source = if (_modName isEqualTo "") then {
+        _sourceAddon
+    } else {
+        _modName + (if (_sourceAddon isEqualTo "") then {""} else {" / " + _sourceAddon})
+    };
     private _row = _list lnbAddRow [_severity, _code, _message, _className, _source];
     private _color = switch (_severity) do {
         case "ERROR": {[1, 0.42, 0.38, 1]};

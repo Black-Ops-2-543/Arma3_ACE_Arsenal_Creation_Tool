@@ -38,6 +38,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Persistent JIP registration target and cleanup behavior.
 - Catalogue row mouse events no longer emit a local-variable script error while updating multi-row selections.
 - Multiplayer rehearsal no longer misclassifies a reconnected initial player as distinct JIP evidence.
+- Compatibility-detail source labels no longer raise an SQF type error when the owning add-on field is empty.
 
 ## [0.9.2]
 
