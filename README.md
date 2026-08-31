@@ -34,7 +34,7 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- provides first-run Quick Start, source-mod filtering, persistent favorites, item context tooltips, and undo/redo;
+- provides first-run Quick Start, source-mod filtering, persistent favorites, clickable persistent sorting, item context tooltips, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
@@ -44,7 +44,7 @@ The current release:
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
-- provides creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources;
+- provides color-coded, severity-filterable creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items;
 - saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
@@ -83,6 +83,7 @@ The controls include:
 - **Category** — filters by item type;
 - **Source** — filters to one loaded source mod, while search still covers owning add-ons and authors;
 - **Favorite** — stores the selected class in a profile-wide Favorites view;
+- **Included / Item / Class Name / Mod / Author headers** — sort the filtered catalogue in either direction and remember the chosen order across sessions;
 - **Included** — shows whether a row belongs to the current selection;
 - **Saved presets** — chooses a previously saved list;
 - **Save / Overwrite** — stores the current selection under the entered name;
@@ -100,7 +101,7 @@ The controls include:
 - **Import Auto** — detects and safely imports RACA JSON, an existing SQF arsenal, or a class list from the clipboard; and
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk.
 
-The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, and **Copy Report**. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows its class, category, source, author, favorite state, and effective limit.
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows its class, category, source, author, favorite state, and effective limit.
 
 ### 3. Build the selection
 
@@ -171,8 +172,9 @@ In **Restricted Arsenals**:
 2. Add one or more slots. Each slot becomes a separately named ACE interaction on the object.
 3. For each slot, choose its preset, enabled state, optional icon, and whether unauthorized players should be able to see it.
 4. Add any access rules and choose whether all rules (**AND**) or any rule (**OR**) must match. Supported rules cover side, faction, group ID, minimum rank, unit class, player UID, vehicle role, required item, and mission-defined ACE permission key.
-5. Choose **Save slot changes**, then **Apply configuration**. Closing with **Cancel** discards the transaction.
-6. Confirm the object's normal Attributes window and save the scenario.
+5. To rehearse access before preview, choose **Simulate access**, then pick any playable or AI soldier already placed in the mission. The report shows every rule as PASS, FAIL, or UNKNOWN and can be copied to the clipboard. Player UID and mission-defined ACE permissions remain explicitly unknown until runtime.
+6. Choose **Save slot changes**, then **Apply configuration**. Closing with **Cancel** discards the transaction.
+7. Confirm the object's normal Attributes window and save the scenario.
 
 The configuration editor's mission-wide dashboard lists every currently configured Eden object. Double-click an entry to select the object, or use **Assign to selected** / **Clear selected** to update only the objects currently selected in Eden. A confirmation preview names the operation and object count, and the entire bulk update becomes one Eden Undo step.
 
@@ -281,6 +283,8 @@ Building requires Arma 3 Tools, including AddonBuilder and BankRev. From the rep
 
 The default output is `build\@RestrictedArsenalCreationAssistant`. The build packages the add-ons, verifies PBO prefixes, copies mod metadata, and creates `checksums.sha256`.
 
+After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch.
+
 If Arma 3 Tools is installed elsewhere, provide `-AddonBuilderPath`, `-ArmaToolsDirectory`, and `-BankRevPath`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use `-SkipConfig` or `-SkipSqf` only when the corresponding tool is unavailable.
 
 Static validation covers configuration structure, SQF syntax, PBO prefixes, mission registration, and known integration regressions. Final acceptance still requires in-game testing.
@@ -293,11 +297,13 @@ Static validation covers configuration structure, SQF syntax, PBO prefixes, miss
 - `addons/eden` — Eden object attribute and preset selection controls;
 - `docs/IN_GAME_TEST_CHECKLIST.md` — in-game release checklist;
 - `docs/PORTABLE_PRESET_FORMAT.md` — JSON, SQF, and class-list interchange formats and file workflows;
+- `docs/RELEASE_PROCESS.md` and `CHANGELOG.md` — versioning, migration, evidence, and packaging gates;
 - `tools/validate.ps1` — source and configuration validation; and
-- `tools/build.ps1` — PBO packaging and checksum generation.
+- `tools/build.ps1` — PBO packaging and checksum generation; and
+- `tools/release.ps1` — clean-tree release packaging and cryptographic release report generation.
 
 ## License and dependencies
 
-RACA calls public ACE3 and CBA interfaces but does not redistribute either dependency. Add an explicit project license before publishing or accepting outside contributions.
+RACA calls public ACE3 and CBA interfaces but does not redistribute either dependency. RACA source and documentation are licensed under the repository's MIT License.
 
 Project page: [github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool](https://github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool)

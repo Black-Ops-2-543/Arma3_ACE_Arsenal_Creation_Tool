@@ -585,6 +585,105 @@ if (Test-Path -LiteralPath $quotaStatusPath -PathType Leaf) {
     }
 }
 
+$catalogSortPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setSortMode.sqf'
+$catalogRefreshPath = Join-Path $addonsDirectory 'core\functions\ui\fn_refreshItemList.sqf'
+$creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
+if (-not (Test-Path -LiteralPath $catalogSortPath -PathType Leaf)) {
+    $failures.Add("The creator must provide the persistent catalogue sorting controller.")
+}
+elseif ((Test-Path -LiteralPath $catalogRefreshPath -PathType Leaf) -and (Test-Path -LiteralPath $creatorUiPath -PathType Leaf)) {
+    $catalogSort = Get-Content -Raw -LiteralPath $catalogSortPath
+    $catalogRefresh = Get-Content -Raw -LiteralPath $catalogRefreshPath
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    foreach ($field in @('included', 'item', 'class', 'mod', 'author')) {
+        $handlerPattern = "'" + [regex]::Escape($field) + "'\]\s+call\s+RACA_fnc_setSortMode"
+        if ($catalogSort -notmatch [regex]::Escape('"' + $field + '"') -or
+            $creatorUi -notmatch $handlerPattern) {
+            $failures.Add("Catalogue sorting must expose the '$field' header through the shared sorting controller.")
+        }
+    }
+    if ($catalogSort -notmatch 'RACA_catalogSort_v1' -or
+        $catalogRefresh -notmatch '_decorated\s+sort' -or
+        $catalogRefresh -notmatch '_previousClass' -or
+        $catalogRefresh -notmatch 'lnbSetCurSelRow') {
+        $failures.Add("Catalogue sorting must persist its mode, sort filtered rows deterministically, and restore the selected class.")
+    }
+}
+
+$simulatorPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorRefresh.sqf'
+$simulatorOnLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorOnLoad.sqf'
+$simulatorOpenPath = Join-Path $addonsDirectory 'eden\functions\fn_edenOpenAccessSimulator.sqf'
+$accessEvaluatorPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_evaluateAccess.sqf'
+$edenDialogPath = Join-Path $addonsDirectory 'eden\ui\EdenConfigDialog.hpp'
+if (-not (Test-Path -LiteralPath $simulatorPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $simulatorOnLoadPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $simulatorOpenPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $accessEvaluatorPath -PathType Leaf)) {
+    $failures.Add("Eden must provide access-rule simulator open and evaluation functions.")
+}
+elseif (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
+    $simulator = Get-Content -Raw -LiteralPath $simulatorPath
+    $simulatorOnLoad = Get-Content -Raw -LiteralPath $simulatorOnLoadPath
+    $simulatorOpen = Get-Content -Raw -LiteralPath $simulatorOpenPath
+    $accessEvaluator = Get-Content -Raw -LiteralPath $accessEvaluatorPath
+    $edenDialog = Get-Content -Raw -LiteralPath $edenDialogPath
+    if ($simulator -notmatch 'INDETERMINATE' -or
+        $simulator -notmatch 'Runtime player UID only' -or
+        $simulator -notmatch 'Runtime mission permission only' -or
+        $simulator -notmatch 'RACA_accessSimulatorUnits' -or
+        $simulator -match '(?m)to(?:Upper|Lower)ANSI\s+str\s+_value' -or
+        $accessEvaluator -match '(?m)to(?:Upper|Lower)ANSI\s+str\s+_value' -or
+        $simulatorOnLoad -notmatch 'all3DENEntities\s+select\s+0' -or
+        $simulatorOpen -notmatch 'RACA_fnc_edenEditorCommitSlot' -or
+        $edenDialog -notmatch 'RACA_RscDisplayAccessSimulator' -or
+        $edenDialog -notmatch 'SIMULATE ACCESS') {
+        $failures.Add("The Eden access simulator must use the unsaved slot draft, offer mission units, and preserve runtime-only rules as unknown rather than passing them.")
+    }
+}
+
+$preflightUiPath = Join-Path $addonsDirectory 'core\functions\ui\fn_preflightRefresh.sqf'
+$preflightSelectPath = Join-Path $addonsDirectory 'core\functions\ui\fn_preflightSelect.sqf'
+if (-not (Test-Path -LiteralPath $preflightUiPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $preflightSelectPath -PathType Leaf)) {
+    $failures.Add("The creator must provide visual preflight filtering and affected-item navigation.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $preflightUi = Get-Content -Raw -LiteralPath $preflightUiPath
+    $preflightSelect = Get-Content -Raw -LiteralPath $preflightSelectPath
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($preflightUi -notmatch 'ERROR' -or
+        $preflightUi -notmatch 'WARNING' -or
+        $preflightUi -notmatch 'INFO' -or
+        $preflightUi -notmatch 'lnbSetColor' -or
+        $preflightSelect -notmatch 'RACA_fnc_switchCreatorTab' -or
+        $preflightSelect -notmatch 'RACA_IDC_ITEM_LIST' -or
+        $creatorUi -notmatch 'RACA_RscDisplayPreflight' -or
+        $creatorUi -notmatch 'VIEW DETAILS') {
+        $failures.Add("Visual preflight must color and filter every severity, expose a details display, and navigate available affected classes to Assignment.")
+    }
+}
+
+$releaseScriptPath = Join-Path $repositoryRoot 'tools\release.ps1'
+$releaseProcessPath = Join-Path $repositoryRoot 'docs\RELEASE_PROCESS.md'
+$changelogPath = Join-Path $repositoryRoot 'CHANGELOG.md'
+if (-not (Test-Path -LiteralPath $releaseScriptPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $releaseProcessPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $changelogPath -PathType Leaf)) {
+    $failures.Add("Release tooling requires tools/release.ps1, docs/RELEASE_PROCESS.md, and CHANGELOG.md.")
+}
+else {
+    $releaseScript = Get-Content -Raw -LiteralPath $releaseScriptPath
+    $changelog = Get-Content -Raw -LiteralPath $changelogPath
+    if ($releaseScript -notmatch 'status --porcelain' -or
+        $releaseScript -notmatch 'versionStr' -or
+        $releaseScript -notmatch 'checksums\.sha256' -or
+        $releaseScript -notmatch 'RACA_RELEASE_REPORT' -or
+        $releaseScript -notmatch 'Get-FileHash' -or
+        $changelog -notmatch '(?m)^## \[Unreleased\]\s*$') {
+        $failures.Add("Release packaging must require a clean tree, consistent versions, verified PBO checksums, a hashed release report, and an Unreleased changelog section.")
+    }
+}
+
 if (-not $SkipConfig) {
     if (-not (Test-Path -LiteralPath $CfgConvertPath -PathType Leaf)) {
         throw "CfgConvert was not found at '$CfgConvertPath'. Pass its full path with -CfgConvertPath or use -SkipConfig."
