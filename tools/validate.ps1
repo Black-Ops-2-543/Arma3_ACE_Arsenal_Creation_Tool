@@ -95,6 +95,9 @@ $requiredRelativeFiles = @(
     'addons\core\functions\ui\fn_refreshCategoryCombo.sqf',
     'addons\core\functions\ui\fn_switchCreatorTab.sqf',
     'addons\eden\ui\PresetAttribute.hpp',
+    'addons\eden\ui\EdenConfigDialog.hpp',
+    'addons\eden\functions\fn_edenEditorApply.sqf',
+    'addons\eden\functions\fn_edenDashboardBulk.sqf',
     'docs\PORTABLE_PRESET_FORMAT.md'
 )
 foreach ($relativeFile in $requiredRelativeFiles) {
@@ -129,6 +132,29 @@ if (Test-Path -LiteralPath $edenCfgPath -PathType Leaf) {
     }
     if ($edenCfg -notmatch 'expression\s*=\s*"[^"\r\n]*isServer') {
         $failures.Add("The Eden runtime expression must initialize the global ACE arsenal from the server only in '$edenCfgPath'.")
+    }
+    if ($edenCfg -notmatch 'RACA_fnc_applyObjectConfig') {
+        $failures.Add("The Eden runtime expression must apply the authored multi-slot object configuration.")
+    }
+}
+
+$edenDialogPath = Join-Path $addonsDirectory 'eden\ui\EdenConfigDialog.hpp'
+if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
+    $edenDialog = Get-Content -Raw -LiteralPath $edenDialogPath
+    foreach ($requiredText in @('SLOTS ON THIS OBJECT', 'ACCESS RULES', 'MISSION-WIDE DASHBOARD', 'APPLY CONFIGURATION', 'ASSIGN TO SELECTED', 'CLEAR SELECTED')) {
+        if ($edenDialog -notmatch [regex]::Escape($requiredText)) {
+            $failures.Add("The Eden configuration editor is missing '$requiredText'.")
+        }
+    }
+}
+
+$edenBulkPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardBulk.sqf'
+if (Test-Path -LiteralPath $edenBulkPath -PathType Leaf) {
+    $edenBulk = Get-Content -Raw -LiteralPath $edenBulkPath
+    foreach ($requiredPattern in @('get3DENSelected', 'BIS_fnc_guiMessage', 'collect3DENHistory', 'set3DENAttribute')) {
+        if ($edenBulk -notmatch $requiredPattern) {
+            $failures.Add("Mission-wide Eden updates are missing '$requiredPattern'.")
+        }
     }
 }
 

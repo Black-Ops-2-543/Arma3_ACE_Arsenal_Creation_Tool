@@ -78,15 +78,26 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 
 - [ ] Any placed object's attributes contain a non-empty **Restricted Arsenals** category.
 - [ ] No `Cfg3DEN/Attributes.RACA_PresetAttribute` error appears.
-- [ ] The selector starts with **&lt;None&gt;** and lists saved presets.
-- [ ] **Refresh** discovers a preset saved after the attributes window or Eden session was opened.
-- [ ] Selecting a preset, confirming attributes, reopening them, and saving/reloading the scenario preserves the selection.
-- [ ] Selecting **&lt;None&gt;** persists and leaves the object without an RACA-applied arsenal.
+- [ ] **Configure slots** opens the RACA Eden configuration editor without an undefined-control or function error.
+- [ ] A slot can be added, named, assigned a preset, enabled/disabled, reordered, and removed before applying.
+- [ ] A single object can save and reload two differently named slots that reference the same or different presets.
+- [ ] Each slot independently preserves its AND/OR mode, side/faction/group/rank/unit/UID/vehicle-role/item/permission conditions, denial message, icon, and hide-when-denied state.
+- [ ] **Cancel** discards the complete editor transaction; **Apply configuration** updates the parent Attributes control.
+- [ ] **Refresh presets** updates matching embedded preset copies while preserving all slot-specific settings.
+- [ ] A legacy single-preset mission value opens as one compatible slot and saves as a standalone object configuration.
+- [ ] Every embedded slot contains a complete standalone preset with no required adoption/source reference.
+- [ ] The mission dashboard lists every configured object with its slot count and names.
+- [ ] Double-clicking a dashboard row selects only its corresponding Eden object.
+- [ ] Bulk assign changes every selected object and no unselected object after confirmation.
+- [ ] Bulk clear removes RACA configuration only from selected objects, and one Eden Undo reverses the full bulk operation.
+- [ ] **Clear** persists and leaves the object without an RACA-applied arsenal.
 
 ## 7. Runtime and multiplayer
 
 - [ ] In single-player preview, the configured object's ACE Arsenal interaction opens normally.
-- [ ] Only the embedded preset's classes are available.
+- [ ] Every enabled slot creates its own named ACE interaction and opens only its embedded preset's classes.
+- [ ] Disabled slots create no usable interaction.
+- [ ] Hidden denied slots are invisible to an unauthorized player; visible denied slots show the configured denial message without opening.
 - [ ] A preset containing a now-missing mod class still initializes with the remaining valid classes and writes a warning to RPT.
 - [ ] Repeated previews do not accumulate unrestricted ACE virtual cargo.
 - [ ] On a hosted multiplayer server, the host sees the restricted contents.

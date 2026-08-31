@@ -18,5 +18,10 @@ class CfgPatches {
 class ctrlControlsGroupNoScrollbars;
 class ctrlCombo;
 class ctrlButton;
+class ctrlCheckbox;
+class ctrlEdit;
+class ctrlListbox;
+class ctrlStatic;
 
 #include "Cfg3DEN.hpp"
+#include "ui\EdenConfigDialog.hpp"

@@ -9,7 +9,7 @@ private _slots = [];
 private _options = [["auditLevel", "standard"], ["persistence", "mission"]];
 
 if ((_raw param [0, "", [""]]) isEqualTo "RACA_PRESET") then {
-    ([_raw] call RACA_fnc_validatePreset) params ["_legacyPreset"];
+    private _legacyPreset = [_raw] call RACA_fnc_flattenPreset;
     if (_legacyPreset isEqualTo []) exitWith {};
     private _policy = [_legacyPreset] call RACA_fnc_getRuntimePolicy;
     _slots pushBack ["default", _legacyPreset select 2, _legacyPreset, true, _defaultAccess, _policy select 2, "", false];
@@ -24,7 +24,7 @@ if ((_raw param [0, "", [""]]) isEqualTo "RACA_PRESET") then {
             private _slotId = _x param [0, format ["slot_%1", _forEachIndex + 1], [""]];
             private _slotName = _x param [1, format ["Restricted Arsenal %1", _forEachIndex + 1], [""]];
             private _rawPreset = _x param [2, [], [[]]];
-            ([_rawPreset] call RACA_fnc_validatePreset) params ["_preset"];
+            private _preset = [_rawPreset] call RACA_fnc_flattenPreset;
             if (_preset isNotEqualTo []) then {
                 private _enabled = _x param [3, true, [true]];
                 private _access = _x param [4, _defaultAccess, [[]]];

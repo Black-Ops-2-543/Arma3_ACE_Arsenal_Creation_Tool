@@ -43,7 +43,7 @@ The current release:
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
 - provides creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources;
 - saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
-- adds a preset selector and Refresh button to every Eden object's attributes;
+- adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
 - provides server-authoritative access checks, controlled ACE interactions, quota enforcement, audit logging, and saved player loadouts for runtime-configured arsenals;
 - provides Zeus modules to assign or replace, clear, enable or disable, and reset quotas on restricted arsenals; and
@@ -147,22 +147,28 @@ Duplicate preset names prompt for overwrite or a uniquely named imported copy. J
 
 Clipboard import is available in the single-player creator only. Arma disables `copyFromClipboard` in multiplayer for security reasons. For format details, compatibility notes, and examples, see [Preset interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 
-### 7. Assign it to an Eden object
+### 7. Configure it in Eden
 
 Close the creator and open Eden. Place or select the object that should provide the arsenal and open its attributes.
 
 In **Restricted Arsenals**:
 
-1. Choose the saved preset.
-2. Press **Refresh** if the preset was saved after the attributes window or Eden session opened.
-3. Confirm the attributes.
-4. Save the scenario.
+1. Choose **Configure slots**.
+2. Add one or more slots. Each slot becomes a separately named ACE interaction on the object.
+3. For each slot, choose its preset, enabled state, optional icon, and whether unauthorized players should be able to see it.
+4. Add any access rules and choose whether all rules (**AND**) or any rule (**OR**) must match. Supported rules cover side, faction, group ID, minimum rank, unit class, player UID, vehicle role, required item, and mission-defined ACE permission key.
+5. Choose **Save slot changes**, then **Apply configuration**. Closing with **Cancel** discards the transaction.
+6. Confirm the object's normal Attributes window and save the scenario.
+
+The configuration editor's mission-wide dashboard lists every currently configured Eden object. Double-click an entry to select the object, or use **Assign to selected** / **Clear selected** to update only the objects currently selected in Eden. A confirmation preview names the operation and object count, and the entire bulk update becomes one Eden Undo step.
+
+Use **Refresh presets** in the object attribute to deliberately replace each slot's embedded preset with the matching current profile copy while preserving its interaction name, enabled state, access rules, icon, visibility, and slot order.
 
 RACA stores a complete copy of the selected preset in the scenario attribute. Changing or deleting the profile copy later does not silently change a mission that has already been configured.
 
 Deleting a profile preset also leaves any adopted children usable because they store complete item snapshots. Those children report their now-missing source until they are made standalone or assigned another source.
 
-Choose **<None>** to remove RACA's assignment from the object.
+Choose **Clear** to remove all RACA slots from the object.
 
 ### 8. Test the mission
 
@@ -188,7 +194,7 @@ sequenceDiagram
 
 ## Controlled runtime arsenals
 
-RACA's Eden attribute turns one embedded preset into a single restricted arsenal. The runtime object configuration expands that model into one or more named ACE interaction slots on an object. Each slot can carry its own preset, enabled state, access rule, icon, visibility behavior, and quantity limits. The server authorizes every open request and checks the player's loadout delta when the session closes; if a quota would be exceeded, it restores the loadout from before that arsenal session.
+RACA's Eden attribute directly authors one or more named ACE interaction slots on an object. Each slot carries its own standalone embedded preset, enabled state, access rule, icon, visibility behavior, and quantity limits. The server authorizes every open request and checks the player's loadout delta when the session closes; if a quota would be exceeded, it restores the loadout from before that arsenal session. Legacy missions containing the earlier single-preset value are migrated automatically when opened and saved.
 
 ### Access rules and quotas
 

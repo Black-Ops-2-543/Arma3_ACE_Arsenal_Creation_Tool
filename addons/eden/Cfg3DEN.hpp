@@ -13,9 +13,9 @@ class Cfg3DEN {
                     class RACA_Preset {
                         property = "RACA_RestrictedArsenalPreset";
                         control = "RACA_PresetAttribute";
-                        displayName = "Arsenal preset";
-                        tooltip = "Embed and apply a saved restricted ACE Arsenal preset when the scenario starts";
-                        expression = "if (!is3DEN && {isServer} && {_value isNotEqualTo []}) then {[_this, _value] call RACA_fnc_applyPreset}";
+                        displayName = "Arsenal configuration";
+                        tooltip = "Configure one or more named restricted arsenal slots, access rules, visibility, and presets";
+                        expression = "if (!is3DEN && {isServer} && {_value isNotEqualTo []}) then {[_this, _value] call RACA_fnc_applyObjectConfig}";
                         defaultValue = "[]";
                         condition = "1";
                         validate = "none";
