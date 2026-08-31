@@ -114,6 +114,120 @@ params ["_player"];
     _validatedClasses sort true;
     [_validatedClasses isEqualTo _expectedClasses, "Preset validation canonicalizes all four cargo buckets"] call _record;
 
+    private _environmentEntries = [_catalog, _preset] call RACA_fnc_analyzeEnvironment;
+    [
+        (_environmentEntries findIf {(_x select 1) isEqualTo "CORE_DEPENDENCIES"}) >= 0 &&
+        {(_environmentEntries findIf {(_x select 1) isEqualTo "EDEN_INTEGRATION"}) >= 0} &&
+        {(_environmentEntries findIf {(_x select 1) isEqualTo "CATALOG_SCOPE"}) >= 0} &&
+        {(_environmentEntries findIf {(_x select 1) isEqualTo "PRESET_SOURCE_SCOPE"}) >= 0},
+        "Environment health reports loaded dependencies, Eden integration, catalogue, and preset scope"
+    ] call _record;
+
+    private _modManifest = [_preset, _catalog] call RACA_fnc_buildModManifest;
+    private _manifestClasses = [];
+    { _manifestClasses append (_x select 2) } forEach (_modManifest param [3, []]);
+    _manifestClasses sort true;
+    [
+        (_modManifest param [0, ""]) isEqualTo "RACA_MOD_MANIFEST" &&
+        {(_modManifest param [1, 0]) isEqualTo 1} &&
+        {_manifestClasses isEqualTo _expectedClasses},
+        "Required-mod manifest groups every preset class by loaded source"
+    ] call _record;
+
+    private _supportBundle = [_preset, _catalog] call RACA_fnc_buildSupportBundle;
+    [
+        (_supportBundle param [0, ""]) isEqualTo "RACA_SUPPORT_BUNDLE" &&
+        {((_supportBundle param [3, []]) param [0, ""]) isEqualTo "RACA_MOD_MANIFEST"} &&
+        {((_supportBundle param [5, []]) param [0, ""]) isEqualTo "RACA_PORTABLE_PRESET"},
+        "Support bundle embeds environment diagnostics, required mods, and the portable preset"
+    ] call _record;
+
+    private _roleTemplates = call RACA_fnc_getRoleTemplates;
+    [
+        (count _roleTemplates) >= 10 &&
+        {(_roleTemplates findIf {(_x select 0) isEqualTo "rifleman"}) >= 0} &&
+        {(_roleTemplates findIf {(_x select 0) isEqualTo "medic"}) >= 0},
+        "Built-in role templates expose the expected mission-maker starters"
+    ] call _record;
+
+    private _parameterCatalog = [
+        ["Test Optic", "optic_Aco", "Attachments", 2, "Arma 3", "Bohemia Interactive", "", "test optic sight", "A3_Weapons_F"],
+        ["Test NVG", "NVGoggles", "NVGs", 0, "Arma 3", "Bohemia Interactive", "", "test nvg", "A3_Characters_F"],
+        ["Test Medical", "FirstAidKit", "Equipment", 0, "Arma 3", "Bohemia Interactive", "", "test first aid kit medical", "A3_Characters_F"]
+    ];
+    ([_parameterCatalog, createHashMap, "ADD", "DEFAULT", "ADD", "BASIC"] call RACA_fnc_applyTemplateParameters) params ["_parameterSelection", "_parameterNotices", "_parameterActions"];
+    [
+        _parameterSelection getOrDefault ["optic_Aco", false] &&
+        {_parameterSelection getOrDefault ["NVGoggles", false]} &&
+        {_parameterSelection getOrDefault ["FirstAidKit", false]} &&
+        {(count _parameterActions) isEqualTo 3},
+        "Parameterized templates apply optic, night-vision, and medical policies"
+    ] call _record;
+
+    private _nextRevisionPreset = [_preset, "Autotest revision", _catalog] call RACA_fnc_setPresetRevision;
+    private _nextRuntime = [_nextRevisionPreset] call RACA_fnc_getRuntimePolicy;
+    [
+        (_nextRuntime select 3) isEqualTo "Autotest revision" &&
+        {(_nextRuntime select 4) isEqualTo 2} &&
+        {(count (_nextRuntime select 7)) isEqualTo count _expectedClasses},
+        "Preset revisions advance monotonically and retain source requirements"
+    ] call _record;
+
+    private _wasAcceptanceHistoryMissing = isNil {profileNamespace getVariable "RACA_presetHistory_v1"};
+    private _oldAcceptanceHistory = profileNamespace getVariable ["RACA_presetHistory_v1", []];
+    profileNamespace setVariable ["RACA_presetHistory_v1", []];
+    private _archivedRevision = [_preset, "Autotest revision archive"] call RACA_fnc_archivePreset;
+    private _acceptanceHistory = [_preset select 2] call RACA_fnc_getPresetHistory;
+    [
+        _archivedRevision &&
+        {_acceptanceHistory isNotEqualTo []} &&
+        {((_acceptanceHistory select 0) param [7, ""]) isEqualTo "Autotest revision archive"},
+        "Revision history archives and retrieves immutable preset snapshots"
+    ] call _record;
+    if (_wasAcceptanceHistoryMissing) then {profileNamespace setVariable ["RACA_presetHistory_v1", nil]} else {profileNamespace setVariable ["RACA_presetHistory_v1", _oldAcceptanceHistory]};
+    saveProfileNamespace;
+
+    private _wasRolePacksMissing = isNil {profileNamespace getVariable "RACA_rolePacks_v1"};
+    private _oldRolePacks = profileNamespace getVariable ["RACA_rolePacks_v1", []];
+    profileNamespace setVariable ["RACA_rolePacks_v1", [
+        ["RACA_ROLE_PACK", 1, "Autotest Pack", "Disposable acceptance pack", ["arifle_MX_F"]],
+        ["RACA_ROLE_PACK", 1, "Unsafe Pack", "Rejected", ["bad;call"]]
+    ]];
+    private _normalizedRolePacks = call RACA_fnc_getRolePacks;
+    [
+        (count _normalizedRolePacks) isEqualTo 1 &&
+        {((_normalizedRolePacks select 0) select 2) isEqualTo "Autotest Pack"},
+        "Custom role packs reject unsafe classes and normalize valid unit doctrine"
+    ] call _record;
+    if (_wasRolePacksMissing) then {profileNamespace setVariable ["RACA_rolePacks_v1", nil]} else {profileNamespace setVariable ["RACA_rolePacks_v1", _oldRolePacks]};
+
+    private _wasViewsMissing = isNil {profileNamespace getVariable "RACA_savedCatalogViews_v1"};
+    private _oldViews = profileNamespace getVariable ["RACA_savedCatalogViews_v1", []];
+    profileNamespace setVariable ["RACA_savedCatalogViews_v1", [
+        ["RACA_CATALOG_VIEW", 2, "Autotest View", "mx", "Weapons", "Arma 3", "A3_Weapons_F", "Bohemia Interactive", "unit", "class", true],
+        ["RACA_CATALOG_VIEW", 2, "Autotest View", "duplicate", "All", "", "", "", "", "item", true]
+    ]];
+    private _normalizedViews = call RACA_fnc_getSavedCatalogViews;
+    [
+        (count _normalizedViews) isEqualTo 1 &&
+        {((_normalizedViews select 0) select 8) isEqualTo "unit"} &&
+        {((_normalizedViews select 0) select 9) isEqualTo "class"},
+        "Saved catalogue views retain advanced filters and reject duplicate names"
+    ] call _record;
+    if (_wasViewsMissing) then {profileNamespace setVariable ["RACA_savedCatalogViews_v1", nil]} else {profileNamespace setVariable ["RACA_savedCatalogViews_v1", _oldViews]};
+
+    private _wasTagsMissing = isNil {profileNamespace getVariable "RACA_catalogTags_v1"};
+    private _oldTags = profileNamespace getVariable ["RACA_catalogTags_v1", []];
+    profileNamespace setVariable ["RACA_catalogTags_v1", [["RACA_CATALOG_TAG", 1, "Unit Gear", ["arifle_MX_F", "bad;call", "arifle_MX_F"]]]];
+    private _normalizedTags = call RACA_fnc_getCatalogTags;
+    [
+        (count _normalizedTags) isEqualTo 1 &&
+        {((_normalizedTags select 0) select 3) isEqualTo ["arifle_MX_F"]},
+        "Catalogue tags persist only safe, unique class names"
+    ] call _record;
+    if (_wasTagsMissing) then {profileNamespace setVariable ["RACA_catalogTags_v1", nil]} else {profileNamespace setVariable ["RACA_catalogTags_v1", _oldTags]};
+    saveProfileNamespace;
+
     private _portable = [_preset, _catalog] call RACA_fnc_buildPortablePreset;
     private _json = [_portable] call RACA_fnc_formatPortableJson;
     ([_json] call RACA_fnc_decodePortablePreset) params ["_jsonPreset", "_jsonMetadata", "_jsonWarnings"];
@@ -288,6 +402,116 @@ params ["_player"];
     private _deleteControl = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1616};
     [!isNull _creatorDisplay, "Creator display opens inside the packaged runtime"] call _record;
     [!isNull _deleteControl && {ctrlText _deleteControl isEqualTo "DELETE"}, "Preset deletion control is present in the live Creator"] call _record;
+    private _quickStartDisplay = if (isNull _creatorDisplay) then {displayNull} else {[_creatorDisplay] call RACA_fnc_openQuickStart};
+    uiSleep 0.1;
+    [!isNull _quickStartDisplay && {!isNull findDisplay 904110}, "Quick Start opens as a live guided Creator workflow"] call _record;
+    if (!isNull _quickStartDisplay) then {_quickStartDisplay closeDisplay 2};
+
+    private _creatorList = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1500};
+    private _weaponRow = -1;
+    if (!isNull _creatorList) then {
+        for "_row" from 0 to (((lnbSize _creatorList) select 0) - 1) do {
+            if ((_creatorList lnbData [_row, 0]) isEqualTo "arifle_MX_F") exitWith {_weaponRow = _row};
+        };
+    };
+    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    private _detailsOpened = _weaponRow >= 0 && {[_creatorDisplay] call RACA_fnc_openItemDetails};
+    uiSleep 0.1;
+    private _detailsDisplay = findDisplay 904160;
+    [
+        _detailsOpened &&
+        {!isNull _detailsDisplay} &&
+        {(uiNamespace getVariable ["RACA_itemDetailsClass", ""]) isEqualTo "arifle_MX_F"},
+        "Item details opens for the selected catalogue class"
+    ] call _record;
+    if (!isNull _detailsDisplay) then {_detailsDisplay closeDisplay 2};
+
+    private _rolePacksOpened = [_creatorDisplay] call RACA_fnc_openRolePacks;
+    uiSleep 0.1;
+    private _rolePacksDisplay = findDisplay 904170;
+    [_rolePacksOpened && {!isNull _rolePacksDisplay}, "Custom role-pack manager opens inside the live Creator"] call _record;
+    if (!isNull _rolePacksDisplay) then {_rolePacksDisplay closeDisplay 2};
+
+    private _viewsOpened = [_creatorDisplay] call RACA_fnc_openSavedCatalogViews;
+    uiSleep 0.1;
+    private _viewsDisplay = findDisplay 904150;
+    [_viewsOpened && {!isNull _viewsDisplay}, "Saved catalogue-view manager opens inside the live Creator"] call _record;
+    if (!isNull _viewsDisplay) then {_viewsDisplay closeDisplay 2};
+
+    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    private _tagsOpened = [_creatorDisplay] call RACA_fnc_openCatalogTags;
+    uiSleep 0.1;
+    private _tagsDisplay = findDisplay 904190;
+    [
+        _tagsOpened &&
+        {!isNull _tagsDisplay} &&
+        {"arifle_MX_F" in (uiNamespace getVariable ["RACA_catalogTagsSelection", []])},
+        "Catalogue-tag manager opens with the current row selection"
+    ] call _record;
+    if (!isNull _tagsDisplay) then {_tagsDisplay closeDisplay 2};
+
+    private _wasFavoritesMissing = isNil {profileNamespace getVariable "RACA_favoriteClasses_v1"};
+    private _oldFavoriteClasses = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
+    private _oldFavoritesMap = uiNamespace getVariable ["RACA_catalogFavorites", createHashMap];
+    uiNamespace setVariable ["RACA_catalogFavorites", createHashMap];
+    profileNamespace setVariable ["RACA_favoriteClasses_v1", []];
+    [_creatorDisplay] call RACA_fnc_refreshItemList;
+    _creatorList = _creatorDisplay displayCtrl 1500;
+    _weaponRow = -1;
+    for "_row" from 0 to (((lnbSize _creatorList) select 0) - 1) do {
+        if ((_creatorList lnbData [_row, 0]) isEqualTo "arifle_MX_F") exitWith {_weaponRow = _row};
+    };
+    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    private _favoriteAdded = _weaponRow >= 0 && {[_creatorDisplay] call RACA_fnc_toggleFavorite};
+    private _storedFavoritesAfterAdd = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
+    private _favoriteRemoved = [_creatorDisplay] call RACA_fnc_toggleFavorite;
+    private _storedFavoritesAfterRemove = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
+    [
+        _favoriteAdded &&
+        {"arifle_MX_F" in _storedFavoritesAfterAdd} &&
+        {_favoriteRemoved} &&
+        {!("arifle_MX_F" in _storedFavoritesAfterRemove)},
+        "Favorites add and remove the selected class through profile persistence"
+    ] call _record;
+    uiNamespace setVariable ["RACA_catalogFavorites", _oldFavoritesMap];
+    if (_wasFavoritesMissing) then {profileNamespace setVariable ["RACA_favoriteClasses_v1", nil]} else {profileNamespace setVariable ["RACA_favoriteClasses_v1", _oldFavoriteClasses]};
+    saveProfileNamespace;
+
+    private _oldSelectedKeys = keys (uiNamespace getVariable ["RACA_builderSelected", createHashMap]);
+    private _oldInheritedKeys = keys (uiNamespace getVariable ["RACA_builderInherited", createHashMap]);
+    private _oldLimitRecords = [];
+    private _currentLimitMap = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
+    {_oldLimitRecords pushBack +(_currentLimitMap get _x)} forEach keys _currentLimitMap;
+    private _oldComposition = +(uiNamespace getVariable ["RACA_builderComposition", []]);
+    private _oldUndo = +(uiNamespace getVariable ["RACA_creatorUndo", []]);
+    private _oldRedo = +(uiNamespace getVariable ["RACA_creatorRedo", []]);
+    uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+    uiNamespace setVariable ["RACA_builderInherited", createHashMap];
+    uiNamespace setVariable ["RACA_builderLimits", createHashMap];
+    uiNamespace setVariable ["RACA_builderComposition", []];
+    uiNamespace setVariable ["RACA_creatorUndo", []];
+    uiNamespace setVariable ["RACA_creatorRedo", []];
+    private _historyPushed = [_creatorDisplay] call RACA_fnc_pushCreatorHistory;
+    private _changedSelection = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
+    _changedSelection set ["arifle_MX_F", true];
+    private _undone = [_creatorDisplay, "UNDO"] call RACA_fnc_restoreCreatorHistory;
+    private _absentAfterUndo = !((uiNamespace getVariable ["RACA_builderSelected", createHashMap]) getOrDefault ["arifle_MX_F", false]);
+    private _redone = [_creatorDisplay, "REDO"] call RACA_fnc_restoreCreatorHistory;
+    private _presentAfterRedo = (uiNamespace getVariable ["RACA_builderSelected", createHashMap]) getOrDefault ["arifle_MX_F", false];
+    [_historyPushed && {_undone} && {_absentAfterUndo} && {_redone} && {_presentAfterRedo}, "Creator selection changes support live undo and redo"] call _record;
+    private _restoredSelected = createHashMap;
+    {_restoredSelected set [_x, true]} forEach _oldSelectedKeys;
+    private _restoredInherited = createHashMap;
+    {_restoredInherited set [_x, true]} forEach _oldInheritedKeys;
+    private _restoredLimits = createHashMap;
+    {_restoredLimits set [_x select 0, +_x]} forEach _oldLimitRecords;
+    uiNamespace setVariable ["RACA_builderSelected", _restoredSelected];
+    uiNamespace setVariable ["RACA_builderInherited", _restoredInherited];
+    uiNamespace setVariable ["RACA_builderLimits", _restoredLimits];
+    uiNamespace setVariable ["RACA_builderComposition", _oldComposition];
+    uiNamespace setVariable ["RACA_creatorUndo", _oldUndo];
+    uiNamespace setVariable ["RACA_creatorRedo", _oldRedo];
+    [_creatorDisplay] call RACA_fnc_refreshItemList;
     private _wasLibraryMissing = isNil {profileNamespace getVariable "RACA_presetLibrary_v1"};
     private _oldLibrary = profileNamespace getVariable ["RACA_presetLibrary_v1", []];
     private _wasHistoryMissing = isNil {profileNamespace getVariable "RACA_presetHistory_v1"};

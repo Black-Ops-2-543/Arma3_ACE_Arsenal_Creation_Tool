@@ -201,6 +201,20 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_deletePreset' -or
         $autotestClientInit -notmatch 'RACA_fnc_removePresetFromLibrary' -or
         $autotestClientInit -notmatch 'RACA_fnc_getPresetHistory' -or
+        $autotestClientInit -notmatch 'RACA_fnc_analyzeEnvironment' -or
+        $autotestClientInit -notmatch 'RACA_fnc_buildModManifest' -or
+        $autotestClientInit -notmatch 'RACA_fnc_buildSupportBundle' -or
+        $autotestClientInit -notmatch 'RACA_fnc_applyTemplateParameters' -or
+        $autotestClientInit -notmatch 'RACA_fnc_getRolePacks' -or
+        $autotestClientInit -notmatch 'RACA_fnc_getSavedCatalogViews' -or
+        $autotestClientInit -notmatch 'RACA_fnc_getCatalogTags' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openQuickStart' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openItemDetails' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openRolePacks' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openSavedCatalogViews' -or
+        $autotestClientInit -notmatch 'RACA_fnc_openCatalogTags' -or
+        $autotestClientInit -notmatch 'RACA_fnc_toggleFavorite' -or
+        $autotestClientInit -notmatch 'RACA_fnc_restoreCreatorHistory' -or
         $autotestClientInit -notmatch 'Deleted from profile library' -or
         $autotestClientInit -notmatch 'RACA_RscDisplayCreator' -or
         $autotestClientInit -notmatch 'displayCtrl 1616' -or

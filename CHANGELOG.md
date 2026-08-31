@@ -40,6 +40,8 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Multiplayer rehearsal no longer misclassifies a reconnected initial player as distinct JIP evidence.
 - Compatibility-detail source labels no longer raise an SQF type error when the owning add-on field is empty.
 - Automated acceptance now proves that confirmed preset deletion archives and removes an isolated disposable preset.
+- Automated acceptance now exercises environment health, manifests, support bundles, parameterized templates, revision history, role packs, saved views, and catalogue-tag normalization.
+- Live Creator acceptance now opens Quick Start and profile managers, inspects an item, toggles favorites, and completes undo/redo.
 
 ## [0.9.2]
 
