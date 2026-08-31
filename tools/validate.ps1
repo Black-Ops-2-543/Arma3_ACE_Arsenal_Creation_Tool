@@ -193,6 +193,10 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_preflightObjectConfig' -or
         $autotestClientInit -notmatch 'RACA_fnc_applyObjectConfig' -or
         $autotestClientInit -notmatch 'RACA_fnc_finishSession' -or
+        $autotestClientInit -notmatch 'RACA_fnc_moduleAssign' -or
+        $autotestClientInit -notmatch 'RACA_fnc_moduleClear' -or
+        $autotestClientInit -notmatch 'RACA_fnc_moduleToggle' -or
+        $autotestClientInit -notmatch 'RACA_fnc_moduleResetQuotas' -or
         $autotestClientInit -notmatch 'RACA_RscDisplayCreator' -or
         $autotestClientInit -notmatch 'displayCtrl 1616' -or
         $autotestClientInit -notmatch 'endMission' -or
@@ -201,7 +205,7 @@ else {
         $autotestPrepare -notmatch 'RACA_Automated\.VR' -or
         $autotestPrepare -notmatch '-autotest=' -or
         $autotestPrepare -notmatch 'Profiles\\') {
-        $failures.Add('The unattended acceptance harness must exercise packaged creator, interchange, Eden, runtime, quota, and deletion registrations and emit a machine-readable result.')
+        $failures.Add('The unattended acceptance harness must exercise packaged creator, interchange, Eden, runtime, Zeus, quota, and deletion behavior and emit a machine-readable result.')
     }
 }
 

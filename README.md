@@ -321,8 +321,8 @@ source-controlled VR autotest beneath an isolated Arma profile:
 
 The command prints the exact client arguments for Arma's `-autotest` mode.
 Every assertion appears in the RPT as `[RACA AUTOTEST]`; the mission returns
-`END1` only when packaged Creator, interchange, Eden, runtime, quota, and live
-preset-deletion-control checks all pass. See [the automated acceptance
+`END1` only when packaged Creator, interchange, Eden, runtime, Zeus, quota, and
+live preset-deletion-control checks all pass. See [the automated acceptance
 harness](tests/autotest/README.md).
 
 After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch.

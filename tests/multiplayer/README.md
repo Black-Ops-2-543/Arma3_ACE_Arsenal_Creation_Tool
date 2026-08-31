@@ -5,10 +5,10 @@ This isolated VR mission exercises the real server-owned RACA object configurati
 Prepare the mission and configuration beneath an isolated Arma profile:
 
 ```powershell
-.\tools\prepare-multiplayer-smoke.ps1 -ArmaDirectory 'F:\SteamLibrary\steamapps\common\Arma 3'
+.\tools\prepare-multiplayer-smoke.ps1 -ArmaDirectory 'F:\SteamLibrary\steamapps\common\Arma 3' -Adapter 0
 ```
 
-The preparation command validates the built RACA, CBA, ACE, and dedicated-server paths, stages only the files in this folder, and prints argument arrays for launching the server and clients. Build RACA first with `tools\build.ps1 -Clean` whenever source changes.
+The preparation command validates the built RACA, CBA, ACE, and dedicated-server paths, stages only the files in this folder, creates separate server and client profile roots, and prints argument arrays for launching the server and clients. Omit `-Adapter` when Arma can select the graphics adapter automatically. Build RACA first with `tools\build.ps1 -Clean` whenever source changes.
 
 Expected evidence proceeds in three distinct stages:
 

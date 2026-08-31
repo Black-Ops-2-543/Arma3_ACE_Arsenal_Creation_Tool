@@ -33,6 +33,10 @@ params ["_player"];
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
+        {!isNil "RACA_fnc_moduleAssign"} &&
+        {!isNil "RACA_fnc_moduleClear"} &&
+        {!isNil "RACA_fnc_moduleToggle"} &&
+        {!isNil "RACA_fnc_moduleResetQuotas"} &&
         {!isNil "ace_arsenal_fnc_initBox"}) ||
         {diag_tickTime >= _deadline}
     };
@@ -42,6 +46,10 @@ params ["_player"];
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
+        {!isNil "RACA_fnc_moduleAssign"} &&
+        {!isNil "RACA_fnc_moduleClear"} &&
+        {!isNil "RACA_fnc_moduleToggle"} &&
+        {!isNil "RACA_fnc_moduleResetQuotas"} &&
         {!isNil "ace_arsenal_fnc_initBox"};
     [_functionsReady, "Core, Eden, and ACE functions initialize", "Required packaged functions must exist before acceptance begins."] call _record;
     if (!_functionsReady) exitWith {call _finish};
@@ -59,7 +67,11 @@ params ["_player"];
         isClass (configFile >> "Cfg3DEN" >> "Object" >> "AttributeCategories" >> "RACA_RestrictedArsenals" >> "Attributes" >> "RACA_Preset"),
         "Eden object attribute is registered"
     ] call _record;
-    [isClass (configFile >> "CfgVehicles" >> "RACA_ModuleAssign"), "Zeus assign module is registered"] call _record;
+    private _zeusModuleClasses = ["RACA_ModuleAssign", "RACA_ModuleClear", "RACA_ModuleToggle", "RACA_ModuleResetQuotas"];
+    [
+        ({isClass (configFile >> "CfgVehicles" >> _x)} count _zeusModuleClasses) isEqualTo count _zeusModuleClasses,
+        "All Zeus administration modules are registered"
+    ] call _record;
 
     private _catalogObject = "Box_NATO_Equip_F" createVehicleLocal [0, 0, 0];
     _catalogObject hideObject true;
@@ -216,6 +228,52 @@ params ["_player"];
     [_sessionAccepted && {_exactCharged} && {_categoryCharged}, "One issued weapon charges both exact and category quota counters"] call _record;
     player setUnitLoadout _originalLoadout;
 
+    private _zeusTarget = createVehicle ["Box_NATO_Ammo_F", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _assignLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    _assignLogic setVariable ["RACA_presetName", "Automated Acceptance"];
+    _assignLogic setVariable ["RACA_slotName", "Zeus Acceptance"];
+    private _zeusAssigned = [_assignLogic, [_zeusTarget], true] call RACA_fnc_moduleAssign;
+    uiSleep 0.1;
+    private _zeusObjectId = [_zeusTarget] call RACA_fnc_getRuntimeObjectId;
+    private _zeusRegistry = call RACA_fnc_getMissionRegistry;
+    private _zeusIndex = _zeusRegistry findIf {(_x param [4, ""]) isEqualTo _zeusObjectId};
+    private _zeusSlot = if (_zeusIndex < 0) then {[]} else {((_zeusRegistry select _zeusIndex) select 1 select 2) param [0, []]};
+    [
+        _zeusAssigned && {_zeusSlot isNotEqualTo []} && {(_zeusSlot select 1) isEqualTo "Zeus Acceptance"},
+        "Zeus Assign resolves an embedded mission preset and configures a target"
+    ] call _record;
+
+    private _toggleLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    _toggleLogic setVariable ["RACA_enable", false];
+    private _zeusDisabled = [_toggleLogic, [_zeusTarget], true] call RACA_fnc_moduleToggle;
+    uiSleep 0.1;
+    _zeusRegistry = call RACA_fnc_getMissionRegistry;
+    _zeusIndex = _zeusRegistry findIf {(_x param [4, ""]) isEqualTo _zeusObjectId};
+    _zeusSlot = if (_zeusIndex < 0) then {[]} else {((_zeusRegistry select _zeusIndex) select 1 select 2) param [0, []]};
+    [
+        _zeusDisabled && {_zeusSlot isNotEqualTo []} && {!(_zeusSlot select 3)},
+        "Zeus Disable updates the registered target without losing its slot"
+    ] call _record;
+
+    private _quotaBeforeReset = count keys (missionNamespace getVariable ["RACA_quotaState", createHashMap]);
+    private _resetLogic = createAgent ["Logic", [4256, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _zeusReset = [_resetLogic, [_box], true] call RACA_fnc_moduleResetQuotas;
+    private _quotaAfterReset = count keys (missionNamespace getVariable ["RACA_quotaState", createHashMap]);
+    [
+        _zeusReset && {_quotaBeforeReset > 0} && {_quotaAfterReset < _quotaBeforeReset},
+        "Zeus Reset Quotas removes target-scoped quota counters"
+    ] call _record;
+
+    private _clearLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _zeusCleared = [_clearLogic, [_zeusTarget], true] call RACA_fnc_moduleClear;
+    uiSleep 0.1;
+    _zeusRegistry = call RACA_fnc_getMissionRegistry;
+    [
+        _zeusCleared && {(_zeusRegistry findIf {(_x param [4, ""]) isEqualTo _zeusObjectId}) < 0},
+        "Zeus Clear removes the target from the mission registry"
+    ] call _record;
+    deleteVehicle _zeusTarget;
+
     private _wasOnboardingMissing = isNil {profileNamespace getVariable "RACA_onboardingSeen_v1"};
     private _oldOnboarding = profileNamespace getVariable ["RACA_onboardingSeen_v1", false];
     private _wasRecoveryMissing = isNil {profileNamespace getVariable "RACA_creatorDraftRecovery_v1"};
@@ -241,4 +299,3 @@ params ["_player"];
 
     call _finish;
 };
-

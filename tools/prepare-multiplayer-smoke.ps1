@@ -15,7 +15,11 @@ param(
     [string] $AceDirectory,
 
     [Parameter()]
-    [string] $RacaModDirectory = 'build\@RestrictedArsenalCreationAssistant'
+    [string] $RacaModDirectory = 'build\@RestrictedArsenalCreationAssistant',
+
+    [Parameter()]
+    [ValidateRange(-1, 16)]
+    [int] $Adapter = -1
 )
 
 Set-StrictMode -Version Latest
@@ -63,10 +67,12 @@ foreach ($requiredDirectory in @($CbaDirectory, $AceDirectory, $RacaModDirectory
 }
 
 $profileRoot = Join-Path $ArmaDirectory ("Profiles\" + $ProfileName)
+$clientProfileRoot = Join-Path $ArmaDirectory ("Profiles\" + $ProfileName + '_Client')
 $mpMissionsRoot = Join-Path $profileRoot 'MPMissions'
 $stagedMission = Join-Path $mpMissionsRoot 'RACA_Rehearsal.VR'
 $stagedServerConfig = Join-Path $profileRoot 'server.cfg'
 $null = New-Item -ItemType Directory -Path $stagedMission -Force
+$null = New-Item -ItemType Directory -Path $clientProfileRoot -Force
 
 foreach ($missionFile in @('mission.sqm', 'description.ext', 'initServer.sqf', 'initPlayerLocal.sqf')) {
     Copy-Item -LiteralPath (Join-Path $sourceMission $missionFile) -Destination (Join-Path $stagedMission $missionFile) -Force
@@ -89,10 +95,15 @@ $clientArguments = @(
     '-connect=127.0.0.1',
     '-port=2402',
     "-mod=`"$modArgument`"",
+    "-profiles=`"$clientProfileRoot`"",
     '-noSplash',
     '-skipIntro',
+    '-showScriptErrors',
     '-window'
 )
+if ($Adapter -ge 0) {
+    $clientArguments = @("-adapter=$Adapter") + $clientArguments
+}
 
 Write-Host "Prepared the isolated multiplayer smoke mission in '$stagedMission'."
 Write-Host "Server executable: $serverExe"
@@ -108,6 +119,7 @@ $clientArguments | ForEach-Object {Write-Host "  $_"}
     ClientExecutable = (Join-Path $ArmaDirectory 'arma3_x64.exe')
     ClientArguments = $clientArguments
     ProfileRoot = $profileRoot
+    ClientProfileRoot = $clientProfileRoot
     MissionDirectory = $stagedMission
     ServerConfig = $stagedServerConfig
     ModArgument = $modArgument
