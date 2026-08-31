@@ -22,6 +22,7 @@ class CfgFunctions {
             class buildPreset {};
             class decodePortablePreset {};
             class decodeSqfPreset {};
+            class deletePreset {};
             class exportPreset {};
             class fingerprintPreset {};
             class flattenCurrentPreset {};

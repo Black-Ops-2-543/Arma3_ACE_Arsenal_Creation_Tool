@@ -37,7 +37,7 @@ The current release:
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
-- saves named presets in the active Arma profile and supports loading and case-insensitive overwriting;
+- saves named presets in the active Arma profile and supports loading, case-insensitive overwriting, and guarded deletion;
 - adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
@@ -81,6 +81,7 @@ The controls include:
 - **Saved presets** — chooses a previously saved list;
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
+- **Delete** — removes the selected preset from the active profile after confirmation while keeping the current items as an unsaved recovery copy;
 - **Adopted source preset** — selects an optional saved source for the current preset;
 - **Adopt / Refresh** — adopts that source or deliberately reapplies a changed source while preserving additions and removals;
 - **Make Standalone** — saves the complete current result with no source link;
@@ -158,6 +159,8 @@ In **Restricted Arsenals**:
 4. Save the scenario.
 
 RACA stores a complete copy of the selected preset in the scenario attribute. Changing or deleting the profile copy later does not silently change a mission that has already been configured.
+
+Deleting a profile preset also leaves any adopted children usable because they store complete item snapshots. Those children report their now-missing source until they are made standalone or assigned another source.
 
 Choose **<None>** to remove RACA's assignment from the object.
 

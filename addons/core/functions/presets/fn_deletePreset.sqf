@@ -1,0 +1,68 @@
+#include "..\..\script_component.hpp"
+/*
+ * Deletes the selected profile preset only after an explicit confirmation.
+ * The creator selection is deliberately retained as an unsaved recovery copy,
+ * and mission-embedded presets are never touched.
+ */
+params [["_display", displayNull, [displayNull]]];
+
+if (isNull _display) exitWith {false};
+
+private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
+private _selection = lbCurSel _combo;
+if (_selection <= 0) exitWith {
+    [_display, "Choose a saved preset to delete."] call RACA_fnc_setStatus;
+    false
+};
+
+private _library = call RACA_fnc_getPresetLibrary;
+private _presetIndex = _selection - 1;
+private _preset = _library param [_presetIndex, []];
+if (_preset isEqualTo []) exitWith {
+    [_display, "The selected preset no longer exists. Refreshing the preset list."] call RACA_fnc_setStatus;
+    [_display] call RACA_fnc_refreshPresetCombo;
+    false
+};
+
+private _name = _preset select 2;
+private _dependentNames = [];
+{
+    private _adoption = [_x] call RACA_fnc_getComposition;
+    if (_adoption isNotEqualTo [] && {toLowerANSI (_adoption select 2) isEqualTo toLowerANSI _name}) then {
+        _dependentNames pushBack (_x select 2);
+    };
+} forEach _library;
+
+private _dependencyNotice = if (_dependentNames isEqualTo []) then {""} else {
+    format [
+        "\n\n%1 adopted preset(s) use this source: %2. Their complete saved item snapshots will remain usable, but their source link will show as missing.",
+        count _dependentNames,
+        _dependentNames joinString ", "
+    ]
+};
+
+private _confirmed = [
+    format [
+        "Delete profile preset '%1'?%2\n\nAlready saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
+        _name,
+        _dependencyNotice
+    ],
+    "Delete RACA Preset",
+    "DELETE",
+    "CANCEL",
+    _display
+] call BIS_fnc_guiMessage;
+
+if (!_confirmed || {isNull _display}) exitWith {
+    if (!isNull _display) then {[_display, format ["Kept '%1'.", _name]] call RACA_fnc_setStatus};
+    false
+};
+
+_library deleteAt _presetIndex;
+profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
+saveProfileNamespace;
+
+(_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText "";
+[_display] call RACA_fnc_refreshPresetCombo;
+[_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
+true

@@ -316,6 +316,27 @@ if (Test-Path -LiteralPath $cyclePath -PathType Leaf) {
     }
 }
 
+$deletePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_deletePreset.sqf'
+if (-not (Test-Path -LiteralPath $deletePresetPath -PathType Leaf)) {
+    $failures.Add("The preset library must provide a guarded deletion workflow.")
+}
+else {
+    $deletePresetSource = Get-Content -Raw -LiteralPath $deletePresetPath
+    foreach ($requiredPattern in @('BIS_fnc_guiMessage', 'deleteAt', 'saveProfileNamespace', 'unsaved recovery copy')) {
+        if ($deletePresetSource -notmatch [regex]::Escape($requiredPattern)) {
+            $failures.Add("Preset deletion is missing required behavior '$requiredPattern'.")
+        }
+    }
+}
+
+$creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
+if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $creatorUiSource = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUiSource -notmatch 'RACA_IDC_DELETE_PRESET' -or $creatorUiSource -notmatch 'RACA_fnc_deletePreset') {
+        $failures.Add("The creator must expose preset deletion from Preset Management.")
+    }
+}
+
 $edenPopulatePath = Join-Path $addonsDirectory 'eden\functions\fn_edenPopulate.sqf'
 if (Test-Path -LiteralPath $edenPopulatePath -PathType Leaf) {
     $edenPopulate = Get-Content -Raw -LiteralPath $edenPopulatePath

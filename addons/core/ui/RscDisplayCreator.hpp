@@ -123,7 +123,7 @@ class RACA_RscDisplayCreator {
             tooltip = "Save the current assigned items to your Arma profile";
             x = "safeZoneX + 0.07 * safeZoneW";
             y = "safeZoneY + 0.43 * safeZoneH";
-            w = "0.19 * safeZoneW";
+            w = "0.12 * safeZoneW";
             h = "0.04 * safeZoneH";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_saveCurrentPreset";
         };
@@ -132,8 +132,17 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_LOAD_PRESET;
             text = "LOAD";
             tooltip = "Load the selected saved preset into the creator";
-            x = "safeZoneX + 0.27 * safeZoneW";
+            x = "safeZoneX + 0.20 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_loadSelectedPreset";
+        };
+
+        class DeletePreset: SavePreset {
+            idc = RACA_IDC_DELETE_PRESET;
+            text = "DELETE";
+            tooltip = "Delete the selected profile preset after confirmation; embedded mission copies are unaffected";
+            x = "safeZoneX + 0.33 * safeZoneW";
+            colorBackground[] = {0.45, 0.12, 0.12, 0.9};
+            onButtonClick = "ctrlParent (_this select 0) spawn RACA_fnc_deletePreset";
         };
 
         class ExportFormatLabel: PresetNameLabel {

@@ -56,6 +56,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A named non-empty preset appears immediately in Saved presets.
 - [ ] Loading that preset restores the exact selection after filters and searches have changed.
 - [ ] Saving the same name with different content overwrites it rather than creating a case-variant duplicate.
+- [ ] **Delete** requires confirmation, removes only the selected profile preset, and keeps the current item selection as an unsaved recovery copy.
+- [ ] Deleting a source preset does not corrupt adopted children or standalone copies already embedded in missions.
 - [ ] Restarting Arma with the same profile preserves the preset.
 
 ## 5. Preset adoption
