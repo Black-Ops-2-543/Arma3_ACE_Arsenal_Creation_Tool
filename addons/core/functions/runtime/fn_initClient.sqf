@@ -12,4 +12,6 @@ if (!hasInterface) exitWith {};
     ["CAManBase", 1, ["ACE_SelfActions"], _action, true] call ace_interact_menu_fnc_addActionToClass;
     missionNamespace setVariable ["RACA_adminActionRegistered", true];
     [player] remoteExecCall ["RACA_fnc_requestAdminAccess", 2];
+    uiSleep 2;
+    if (!isNull player) then {[player] remoteExecCall ["RACA_fnc_rehearsalClientReady", 2]};
 };

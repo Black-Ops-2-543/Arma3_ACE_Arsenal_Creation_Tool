@@ -49,7 +49,7 @@ The current release:
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
 - provides server-authoritative access checks, controlled ACE interactions, quota enforcement, audit logging, and saved player loadouts for runtime-configured arsenals;
-- gives authenticated server administrators an ACE self-interaction dashboard for configured objects, live sessions, quota records, and recent audit events;
+- gives authenticated server administrators an ACE self-interaction dashboard for configured objects, live sessions, quota records, recent audit events, and guided host/client/JIP rehearsal;
 - provides Zeus modules to assign or replace, clear, enable or disable, and reset quotas on restricted arsenals; and
 - validates preset data, skips unavailable classes, and logs diagnostics with the `[RACA]` prefix.
 
@@ -201,7 +201,7 @@ Choose **Clear** to remove all RACA slots from the object.
 
 Preview the mission and interact with the configured object through ACE. It should open the normal ACE Arsenal interface, but only classes in the embedded preset should be available.
 
-For a multiplayer release, test with a second client and, when relevant, a client joining in progress. The host, connected client, and JIP client should see the same restricted contents.
+For a multiplayer release, test with a second client and a client joining in progress. From the authenticated **RACA Administration** panel, open **MP Rehearsal** with the initial remote client already connected, select **Start New**, then join another client and refresh probes. RACA records server, listen-host, initial-client, and JIP dependency/action-manifest evidence and produces a copyable Pass/Fail/Waiting report. This instrumentation supports—not replaces—actually opening the restricted arsenal on each machine.
 
 ```mermaid
 sequenceDiagram
@@ -237,6 +237,8 @@ Every runtime slot adds ACE actions to save and reapply a personal loadout for t
 
 Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. An authorized player's ACE self-interaction menu exposes **RACA Administration**, which shows sanitized object/slot summaries, active-session and quota counts, the newest 100 audit events, scoped controls, and a clipboard audit export. The server rechecks authorization for every snapshot and command; the client display is never authoritative.
 
+The administration panel's **MP Rehearsal** starts a server-owned session, probes dependency and local sanitized-action registration on each connected interface, classifies later arrivals as JIP, and reports the server/listen-host/initial-client/JIP gates without exposing embedded presets. Starting and inspecting a rehearsal requires the same server-side authorization as every other administration action.
+
 ### Zeus modules
 
 The **Restricted Arsenals** Zeus category includes modules to assign/replace a preset, clear an arsenal, enable/disable an arsenal, and reset quotas. Zeus modules run on the server and can be disabled for a mission by setting `RACA_allowZeusModules` to `false` in `missionNamespace`. The assignment module resolves its named preset first from the server profile and then from presets already embedded in registered mission objects. This fallback makes a dedicated-server Zeus workflow independent of the curator's local profile once at least one mission object carries that preset.
@@ -265,7 +267,7 @@ Before applying a preset, RACA removes the previously registered ACE virtual ars
 
 ### Multiplayer
 
-The server initializes the arsenal and the configured contents are synchronized for clients and JIP. Multiplayer acceptance should still be verified in-game because the Arma engine is authoritative.
+The server initializes the arsenal and the configured contents are synchronized for clients and JIP. The guided MP Rehearsal makes synchronization evidence visible and shareable, but multiplayer acceptance still requires real connected and JIP clients because the Arma engine is authoritative.
 
 The generated **Reusable SQF** export is separate from RACA's Eden integration: it is a standalone ACE script with no RACA runtime dependency. It validates its object argument, runs on the server, removes an earlier ACE virtual arsenal, and initializes the exported classes globally.
 

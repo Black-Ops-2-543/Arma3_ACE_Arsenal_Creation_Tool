@@ -136,6 +136,7 @@ class CfgFunctions {
             class applyPlayerLoadout {};
             class applyPreset {};
             class buildActionManifest {};
+            class buildRehearsalSnapshot {};
             class bulkUpdateObjects {};
             class cancelObjectSessions {};
             class countLoadout {};
@@ -152,19 +153,30 @@ class CfgFunctions {
             class normalizeLimits {};
             class normalizeObjectConfig {};
             class openAuthorized {};
+            class openRehearsal {};
             class previewPreset {};
+            class rehearsalClientReady {};
+            class rehearsalCopy {};
+            class rehearsalExecute {};
+            class rehearsalOnLoad {};
+            class rehearsalProbeClient {};
+            class rehearsalRefresh {};
             class registerActions {};
             class registerObject {};
             class receiveAdminSnapshot {};
             class receiveAdminAccess {};
             class receiveQuotaStatus {};
+            class receiveRehearsalProbe {};
+            class receiveRehearsalSnapshot {};
             class requestAdminAccess {};
             class requestAdminSnapshot {};
             class requestQuotaStatus {};
+            class requestRehearsal {};
             class requestOpen {};
             class requestLoadoutApply {};
             class resetQuotas {};
             class savePlayerLoadout {};
+            class sendRehearsalSnapshot {};
             class unregisterObject {};
         };
 

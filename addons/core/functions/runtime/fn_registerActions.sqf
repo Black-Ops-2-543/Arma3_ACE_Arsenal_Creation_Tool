@@ -5,7 +5,17 @@ params [
 if (isNull _object) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
 [_object, 0, ["ACE_MainActions", "RACA_Root"]] call ace_interact_menu_fnc_removeActionFromObject;
-if (_config isEqualTo []) exitWith {true};
+private _localActionState = missionNamespace getVariable ["RACA_localActionState", createHashMap];
+private _actionKey = netId _object;
+if (_actionKey isEqualTo "0:0") then {_actionKey = str _object};
+if (_config isEqualTo []) exitWith {
+    _localActionState deleteAt _actionKey;
+    missionNamespace setVariable ["RACA_localActionState", _localActionState];
+    true
+};
+private _enabledSlots = {(_x param [3, false, [true]])} count (_config select 2);
+_localActionState set [_actionKey, [_enabledSlots, diag_tickTime]];
+missionNamespace setVariable ["RACA_localActionState", _localActionState];
 private _root = [
     "RACA_Root",
     "Restricted Arsenals",

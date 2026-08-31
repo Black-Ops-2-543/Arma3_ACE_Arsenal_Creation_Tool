@@ -480,13 +480,52 @@ if (Test-Path -LiteralPath $coreConfigPath -PathType Leaf) {
     if ($coreConfig -match 'class\s+RACA_fnc_applyObjectConfig\s*\{[^}]*allowedTargets') {
         $failures.Add("Clients must not be allowed to remotely replace an object's authoritative configuration.")
     }
-    foreach ($remoteFunction in @('RACA_fnc_requestOpen', 'RACA_fnc_finishSession', 'RACA_fnc_requestLoadoutApply', 'RACA_fnc_applyAuthorizedLoadout', 'RACA_fnc_requestAdminAccess', 'RACA_fnc_receiveAdminAccess', 'RACA_fnc_requestAdminSnapshot', 'RACA_fnc_receiveAdminSnapshot', 'RACA_fnc_requestQuotaStatus', 'RACA_fnc_receiveQuotaStatus')) {
+    foreach ($remoteFunction in @('RACA_fnc_requestOpen', 'RACA_fnc_finishSession', 'RACA_fnc_requestLoadoutApply', 'RACA_fnc_applyAuthorizedLoadout', 'RACA_fnc_requestAdminAccess', 'RACA_fnc_receiveAdminAccess', 'RACA_fnc_requestAdminSnapshot', 'RACA_fnc_receiveAdminSnapshot', 'RACA_fnc_requestQuotaStatus', 'RACA_fnc_receiveQuotaStatus', 'RACA_fnc_requestRehearsal', 'RACA_fnc_rehearsalClientReady', 'RACA_fnc_rehearsalProbeClient', 'RACA_fnc_receiveRehearsalProbe', 'RACA_fnc_receiveRehearsalSnapshot')) {
         if ($coreConfig -notmatch ('class\s+' + $remoteFunction + '\s*\{')) {
             $failures.Add("CfgRemoteExec is missing the controlled runtime endpoint '$remoteFunction'.")
         }
     }
     if ($coreConfig -notmatch 'class\s+RACA_fnc_registerActions\s*\{[^}]*allowedTargets\s*=\s*0\s*;[^}]*jip\s*=\s*1\s*;') {
         $failures.Add("Only the sanitized client action registrar must be enabled for persistent JIP execution.")
+    }
+}
+
+$rehearsalPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_requestRehearsal.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_rehearsalClientReady.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_rehearsalProbeClient.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_receiveRehearsalProbe.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_buildRehearsalSnapshot.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_receiveRehearsalSnapshot.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_rehearsalRefresh.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\runtime\fn_rehearsalCopy.sqf')
+)
+$registerActionsPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_registerActions.sqf'
+$initClientPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_initClient.sqf'
+if ($rehearsalPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0 -or
+    -not (Test-Path -LiteralPath $registerActionsPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $initClientPath -PathType Leaf)) {
+    $failures.Add("Runtime administration must provide the guided multiplayer rehearsal and client-ready instrumentation.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $rehearsal = ($rehearsalPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    $registerActions = Get-Content -Raw -LiteralPath $registerActionsPath
+    $initClient = Get-Content -Raw -LiteralPath $initClientPath
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'RACA_RscDisplayRehearsal' -or
+        $creatorUi -notmatch 'RACA_IDC_ADMIN_REHEARSAL' -or
+        $registerActions -notmatch 'RACA_localActionState' -or
+        $initClient -notmatch 'RACA_fnc_rehearsalClientReady' -or
+        $rehearsal -notmatch 'RACA_fnc_isAdminAuthorized' -or
+        $rehearsal -notmatch 'owner _unit isNotEqualTo remoteExecutedOwner' -or
+        $rehearsal -notmatch 'RACA_REHEARSAL_PROBE' -or
+        $rehearsal -notmatch '"HOST"' -or
+        $rehearsal -notmatch '"CLIENT"' -or
+        $rehearsal -notmatch '"JIP"' -or
+        $rehearsal -notmatch 'RACA_localActionState' -or
+        $rehearsal -notmatch 'INCOMPLETE' -or
+        $rehearsal -notmatch 'copyToClipboard') {
+        $failures.Add("Multiplayer rehearsal must be admin-authorized, owner-bound, JIP-aware, action-manifest based, and produce a copyable gated report.")
     }
 }
 

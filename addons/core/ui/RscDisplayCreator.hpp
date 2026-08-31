@@ -963,12 +963,23 @@ class RACA_RscDisplayAdmin {
         class Status: RscText {
             idc = RACA_IDC_ADMIN_STATUS;
             text = "Requesting server state...";
-            x = "safeZoneX + 0.05 * safeZoneW";
+            x = "safeZoneX + 0.20 * safeZoneW";
             y = "safeZoneY + 0.85 * safeZoneH";
-            w = "0.90 * safeZoneW";
+            w = "0.75 * safeZoneW";
             h = "0.06 * safeZoneH";
             style = 16;
             colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class Rehearsal: Refresh {
+            idc = RACA_IDC_ADMIN_REHEARSAL;
+            text = "MP REHEARSAL";
+            tooltip = "Open the guided host, client, and join-in-progress synchronization rehearsal";
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.85 * safeZoneH";
+            w = "0.14 * safeZoneW";
+            h = "0.06 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openRehearsal";
         };
     };
 };
@@ -1450,6 +1461,119 @@ class RACA_RscDisplayRolePacks {
             idc = 2;
             text = "CLOSE";
             x = "safeZoneX + 0.73 * safeZoneW";
+            w = "0.15 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayRehearsal {
+    idd = RACA_IDD_REHEARSAL;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_rehearsalOnLoad";
+
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.05 * safeZoneW";
+            y = "safeZoneY + 0.05 * safeZoneH";
+            w = "0.90 * safeZoneW";
+            h = "0.90 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: RscText {
+            idc = -1;
+            text = "RACA MULTIPLAYER REHEARSAL";
+            style = 2;
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.07 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Summary: RscText {
+            idc = RACA_IDC_REHEARSAL_SUMMARY;
+            text = "Requesting rehearsal state...";
+            style = 16;
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.14 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.09 * safeZoneH";
+            colorBackground[] = {0.42, 0.34, 0.08, 0.95};
+        };
+        class ListHeading: RscText {
+            idc = -1;
+            text = "ROLE       NAME                    UID                         OWNER    DEPS      OBJECTS   SLOTS     RESULT    ISSUES";
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Participants: RscListNBox {
+            idc = RACA_IDC_REHEARSAL_LIST;
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.29 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.37 * safeZoneH";
+            columns[] = {0.01, 0.09, 0.22, 0.39, 0.46, 0.54, 0.62, 0.70, 0.78};
+            colorBackground[] = {0, 0, 0, 0.45};
+        };
+        class Status: RscText {
+            idc = RACA_IDC_REHEARSAL_STATUS;
+            text = "Start with an initial client connected, then join another client after START.";
+            style = 16;
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.68 * safeZoneH";
+            w = "0.86 * safeZoneW";
+            h = "0.10 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class Start: RscButton {
+            idc = RACA_IDC_REHEARSAL_START;
+            text = "START NEW";
+            tooltip = "Start a new server-authoritative rehearsal and probe every currently connected interface client";
+            x = "safeZoneX + 0.07 * safeZoneW";
+            y = "safeZoneY + 0.82 * safeZoneH";
+            w = "0.15 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "[ctrlParent (_this select 0), 'START'] call RACA_fnc_rehearsalExecute";
+        };
+        class Refresh: Start {
+            idc = RACA_IDC_REHEARSAL_REFRESH;
+            text = "REFRESH PROBES";
+            tooltip = "Ask every connected interface client to re-check dependencies and local action registration";
+            x = "safeZoneX + 0.23 * safeZoneW";
+            w = "0.17 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'REFRESH'] call RACA_fnc_rehearsalExecute";
+        };
+        class Finish: Start {
+            idc = RACA_IDC_REHEARSAL_FINISH;
+            text = "FINALIZE";
+            tooltip = "Stop accepting JIP probes and freeze the current rehearsal outcome";
+            x = "safeZoneX + 0.41 * safeZoneW";
+            w = "0.14 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'FINISH'] call RACA_fnc_rehearsalExecute";
+        };
+        class Copy: Start {
+            idc = RACA_IDC_REHEARSAL_COPY;
+            text = "COPY REPORT";
+            tooltip = "Copy gate and participant evidence as a shareable text report";
+            x = "safeZoneX + 0.56 * safeZoneW";
+            w = "0.16 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_rehearsalCopy";
+        };
+        class Close: Start {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.78 * safeZoneW";
             w = "0.15 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";

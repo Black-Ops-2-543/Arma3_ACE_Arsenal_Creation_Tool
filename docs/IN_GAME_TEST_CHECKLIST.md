@@ -146,6 +146,10 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] The admin dashboard reports every registered object, slot names/states, quota-record count, active-session count, and the newest audit records without exposing full embedded presets.
 - [ ] Admin refresh, object quota reset, global quota reset, enable, disable, and confirmed clear execute on the server and refresh the displayed snapshot.
 - [ ] Copy Audit produces a readable clipboard record and a non-admin client cannot request a snapshot or execute an admin command by remote call.
+- [ ] With an initial remote client connected, **MP Rehearsal > Start New** records the server and every current interface as SERVER, HOST (listen server), or CLIENT without exposing embedded presets.
+- [ ] A client joining after Start New announces readiness, is classified as JIP, and reports the same configured-object/enabled-slot action-manifest counts.
+- [ ] Missing dependencies, missing local manifests, and slot-count mismatches produce FAIL with specific issues; absent initial/JIP roles remain WAITING while active and become INCOMPLETE when finalized.
+- [ ] Refresh Probes replaces each role/UID's latest evidence, Finalize freezes new JIP evidence, Copy Report matches the visible gates/participants, and a non-admin cannot start or inspect the rehearsal.
 - [ ] On a hosted multiplayer server, the host sees the restricted contents.
 - [ ] A connected client sees the same restricted contents.
 - [ ] A client joining in progress sees the same restricted contents.

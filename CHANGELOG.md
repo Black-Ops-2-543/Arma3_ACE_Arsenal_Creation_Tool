@@ -17,6 +17,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Transactional Eden multi-slot configuration, access rules, mission dashboard, bulk updates, and mission-unit access simulation.
 - Server-authoritative sessions, access enforcement, scoped quotas, remaining-allowance checks, personal loadouts, runtime administration, audit records, and Zeus modules.
 - Object-bound sanitized JIP action registration for late-joining clients.
+- Authenticated multiplayer rehearsal with server, listen-host, initial-client, and JIP probes, explicit synchronization gates, and copyable evidence.
 
 ### Changed
 

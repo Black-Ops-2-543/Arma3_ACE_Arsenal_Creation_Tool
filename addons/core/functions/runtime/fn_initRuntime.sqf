@@ -3,6 +3,7 @@ missionNamespace setVariable ["RACA_quotaState", createHashMap];
 missionNamespace setVariable ["RACA_openSessions", createHashMap];
 missionNamespace setVariable ["RACA_auditLog", []];
 if (isServer) then {
+    missionNamespace setVariable ["RACA_rehearsalState", createHashMap];
     addMissionEventHandler ["EntityRespawned", {
         params ["_newEntity", "_oldEntity"];
         _newEntity setVariable ["RACA_lifeIndex", (_oldEntity getVariable ["RACA_lifeIndex", 0]) + 1, true];
