@@ -40,6 +40,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Multiplayer rehearsal no longer misclassifies a reconnected initial player as distinct JIP evidence.
 - Compatibility-detail source labels no longer raise an SQF type error when the owning add-on field is empty.
 - Listen-server hosts now complete saved-loadout, quota-status, administration, and rehearsal request/response flows when Arma delivers the remote call locally.
+- Server-to-client arsenal, correction, action-registration, and rehearsal handlers now reject direct non-server invocation while retaining trusted listen-host delivery.
 - Unregistering a live arsenal now cancels its active sessions before pruning registry and quota state, restoring affected players immediately.
 - Automated acceptance now proves that confirmed preset deletion archives and removes an isolated disposable preset.
 - Automated acceptance now exercises environment health, manifests, support bundles, parameterized templates, revision history, role packs, saved views, and catalogue-tag normalization.

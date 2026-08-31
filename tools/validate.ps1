@@ -962,7 +962,11 @@ foreach ($endpointName in $listenHostServerEndpoints) {
 }
 
 $listenHostClientResponses = @(
+    'fn_openAuthorized.sqf',
+    'fn_applyCorrectedLoadout.sqf',
     'fn_applyAuthorizedLoadout.sqf',
+    'fn_registerActions.sqf',
+    'fn_rehearsalProbeClient.sqf',
     'fn_receiveAdminAccess.sqf',
     'fn_receiveAdminSnapshot.sqf',
     'fn_receiveQuotaStatus.sqf',
@@ -978,6 +982,24 @@ foreach ($responseName in $listenHostClientResponses) {
     if ($responseSource -notmatch 'isRemoteExecuted\s*&&' -or
         $responseSource -notmatch '!isRemoteExecuted\s*&&\s*\{!isServer\}') {
         $failures.Add("Listen-host client response '$responseName' must accept server-local delivery while rejecting untrusted direct client calls.")
+    }
+}
+
+$authorizedOpenPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_openAuthorized.sqf'
+if (Test-Path -LiteralPath $authorizedOpenPath -PathType Leaf) {
+    $authorizedOpen = Get-Content -Raw -LiteralPath $authorizedOpenPath
+    if ($authorizedOpen -notmatch 'isNull\s+_object' -or
+        $authorizedOpen -notmatch '_sessionId\s+isEqualTo\s+""' -or
+        $authorizedOpen -notmatch '_classes\s+isEqualTo\s+\[\]') {
+        $failures.Add("Authorized arsenal responses must reject stale objects, missing sessions, and empty catalogues before opening ACE Arsenal.")
+    }
+}
+
+$correctedLoadoutPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_applyCorrectedLoadout.sqf'
+if (Test-Path -LiteralPath $correctedLoadoutPath -PathType Leaf) {
+    $correctedLoadout = Get-Content -Raw -LiteralPath $correctedLoadoutPath
+    if ($correctedLoadout -notmatch '_loadout\s+isEqualTo\s+\[\]') {
+        $failures.Add("Corrective loadout responses must reject an empty or malformed rollback payload.")
     }
 }
 

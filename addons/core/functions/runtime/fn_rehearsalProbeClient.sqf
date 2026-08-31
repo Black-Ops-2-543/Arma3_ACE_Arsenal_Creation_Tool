@@ -5,6 +5,7 @@ params [
 ];
 if (!hasInterface || {isNull player} || {_sessionId isEqualTo ""}) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!isRemoteExecuted && {!isServer}) exitWith {false};
 
 private _dependencyIssues = [];
 if !(isClass (configFile >> "CfgPatches" >> "ace_main")) then {_dependencyIssues pushBack "ACE3 is missing"};

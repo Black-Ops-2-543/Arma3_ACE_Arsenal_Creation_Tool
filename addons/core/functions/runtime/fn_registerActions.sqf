@@ -4,6 +4,7 @@ params [
 ];
 if (isNull _object) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!isRemoteExecuted && {!isServer}) exitWith {false};
 [_object, 0, ["ACE_MainActions", "RACA_Root"]] call ace_interact_menu_fnc_removeActionFromObject;
 private _localActionState = missionNamespace getVariable ["RACA_localActionState", createHashMap];
 private _actionKey = netId _object;

@@ -12,7 +12,12 @@ params [
 ];
 if (!hasInterface || {isNull _unit} || {_unit isNotEqualTo player}) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!isRemoteExecuted && {!isServer}) exitWith {false};
 if (!_authorized) exitWith {systemChat format ["RACA: %1", _reason]; false};
+if (isNull _object || {_sessionId isEqualTo ""} || {_classes isEqualTo []}) exitWith {
+    systemChat "RACA: The authorized arsenal session was no longer available.";
+    false
+};
 
 if (_remaining isNotEqualTo []) then {
     private _parts = _remaining apply {format ["%1: %2 remaining (%3)", _x select 0, _x select 1, _x select 2]};
