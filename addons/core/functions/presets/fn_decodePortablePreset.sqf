@@ -17,9 +17,12 @@ private _signature = _decoded param [0, "", [""]];
 
 if (_signature isEqualTo "RACA_PORTABLE_PRESET") then {
     private _formatVersion = _decoded param [1, -1, [0]];
-    if (_formatVersion isEqualTo 1) then {
+    if (_formatVersion in [1, 2]) then {
         _rawPreset = _decoded param [2, [], [[]]];
         _metadata = _decoded param [3, [], [[]]];
+        if (_formatVersion isEqualTo 1) then {
+            _warnings pushBack "Migrated portable format 1 to format 2.";
+        };
     } else {
         if (_formatVersion isEqualTo 0) then {
             // Supported legacy transport: [signature, 0, name, buckets].

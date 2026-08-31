@@ -16,4 +16,16 @@ private _buckets = [[], [], [], []];
 } forEach _catalog;
 
 {_x sort true} forEach _buckets;
-["RACA_PRESET", 1, _name, _buckets]
+private _limitsMap = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
+private _limits = [];
+{
+    _limits pushBack (_limitsMap get _x);
+} forEach keys _limitsMap;
+_limits = [_limits] call RACA_fnc_normalizeLimits;
+[
+    "RACA_PRESET",
+    1,
+    _name,
+    _buckets,
+    ["RACA_RUNTIME", 1, _limits, "", 0, "", [], []]
+]

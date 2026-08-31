@@ -231,8 +231,59 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.515 * safeZoneW";
             y = "safeZoneY + 0.42 * safeZoneH";
             w = "0.405 * safeZoneW";
-            h = "0.30 * safeZoneH";
+            h = "0.13 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.25};
+        };
+
+        class DiagnosticsHeading: AdoptionHeading {
+            idc = RACA_IDC_DIAGNOSTICS_HEADING;
+            text = "COMPATIBILITY & ROLE STARTERS";
+            y = "safeZoneY + 0.565 * safeZoneH";
+        };
+
+        class Diagnostics: AdoptionHelp {
+            idc = RACA_IDC_DIAGNOSTICS;
+            text = "Run preflight to inspect missing classes, source add-ons, duplicate data, and compatibility errors.";
+            y = "safeZoneY + 0.61 * safeZoneH";
+            h = "0.09 * safeZoneH";
+        };
+
+        class RunDiagnostics: ApplyBase {
+            idc = RACA_IDC_RUN_DIAGNOSTICS;
+            text = "RUN PREFLIGHT";
+            tooltip = "Run the same blocking compatibility checks used at runtime";
+            y = "safeZoneY + 0.71 * safeZoneH";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_runCreatorDiagnostics";
+        };
+
+        class CopyDiagnostics: RunDiagnostics {
+            idc = RACA_IDC_COPY_DIAGNOSTICS;
+            text = "COPY REPORT";
+            x = "safeZoneX + 0.7225 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_copyCreatorDiagnostics";
+        };
+
+        class RoleTemplateLabel: BasePresetLabel {
+            idc = RACA_IDC_ROLE_TEMPLATE_LABEL;
+            text = "Role starter";
+            y = "safeZoneY + 0.765 * safeZoneH";
+            w = "0.09 * safeZoneW";
+        };
+
+        class RoleTemplate: BasePreset {
+            idc = RACA_IDC_ROLE_TEMPLATE;
+            x = "safeZoneX + 0.605 * safeZoneW";
+            y = "safeZoneY + 0.765 * safeZoneH";
+            w = "0.205 * safeZoneW";
+        };
+
+        class ApplyTemplate: RunDiagnostics {
+            idc = RACA_IDC_APPLY_TEMPLATE;
+            text = "APPLY STARTER";
+            x = "safeZoneX + 0.815 * safeZoneW";
+            y = "safeZoneY + 0.765 * safeZoneH";
+            w = "0.105 * safeZoneW";
+            onButtonClick = "private _d=ctrlParent (_this select 0); private _c=_d displayCtrl RACA_IDC_ROLE_TEMPLATE; [(_c lbData (lbCurSel _c)), uiNamespace getVariable ['RACA_itemCatalog',[]], true] call RACA_fnc_applyRoleTemplate; _d call RACA_fnc_refreshItemList";
         };
 
         class SearchLabel: RscText {
@@ -321,8 +372,9 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.055 * safeZoneW";
             y = "safeZoneY + 0.247 * safeZoneH";
             w = "0.88 * safeZoneW";
-            h = "0.53 * safeZoneH";
-            columns[] = {0.015, 0.10, 0.41, 0.67, 0.83};
+            h = "0.49 * safeZoneH";
+            columns[] = {0.015, 0.10, 0.36, 0.55, 0.67, 0.82};
+            multiSelect = 1;
             drawSideArrows = 0;
             disableOverflow = 1;
             colorBackground[] = {0, 0, 0, 0.45};
@@ -334,8 +386,8 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_INCLUDE_VISIBLE;
             text = "INCLUDE VISIBLE";
             x = "safeZoneX + 0.055 * safeZoneW";
-            y = "safeZoneY + 0.80 * safeZoneH";
-            w = "0.18 * safeZoneW";
+            y = "safeZoneY + 0.76 * safeZoneH";
+            w = "0.13 * safeZoneW";
             h = "0.04 * safeZoneH";
             onButtonClick = "[ctrlParent (_this select 0), true] call RACA_fnc_setVisibleSelection";
         };
@@ -343,24 +395,60 @@ class RACA_RscDisplayCreator {
         class ExcludeVisible: IncludeVisible {
             idc = RACA_IDC_EXCLUDE_VISIBLE;
             text = "EXCLUDE VISIBLE";
-            x = "safeZoneX + 0.245 * safeZoneW";
+            x = "safeZoneX + 0.195 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), false] call RACA_fnc_setVisibleSelection";
         };
 
         class ClearAll: IncludeVisible {
             idc = RACA_IDC_CLEAR_ALL;
             text = "CLEAR ALL";
-            x = "safeZoneX + 0.435 * safeZoneW";
+            x = "safeZoneX + 0.335 * safeZoneW";
+            w = "0.09 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_clearSelection";
+        };
+
+        class LimitScope: RscCombo {
+            idc = RACA_IDC_LIMIT_SCOPE;
+            x = "safeZoneX + 0.435 * safeZoneW";
+            y = "safeZoneY + 0.76 * safeZoneH";
+            w = "0.10 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            tooltip = "Quantity scope: interaction, player, life, mission, or shared arsenal";
+        };
+
+        class LimitValue: RscEdit {
+            idc = RACA_IDC_LIMIT_VALUE;
+            x = "safeZoneX + 0.54 * safeZoneW";
+            y = "safeZoneY + 0.76 * safeZoneH";
+            w = "0.06 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            text = "-1";
+            tooltip = "Maximum quantity; -1 means unlimited";
+        };
+
+        class SetLimit: ClearAll {
+            idc = RACA_IDC_SET_LIMIT;
+            text = "SET LIMIT";
+            x = "safeZoneX + 0.605 * safeZoneW";
+            w = "0.08 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setItemLimit";
+        };
+
+        class ViewMode: SetLimit {
+            idc = RACA_IDC_VIEW_MODE;
+            text = "VIEW";
+            x = "safeZoneX + 0.69 * safeZoneW";
+            w = "0.07 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCatalogView";
         };
 
         class Summary: RscText {
             idc = RACA_IDC_SUMMARY;
             text = "0 items included";
             style = 16;
-            x = "safeZoneX + 0.625 * safeZoneW";
-            y = "safeZoneY + 0.79 * safeZoneH";
-            w = "0.31 * safeZoneW";
+            x = "safeZoneX + 0.765 * safeZoneW";
+            y = "safeZoneY + 0.755 * safeZoneH";
+            w = "0.17 * safeZoneW";
             h = "0.06 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.4};
         };

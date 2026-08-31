@@ -2,9 +2,12 @@
 params [["_preset", [], [[]]]];
 
 private _warnings = [];
-if ((count _preset) < 4) exitWith {[[], ["Preset data is incomplete."]]};
-if ((_preset param [0, "", [""]]) isNotEqualTo "RACA_PRESET") exitWith {[[], ["Preset signature is not recognized."]]};
-if ((_preset param [1, -1, [0]]) isNotEqualTo 1) exitWith {[[], ["Preset schema version is not supported."]]};
+([_preset] call RACA_fnc_migratePreset) params ["_migrated", "_migrationNotices", "_futureUntouched"];
+_warnings append _migrationNotices;
+if (_futureUntouched) exitWith {[[], _warnings]};
+if (_migrated isEqualTo []) exitWith {[[], _warnings]};
+_preset = _migrated;
+if ((count _preset) < 4) exitWith {[[], _warnings + ["Preset data is incomplete."]]};
 
 private _name = _preset param [2, "Embedded preset", [""]];
 if (_name isEqualTo "") then {_name = "Embedded preset"};
@@ -44,17 +47,23 @@ private _cleanBuckets = [[], [], [], []];
 
 {_x sort true} forEach _cleanBuckets;
 private _validatedPreset = ["RACA_PRESET", 1, _name, _cleanBuckets];
+private _hasAdoption = false;
+private _hasRuntime = false;
 
-if ((count _preset) > 4) then {
-    private _rawComposition = _preset param [4, [], [[]]];
-    private _validComposition =
-        (count _rawComposition) >= 6 &&
-        {(_rawComposition param [0, "", [""]]) in ["RACA_ADOPTION", "RACA_COMPOSITION"]} &&
-        {(_rawComposition param [1, -1, [0]]) isEqualTo 1};
+for "_metadataIndex" from 4 to ((count _preset) - 1) do {
+    private _candidate = _preset param [_metadataIndex, [], [[]]];
+    private _tag = _candidate param [0, "", [""]];
 
-    if (!_validComposition) then {
-        _warnings pushBack "Malformed adoption metadata was ignored.";
-    } else {
+    if (_tag in ["RACA_ADOPTION", "RACA_COMPOSITION"]) then {
+        private _rawComposition = _candidate;
+        private _validComposition =
+            !_hasAdoption &&
+            {(count _rawComposition) >= 6} &&
+            {(_rawComposition param [1, -1, [0]]) isEqualTo 1};
+
+        if (!_validComposition) then {
+            _warnings pushBack "Malformed or duplicate adoption metadata was ignored.";
+        } else {
         private _parentName = _rawComposition param [2, "", [""]];
         private _parentFingerprint = _rawComposition param [3, "", [""]];
         private _rawAdditions = _rawComposition param [4, [], [[]]];
@@ -91,6 +100,33 @@ if ((count _preset) > 4) then {
                     _additionPreset select 3,
                     _cleanRemovals
                 ];
+                _hasAdoption = true;
+            };
+        };
+        };
+    } else {
+        if (_tag isEqualTo "RACA_RUNTIME") then {
+            if (_hasRuntime || {(_candidate param [1, -1, [0]]) isNotEqualTo 1}) then {
+                _warnings pushBack "Malformed or duplicate runtime metadata was ignored.";
+            } else {
+                _validatedPreset pushBack [
+                    "RACA_RUNTIME",
+                    1,
+                    [_candidate param [2, [], [[]]]] call RACA_fnc_normalizeLimits,
+                    _candidate param [3, "", [""]],
+                    (_candidate param [4, 0, [0]]) max 0,
+                    _candidate param [5, "", [""]],
+                    _candidate param [6, [], [[]]],
+                    _candidate param [7, [], [[]]]
+                ];
+                _hasRuntime = true;
+            };
+        } else {
+            if (_tag find "RACA_" isEqualTo 0 && {(count _tag) <= 64}) then {
+                _validatedPreset pushBack _candidate;
+                _warnings pushBackUnique format ["Unknown metadata '%1' was preserved without interpretation.", _tag];
+            } else {
+                _warnings pushBackUnique "Unknown unsafe preset metadata was ignored.";
             };
         };
     };

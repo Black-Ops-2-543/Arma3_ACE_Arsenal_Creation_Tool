@@ -34,10 +34,16 @@ private _metadata = [
     ["sourceAddons", _sourceAddons]
 ];
 
+private _runtime = [_preset] call RACA_fnc_getRuntimePolicy;
+_metadata pushBack ["revision", _runtime select 4];
+_metadata pushBack ["modifiedBy", _runtime select 5];
+_metadata pushBack ["modifiedAtUTC", _runtime select 6];
+_metadata pushBack ["notes", _runtime select 3];
+
 private _composition = [_preset] call RACA_fnc_getComposition;
 if (_composition isNotEqualTo []) then {
     _metadata pushBack ["adoptedPreset", _composition select 2];
     _metadata pushBack ["adoptedFingerprint", _composition select 3];
 };
 
-["RACA_PORTABLE_PRESET", 1, _preset, _metadata]
+["RACA_PORTABLE_PRESET", 2, _preset, _metadata]

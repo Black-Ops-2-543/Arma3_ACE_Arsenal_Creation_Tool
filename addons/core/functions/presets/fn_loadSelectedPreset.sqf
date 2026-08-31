@@ -36,12 +36,18 @@ if (_adoption isNotEqualTo []) then {
     {_sourceItems set [_x, true]} forEach (_adoption select 5);
 };
 uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
+private _limitsMap = createHashMap;
+{
+    _limitsMap set [_x select 0, +_x];
+} forEach (([_preset] call RACA_fnc_getRuntimePolicy) select 2);
+uiNamespace setVariable ["RACA_builderLimits", _limitsMap];
 
 (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText (_preset select 2);
 [_display] call RACA_fnc_refreshBaseCombo;
 [_display] call RACA_fnc_refreshCategoryCombo;
 [_display] call RACA_fnc_refreshItemList;
 [_display] call RACA_fnc_updateSummary;
+[_display] call RACA_fnc_runCreatorDiagnostics;
 
 private _notices = [];
 if (_warnings isNotEqualTo []) then {
