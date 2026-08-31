@@ -22,15 +22,18 @@ if (_destructive) then {
         "Confirm RACA Administration", "CONFIRM", "CANCEL", _display
     ] call BIS_fnc_guiMessage;
     if (!_confirmed) exitWith {false};
-    uiSleep 0.01;
-    private _activeDisplay = findDisplay RACA_IDD_ADMIN;
-    if (!isNull _activeDisplay) then {_display = _activeDisplay};
 };
 private _targets = if (_global) then {[]} else {[_target]};
 [player, _operation, _targets, []] remoteExecCall ["RACA_fnc_adminCommand", 2];
-if (!isNull _display) then {
-    (_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Requested '%1'. Refreshing server state...", _operation];
+[_operation] spawn {
+    disableSerialization;
+    params ["_operation"];
+    uiSleep 0.2;
+    private _display = findDisplay RACA_IDD_ADMIN;
+    if (!isNull _display) then {
+        (_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Requested '%1'. Refreshing server state...", _operation];
+    };
+    uiSleep 0.35;
+    [player] remoteExecCall ["RACA_fnc_requestAdminSnapshot", 2];
 };
-uiSleep 0.35;
-[player] remoteExecCall ["RACA_fnc_requestAdminSnapshot", 2];
 true

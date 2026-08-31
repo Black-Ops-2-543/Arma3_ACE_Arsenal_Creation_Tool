@@ -21,15 +21,18 @@ private _confirmed = [
     "RACA Mission-Wide Update", "APPLY", "CANCEL", _display
 ] call BIS_fnc_guiMessage;
 if (!_confirmed) exitWith {false};
-uiSleep 0.01;
-private _activeDisplay = findDisplay RACA_EDEN_IDD_CONFIG;
-if (!isNull _activeDisplay) then {_display = _activeDisplay};
 private _value = if (toUpperANSI _operation isEqualTo "CLEAR") then {[]} else {_config};
 [format ["RACA %1", toUpperANSI _operation], "Restricted Arsenal bulk update", "a3\3den\data\cfg3den\history\changeattributes_ca.paa"] collect3DENHistory {
     {_x set3DENAttribute ["RACA_RestrictedArsenalPreset", _value]} forEach _objects;
 };
-if (!isNull _display) then {
+private _objectCount = count _objects;
+[toUpperANSI _operation, _objectCount] spawn {
+    disableSerialization;
+    params ["_operation", "_objectCount"];
+    uiSleep 0.2;
+    private _display = findDisplay RACA_EDEN_IDD_CONFIG;
+    if (isNull _display) exitWith {};
     [_display] call RACA_fnc_edenDashboardRefresh;
-    (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText format ["%1 completed for %2 selected object(s). Use Eden Undo to revert.", toUpperANSI _operation, count _objects];
+    (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText format ["%1 completed for %2 selected object(s). Use Eden Undo to revert.", _operation, _objectCount];
 };
 true

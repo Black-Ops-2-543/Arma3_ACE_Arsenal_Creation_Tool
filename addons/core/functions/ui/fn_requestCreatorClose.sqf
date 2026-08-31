@@ -10,8 +10,12 @@ private _confirmed = [
     "KEEP EDITING",
     _display
 ] call BIS_fnc_guiMessage;
-uiSleep 0.01;
-private _activeDisplay = findDisplay RACA_IDD_CREATOR;
-if (!isNull _activeDisplay) then {_display = _activeDisplay};
-if (_confirmed && {!isNull _display}) then {_display closeDisplay 2};
+if (_confirmed) then {
+    [] spawn {
+        disableSerialization;
+        uiSleep 0.2;
+        private _display = findDisplay RACA_IDD_CREATOR;
+        if (!isNull _display) then {_display closeDisplay 2};
+    };
+};
 _confirmed
