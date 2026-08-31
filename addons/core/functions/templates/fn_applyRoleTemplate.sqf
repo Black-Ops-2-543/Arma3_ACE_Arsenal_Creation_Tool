@@ -10,15 +10,27 @@ private _template = _templates select _index;
 private _rules = _template select 3;
 private _selected = if (_replace) then {createHashMap} else {uiNamespace getVariable ["RACA_builderSelected", createHashMap]};
 private _warnings = [];
-{
-    _x params ["_category", "_keywords"];
-    private _matches = _catalog select {
-        private _blob = _x select 7;
-        (_x select 2) isEqualTo _category && {{(_blob find toLowerANSI _x) >= 0} count _keywords > 0}
-    };
-    if (_matches isEqualTo []) then {_warnings pushBack format ["No loaded %1 matched %2.", _category, _keywords]} else {
-        { _selected set [_x select 1, true] } forEach _matches;
-    };
-} forEach _rules;
+if ((_template param [4, "RULES", [""]]) isEqualTo "PACK") then {
+    private _available = createHashMap;
+    {_available set [_x select 1, true]} forEach _catalog;
+    {
+        if (_available getOrDefault [_x, false]) then {
+            _selected set [_x, true];
+        } else {
+            _warnings pushBack format ["Custom role-pack class '%1' is unavailable in the active catalogue or source boundary.", _x];
+        };
+    } forEach (_template param [5, [], [[]]]);
+} else {
+    {
+        _x params ["_category", "_keywords"];
+        private _matches = _catalog select {
+            private _blob = _x select 7;
+            (_x select 2) isEqualTo _category && {{(_blob find toLowerANSI _x) >= 0} count _keywords > 0}
+        };
+        if (_matches isEqualTo []) then {_warnings pushBack format ["No loaded %1 matched %2.", _category, _keywords]} else {
+            {_selected set [_x select 1, true]} forEach _matches;
+        };
+    } forEach _rules;
+};
 uiNamespace setVariable ["RACA_builderSelected", _selected];
 [_selected, _warnings, _template]

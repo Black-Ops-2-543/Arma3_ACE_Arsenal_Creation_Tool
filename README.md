@@ -43,7 +43,7 @@ The current release:
 - adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
-- includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
+- includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon, plus profile-wide custom unit role packs captured from any draft;
 - provides color-coded, severity-filterable creator preflight reports for ACE/CBA/Eden availability, active catalogue scope, invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items;
 - saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
@@ -106,7 +106,7 @@ The controls include:
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk; and
 - **Ctrl-click / Shift-click** — selects separate rows or a continuous range; press **Space**, **Favorite**, or **Limit Item** to change the complete set in one operation. Inclusion and limits remain undoable.
 
-The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows a compact summary; **Details** opens the full class/source/config/compatibility report and can include, exclude, favorite, or copy that item without leaving the inspector.
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Packs**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows a compact summary; **Details** opens the full class/source/config/compatibility report and can include, exclude, favorite, or copy that item without leaving the inspector.
 
 ### 3. Build the selection
 
@@ -125,6 +125,8 @@ For a basic rifleman arsenal:
 Bulk actions affect only rows currently visible through the active filters. Use **Exclude Visible** to remove a filtered group, or **Clear All** to start over.
 
 To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue; an active Source filter constrains them to that content pack. Quick Start exposes the same source boundary directly. Review the resulting list rather than treating it as a fixed faction loadout.
+
+To preserve your unit's own faction, medical, logistics, or doctrine convention, build the desired included set and open **Packs**. Capture the current draft under a descriptive name. A custom pack can later merge its available classes into another draft, replace draft inclusion, or serve as a Quick Start choice. Role packs are profile-wide authoring aids: deleting one never deletes a preset, and unavailable mod classes are reported and skipped.
 
 To set an exact limit, select an item row, choose its scope, enter a quantity, and select **Limit Item**. To share one allowance across a complete equipment category, choose that category and select **Limit Category**. Use `-1` for unlimited. Limits are stored with the preset; full server-side enforcement applies when the preset is used by RACA's controlled runtime-object configuration.
 

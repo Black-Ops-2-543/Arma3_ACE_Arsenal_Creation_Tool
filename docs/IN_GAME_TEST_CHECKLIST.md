@@ -29,6 +29,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] With an empty RACA profile, Quick Start opens once and creates either a blank draft or a reviewable role-starter draft without saving automatically.
 - [ ] Quick Start remains available manually after onboarding.
 - [ ] A Quick Start role draft constrained to one source mod contains no catalogue classes attributed to another source.
+- [ ] Capturing a custom role pack records the current included classes, adds it to both Role starter and Quick Start, and persists after restarting Arma.
+- [ ] Merging a custom pack retains existing draft classes; replacing uses only available pack classes; unavailable mod classes are reported rather than inserted.
+- [ ] Re-capturing and deleting a custom pack require confirmation, while the current draft and all saved arsenal presets remain unchanged.
 - [ ] Closing the creator returns to the scene or menu without a script error.
 
 ## 2. Catalogue and presentation

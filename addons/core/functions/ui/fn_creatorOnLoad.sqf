@@ -50,14 +50,7 @@ lbClear _scopeCombo;
 {private _index = _scopeCombo lbAdd _x; _scopeCombo lbSetData [_index, toLowerANSI _x]} forEach ["Interaction", "Player", "Life", "Mission", "Arsenal"];
 _scopeCombo lbSetCurSel 4;
 
-private _templateCombo = _display displayCtrl RACA_IDC_ROLE_TEMPLATE;
-lbClear _templateCombo;
-{
-    private _index = _templateCombo lbAdd (_x select 1);
-    _templateCombo lbSetData [_index, _x select 0];
-    _templateCombo lbSetTooltip [_index, _x select 2];
-} forEach call RACA_fnc_getRoleTemplates;
-_templateCombo lbSetCurSel 0;
+[_display] call RACA_fnc_refreshRoleTemplateCombo;
 
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_updateSummary;

@@ -346,16 +346,25 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_ROLE_TEMPLATE;
             x = "safeZoneX + 0.605 * safeZoneW";
             y = "safeZoneY + 0.765 * safeZoneH";
-            w = "0.205 * safeZoneW";
+            w = "0.145 * safeZoneW";
         };
 
         class ApplyTemplate: RunDiagnostics {
             idc = RACA_IDC_APPLY_TEMPLATE;
             text = "APPLY STARTER";
-            x = "safeZoneX + 0.815 * safeZoneW";
+            x = "safeZoneX + 0.755 * safeZoneW";
             y = "safeZoneY + 0.765 * safeZoneH";
-            w = "0.105 * safeZoneW";
+            w = "0.095 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_applySelectedRoleTemplate";
+        };
+
+        class RolePacks: ApplyTemplate {
+            idc = RACA_IDC_ROLE_PACKS_BUTTON;
+            text = "PACKS";
+            tooltip = "Capture, merge, replace, or delete profile-wide custom unit role packs";
+            x = "safeZoneX + 0.855 * safeZoneW";
+            w = "0.065 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openRolePacks";
         };
 
         class SearchLabel: RscText {
@@ -1249,6 +1258,151 @@ class RACA_RscDisplayItemDetails {
             text = "CLOSE";
             x = "safeZoneX + 0.66 * safeZoneW";
             w = "0.13 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayRolePacks {
+    idd = RACA_IDD_ROLE_PACKS;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_rolePackOnLoad";
+    onUnload = "uiNamespace setVariable ['RACA_rolePacksParent', displayNull]";
+
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.10 * safeZoneW";
+            y = "safeZoneY + 0.08 * safeZoneH";
+            w = "0.80 * safeZoneW";
+            h = "0.84 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.99};
+        };
+        class Header: RscText {
+            idc = -1;
+            text = "CUSTOM UNIT ROLE PACKS";
+            style = 2;
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.10 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+
+    class controls {
+        class Help: RscText {
+            idc = -1;
+            text = "Capture the current included classes as an additive or replaceable unit convention. Custom packs are profile-wide starters, appear in Quick Start, and remain separate from saved arsenal presets.";
+            style = 16;
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.17 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.065 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class NameLabel: RscText {
+            idc = -1;
+            text = "Pack name";
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.10 * safeZoneW";
+            h = "0.04 * safeZoneH";
+        };
+        class Name: RscEdit {
+            idc = RACA_IDC_ROLE_PACK_NAME;
+            x = "safeZoneX + 0.22 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.42 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            maxChars = 64;
+        };
+        class Capture: RscButton {
+            idc = RACA_IDC_ROLE_PACK_CAPTURE;
+            text = "CAPTURE CURRENT DRAFT";
+            tooltip = "Store all currently included classes under this role-pack name";
+            x = "safeZoneX + 0.66 * safeZoneW";
+            y = "safeZoneY + 0.25 * safeZoneH";
+            w = "0.22 * safeZoneW";
+            h = "0.04 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_rolePackCapture";
+        };
+        class DescriptionLabel: NameLabel {
+            text = "Description";
+            y = "safeZoneY + 0.305 * safeZoneH";
+        };
+        class Description: Name {
+            idc = RACA_IDC_ROLE_PACK_DESCRIPTION;
+            x = "safeZoneX + 0.22 * safeZoneW";
+            y = "safeZoneY + 0.305 * safeZoneH";
+            w = "0.66 * safeZoneW";
+            maxChars = 180;
+        };
+        class ListHeading: RscText {
+            idc = -1;
+            text = "NAME                                      ITEMS       DESCRIPTION";
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.365 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.035 * safeZoneH";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+        };
+        class Packs: RscListNBox {
+            idc = RACA_IDC_ROLE_PACK_LIST;
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.405 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.30 * safeZoneH";
+            columns[] = {0.01, 0.28, 0.38};
+            colorBackground[] = {0, 0, 0, 0.45};
+            onLBSelChanged = "(_this select 0) call RACA_fnc_rolePackSelect";
+        };
+        class Details: RscText {
+            idc = RACA_IDC_ROLE_PACK_DETAILS;
+            text = "No custom role packs yet.";
+            style = 16;
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.725 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.07 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class Merge: RscButton {
+            idc = RACA_IDC_ROLE_PACK_MERGE;
+            text = "MERGE INTO DRAFT";
+            tooltip = "Add available classes from the selected pack without removing current draft classes";
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.82 * safeZoneH";
+            w = "0.16 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "[ctrlParent (_this select 0), 'MERGE'] call RACA_fnc_rolePackApply";
+        };
+        class Replace: Merge {
+            idc = RACA_IDC_ROLE_PACK_REPLACE;
+            text = "REPLACE DRAFT";
+            tooltip = "Replace current draft inclusion with the selected pack's available classes";
+            x = "safeZoneX + 0.29 * safeZoneW";
+            w = "0.18 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'REPLACE'] call RACA_fnc_rolePackApply";
+        };
+        class Delete: Merge {
+            idc = RACA_IDC_ROLE_PACK_DELETE;
+            text = "DELETE PACK";
+            tooltip = "Delete only this custom role pack after confirmation";
+            x = "safeZoneX + 0.48 * safeZoneW";
+            w = "0.14 * safeZoneW";
+            colorBackground[] = {0.45, 0.12, 0.12, 0.9};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_rolePackDelete";
+        };
+        class Close: Merge {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.73 * safeZoneW";
+            w = "0.15 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };

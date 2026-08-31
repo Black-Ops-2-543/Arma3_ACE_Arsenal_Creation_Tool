@@ -1,5 +1,5 @@
-/* [id, displayName, description, category/keyword rules]. */
-[
+/* [id, displayName, description, rules, kind, explicit classes]. */
+private _templates = [
     ["rifleman", "Rifleman", "General-purpose rifle, magazines, basic medical and navigation gear.", [["Weapons", ["rifle", "mx"]], ["Magazines", ["30rnd"]], ["Equipment", ["bandage", "map", "compass"]]]],
     ["medic", "Medic", "Rifleman equipment plus a broad medical kit.", [["Weapons", ["rifle", "mx"]], ["Magazines", ["30rnd"]], ["Equipment", ["bandage", "morphine", "epinephrine", "blood", "surgical", "medic"]]]],
     ["grenadier", "Grenadier", "Rifle, compatible magazines, grenades and 40 mm ammunition.", [["Weapons", ["gl", "grenadier"]], ["Magazines", ["grenade", "40 mm", "ugl"]], ["Equipment", ["bandage", "map"]]]],
@@ -10,4 +10,16 @@
     ["pilot", "Pilot", "Compact weapon, flight helmet and navigation gear.", [["Weapons", ["smg", "pistol"]], ["Headgear", ["pilot"]], ["Equipment", ["map", "gps", "radio"]]]],
     ["crew", "Crew", "Compact weapon and crew protection.", [["Weapons", ["smg", "carbine"]], ["Headgear", ["crew"]], ["Vests", ["crew", "carrier"]]]],
     ["recon", "Recon", "Suppressed rifle, optics, night vision and navigation gear.", [["Weapons", ["rifle", "carbine"]], ["Attachments", ["suppressor", "optic"]], ["NVGs", ["nvg"]], ["Equipment", ["gps", "map", "rangefinder"]]]]
-]
+];
+{
+    _x params ["", "", "_name", "_description", "_classes"];
+    _templates pushBack [
+        "pack:" + toLowerANSI _name,
+        _name,
+        if (_description isEqualTo "") then {format ["Custom unit role pack containing %1 explicit classes.", count _classes]} else {_description},
+        [],
+        "PACK",
+        _classes
+    ];
+} forEach call RACA_fnc_getRolePacks;
+_templates

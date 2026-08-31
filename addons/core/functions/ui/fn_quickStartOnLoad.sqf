@@ -7,7 +7,12 @@ lbClear _combo;
 private _blank = _combo lbAdd "Blank preset — choose every item yourself";
 _combo lbSetData [_blank, ""];
 {
-    private _index = _combo lbAdd format ["%1 starter", _x select 1];
+    private _label = if ((_x param [4, "RULES", [""]]) isEqualTo "PACK") then {
+        format ["%1 custom pack", _x select 1]
+    } else {
+        format ["%1 starter", _x select 1]
+    };
+    private _index = _combo lbAdd _label;
     _combo lbSetData [_index, _x select 0];
     _combo lbSetTooltip [_index, _x select 2];
 } forEach call RACA_fnc_getRoleTemplates;

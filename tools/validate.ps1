@@ -716,6 +716,34 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     }
 }
 
+$rolePackPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\templates\fn_getRolePacks.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\templates\fn_getRoleTemplates.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\templates\fn_applyRoleTemplate.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_openRolePacks.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackCapture.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackApply.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackDelete.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackRefresh.sqf')
+)
+if ($rolePackPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("The creator must provide profile-wide custom role packs.")
+}
+elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
+    $rolePacks = ($rolePackPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    if ($creatorUi -notmatch 'RACA_RscDisplayRolePacks' -or
+        $creatorUi -notmatch 'RACA_IDC_ROLE_PACKS_BUTTON' -or
+        $rolePacks -notmatch 'RACA_rolePacks_v1' -or
+        $rolePacks -notmatch 'RACA_ROLE_PACK' -or
+        $rolePacks -notmatch 'pack:' -or
+        $rolePacks -notmatch 'RACA_fnc_pushCreatorHistory' -or
+        $rolePacks -notmatch 'BIS_fnc_guiMessage' -or
+        $rolePacks -notmatch 'saveProfileNamespace') {
+        $failures.Add("Custom role packs must persist explicit class sets, support merge/replace and Quick Start, and guard replacement/deletion independently of presets.")
+    }
+}
+
 $simulatorPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorRefresh.sqf'
 $simulatorOnLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAccessSimulatorOnLoad.sqf'
 $simulatorOpenPath = Join-Path $addonsDirectory 'eden\functions\fn_edenOpenAccessSimulator.sqf'

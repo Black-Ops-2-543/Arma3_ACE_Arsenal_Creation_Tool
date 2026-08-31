@@ -53,6 +53,7 @@ class CfgFunctions {
         class Templates {
             file = "\x\raca\addons\core\functions\templates";
             class applyRoleTemplate {};
+            class getRolePacks {};
             class getRoleTemplates {};
         };
 
@@ -76,6 +77,7 @@ class CfgFunctions {
             class openPresetHistory {};
             class openCreatorDiagnostics {};
             class openItemDetails {};
+            class openRolePacks {};
             class openSavedCatalogViews {};
             class preflightCopy {};
             class preflightOnLoad {};
@@ -94,6 +96,13 @@ class CfgFunctions {
             class runCreatorDiagnostics {};
             class restoreCreatorHistory {};
             class restorePresetRevision {};
+            class rolePackApply {};
+            class rolePackCapture {};
+            class rolePackDelete {};
+            class rolePackOnLoad {};
+            class rolePackRefresh {};
+            class rolePackSelect {};
+            class refreshRoleTemplateCombo {};
             class savedCatalogViewApply {};
             class savedCatalogViewCapture {};
             class savedCatalogViewDelete {};
