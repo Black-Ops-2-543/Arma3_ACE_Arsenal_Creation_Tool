@@ -62,8 +62,14 @@ switch (_operationKey) do {
     case "START": {
         private _expectedObjects = call _buildExpectedObjects;
         private _expectedOwners = [];
+        private _initialParticipants = [];
         {
-            if (isPlayer _x) then {_expectedOwners pushBackUnique owner _x};
+            if (isPlayer _x && {!(_x isKindOf "HeadlessClient_F")}) then {
+                private _participantOwner = owner _x;
+                private _participantRole = if (hasInterface && {_participantOwner isEqualTo 2}) then {"HOST"} else {"CLIENT"};
+                _expectedOwners pushBackUnique _participantOwner;
+                _initialParticipants pushBackUnique [getPlayerUID _x, _participantOwner, _participantRole];
+            };
         } forEach allPlayers;
         private _sessionId = format ["%1-%2", floor serverTime, floor random 1000000];
         private _records = createHashMap;
@@ -77,11 +83,12 @@ switch (_operationKey) do {
             ["adminUID", getPlayerUID _unit],
             ["listenHost", hasInterface],
             ["expectedOwners", _expectedOwners],
+            ["initialParticipants", _initialParticipants],
             ["expectedObjects", _expectedObjects],
             ["records", _records]
         ];
         missionNamespace setVariable ["RACA_rehearsalState", _state];
-        ["REHEARSAL_START", _unit, objNull, "", [_sessionId, count _expectedOwners, count _expectedObjects]] call RACA_fnc_logEvent;
+        ["REHEARSAL_START", _unit, objNull, "", [_sessionId, count _initialParticipants, count _expectedObjects]] call RACA_fnc_logEvent;
         [owner _unit] call RACA_fnc_sendRehearsalSnapshot;
         [_sessionId, _expectedObjects] remoteExecCall ["RACA_fnc_rehearsalProbeClient", 0];
     };

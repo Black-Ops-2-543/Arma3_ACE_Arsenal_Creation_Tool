@@ -1,0 +1,18 @@
+author = "* Black Ops *";
+onLoadName = "RACA Multiplayer Smoke";
+overviewText = "Dedicated-server smoke test for restricted arsenal synchronization and JIP identity.";
+briefing = 0;
+debriefing = 0;
+disabledAI = 1;
+joinUnassigned = 1;
+skipLobby = 1;
+respawn = 3;
+respawnDelay = 1;
+respawnOnStart = -1;
+saving = 0;
+
+class Header {
+    gameType = "COOP";
+    minPlayers = 1;
+    maxPlayers = 2;
+};

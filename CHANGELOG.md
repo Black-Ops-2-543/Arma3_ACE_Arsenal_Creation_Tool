@@ -18,6 +18,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Server-authoritative sessions, access enforcement, scoped quotas, remaining-allowance checks, personal loadouts, runtime administration, audit records, and Zeus modules.
 - Object-bound sanitized JIP action registration for late-joining clients.
 - Authenticated multiplayer rehearsal with server, listen-host, initial-client, and JIP probes, explicit synchronization gates, and copyable evidence.
+- Reproducible dedicated-server smoke mission and isolated staging tool for initial-client, reconnect, and distinct-JIP evidence.
 - Profile-wide catalogue tags with multi-row assignment, search/filter integration, item-detail context, and backward-compatible saved views.
 
 ### Changed
@@ -33,6 +34,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Eden slot access-mode selection, configuration persistence, and string-valued access-rule matching.
 - Persistent JIP registration target and cleanup behavior.
 - Catalogue row mouse events no longer emit a local-variable script error while updating multi-row selections.
+- Multiplayer rehearsal no longer misclassifies a reconnected initial player as distinct JIP evidence.
 
 ## [0.9.2]
 

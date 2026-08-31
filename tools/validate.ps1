@@ -100,12 +100,57 @@ $requiredRelativeFiles = @(
     'addons\eden\functions\fn_edenEditorApply.sqf',
     'addons\eden\functions\fn_edenEditorSelectSlot.sqf',
     'addons\eden\functions\fn_edenDashboardBulk.sqf',
-    'docs\PORTABLE_PRESET_FORMAT.md'
+    'docs\PORTABLE_PRESET_FORMAT.md',
+    'tests\multiplayer\RACA_Rehearsal.VR\mission.sqm',
+    'tests\multiplayer\RACA_Rehearsal.VR\description.ext',
+    'tests\multiplayer\RACA_Rehearsal.VR\initServer.sqf',
+    'tests\multiplayer\RACA_Rehearsal.VR\initPlayerLocal.sqf',
+    'tests\multiplayer\server.cfg',
+    'tests\multiplayer\README.md',
+    'tools\prepare-multiplayer-smoke.ps1'
 )
 foreach ($relativeFile in $requiredRelativeFiles) {
     $requiredFile = Join-Path $repositoryRoot $relativeFile
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         $failures.Add("Required runtime file is missing: '$requiredFile'.")
+    }
+}
+
+$multiplayerMissionPath = Join-Path $repositoryRoot 'tests\multiplayer\RACA_Rehearsal.VR\mission.sqm'
+$multiplayerDescriptionPath = Join-Path $repositoryRoot 'tests\multiplayer\RACA_Rehearsal.VR\description.ext'
+$multiplayerServerInitPath = Join-Path $repositoryRoot 'tests\multiplayer\RACA_Rehearsal.VR\initServer.sqf'
+$multiplayerClientInitPath = Join-Path $repositoryRoot 'tests\multiplayer\RACA_Rehearsal.VR\initPlayerLocal.sqf'
+$multiplayerServerConfigPath = Join-Path $repositoryRoot 'tests\multiplayer\server.cfg'
+$multiplayerPreparePath = Join-Path $repositoryRoot 'tools\prepare-multiplayer-smoke.ps1'
+if (@(
+    $multiplayerMissionPath,
+    $multiplayerDescriptionPath,
+    $multiplayerServerInitPath,
+    $multiplayerClientInitPath,
+    $multiplayerServerConfigPath,
+    $multiplayerPreparePath
+).Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("The reproducible dedicated multiplayer smoke harness is incomplete.")
+}
+else {
+    $multiplayerMission = Get-Content -Raw -LiteralPath $multiplayerMissionPath
+    $multiplayerDescription = Get-Content -Raw -LiteralPath $multiplayerDescriptionPath
+    $multiplayerServerInit = Get-Content -Raw -LiteralPath $multiplayerServerInitPath
+    $multiplayerClientInit = Get-Content -Raw -LiteralPath $multiplayerClientInitPath
+    $multiplayerServerConfig = Get-Content -Raw -LiteralPath $multiplayerServerConfigPath
+    $multiplayerPrepare = Get-Content -Raw -LiteralPath $multiplayerPreparePath
+    if ($multiplayerMission -notmatch 'items\s*=\s*2\s*;' -or
+        $multiplayerMission -notmatch 'player\s*=\s*"PLAYER COMMANDER"\s*;' -or
+        $multiplayerMission -notmatch 'player\s*=\s*"PLAY CDG"\s*;' -or
+        $multiplayerDescription -notmatch 'skipLobby\s*=\s*1\s*;' -or
+        $multiplayerServerInit -notmatch 'RACA_fnc_applyObjectConfig' -or
+        $multiplayerServerInit -notmatch 'RACA_MPTestStartUID' -or
+        $multiplayerClientInit -notmatch 'RACA_fnc_requestRehearsal' -or
+        $multiplayerClientInit -notmatch 'RACA_fnc_rehearsalClientReady' -or
+        $multiplayerServerConfig -notmatch 'template\s*=\s*"RACA_Rehearsal\.VR"\s*;' -or
+        $multiplayerPrepare -notmatch 'arma3server_x64\.exe' -or
+        $multiplayerPrepare -notmatch 'Profiles\\') {
+        $failures.Add("The dedicated multiplayer smoke harness must configure a real RACA object and distinguish initial-client, reconnect, and JIP pathways.")
     }
 }
 
@@ -539,6 +584,8 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     $registerActions = Get-Content -Raw -LiteralPath $registerActionsPath
     $initClient = Get-Content -Raw -LiteralPath $initClientPath
     $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    $requestRehearsal = Get-Content -Raw -LiteralPath $rehearsalPaths[0]
+    $receiveRehearsalProbe = Get-Content -Raw -LiteralPath $rehearsalPaths[3]
     if ($creatorUi -notmatch 'RACA_RscDisplayRehearsal' -or
         $creatorUi -notmatch 'RACA_IDC_ADMIN_REHEARSAL' -or
         $registerActions -notmatch 'RACA_localActionState' -or
@@ -551,7 +598,10 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $rehearsal -notmatch '"JIP"' -or
         $rehearsal -notmatch 'RACA_localActionState' -or
         $rehearsal -notmatch 'INCOMPLETE' -or
-        $rehearsal -notmatch 'copyToClipboard') {
+        $rehearsal -notmatch 'copyToClipboard' -or
+        $requestRehearsal -notmatch 'initialParticipants' -or
+        $receiveRehearsalProbe -notmatch '_initialParticipants\s+findIf' -or
+        $receiveRehearsalProbe -notmatch 'distinct JIP identity cannot be proven') {
         $failures.Add("Multiplayer rehearsal must be admin-authorized, owner-bound, JIP-aware, action-manifest based, and produce a copyable gated report.")
     }
 }
@@ -924,6 +974,10 @@ if (-not $SkipConfig) {
         Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File |
             Where-Object { $_.Name -in @('config.cpp', 'description.ext', 'mission.sqm') } |
             Sort-Object -Property FullName
+    ) + @(
+        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\multiplayer') -Recurse -File |
+            Where-Object { $_.Name -in @('description.ext', 'mission.sqm') } |
+            Sort-Object -Property FullName
     )
 
     if ($configFiles.Count -eq 0) {
@@ -958,6 +1012,10 @@ if (-not $SkipSqf) {
 
     $sqfFiles = @(
         Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File |
+            Where-Object { $_.Extension -in @('.sqf', '.sqfc') } |
+            Sort-Object -Property FullName
+    ) + @(
+        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\multiplayer') -Recurse -File |
             Where-Object { $_.Extension -in @('.sqf', '.sqfc') } |
             Sort-Object -Property FullName
     )

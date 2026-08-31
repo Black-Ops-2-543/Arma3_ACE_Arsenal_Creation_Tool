@@ -1,0 +1,101 @@
+version = 12;
+
+/*
+ * Minimal, source-controlled multiplayer mission used by the RACA smoke
+ * harness. The second playable role permits a genuinely separate client to
+ * join after the rehearsal starts without changing the mission.
+ */
+class Mission {
+    addOns[] = {
+        "A3_Map_VR",
+        "A3_Characters_F"
+    };
+    addOnsAuto[] = {
+        "A3_Characters_F",
+        "A3_Map_VR"
+    };
+    randomSeed = 904200;
+
+    class Intel {
+        briefingName = "RACA Multiplayer Smoke";
+        startWeather = 0;
+        startWind = 0.1;
+        startWaves = 0.1;
+        forecastWeather = 0;
+        forecastWind = 0.1;
+        forecastWaves = 0.1;
+        forecastLightnings = 0.1;
+        year = 2035;
+        month = 6;
+        day = 15;
+        hour = 12;
+        minute = 0;
+        startFogDecay = 0.005;
+        forecastFogDecay = 0.005;
+    };
+
+    class Groups {
+        items = 1;
+
+        class Item0 {
+            side = "CIV";
+
+            class Vehicles {
+                items = 2;
+
+                class Item0 {
+                    position[] = {4256, 5, 4192};
+                    azimut = 180;
+                    id = 0;
+                    side = "CIV";
+                    vehicle = "C_man_1";
+                    player = "PLAYER COMMANDER";
+                    leader = 1;
+                    skill = 0.6;
+                };
+
+                class Item1 {
+                    position[] = {4258, 5, 4192};
+                    azimut = 180;
+                    id = 1;
+                    side = "CIV";
+                    vehicle = "C_man_1";
+                    player = "PLAY CDG";
+                    skill = 0.6;
+                };
+            };
+        };
+    };
+};
+
+class Intro {
+    addOns[] = {"A3_Map_VR"};
+    addOnsAuto[] = {"A3_Map_VR"};
+    randomSeed = 904201;
+
+    class Intel {
+        timeOfChanges = 1800;
+        startWeather = 0;
+        startWind = 0.1;
+        startWaves = 0.1;
+        forecastWeather = 0;
+        forecastWind = 0.1;
+        forecastWaves = 0.1;
+        forecastLightnings = 0.1;
+        year = 2035;
+        month = 6;
+        day = 15;
+        hour = 12;
+        minute = 0;
+        startFogDecay = 0.005;
+        forecastFogDecay = 0.005;
+    };
+};
+
+class OutroWin: Intro {
+    randomSeed = 904202;
+};
+
+class OutroLoose: Intro {
+    randomSeed = 904203;
+};

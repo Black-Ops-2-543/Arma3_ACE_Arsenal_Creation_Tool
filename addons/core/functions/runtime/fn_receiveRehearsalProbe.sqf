@@ -19,13 +19,32 @@ if ((_report param [5, -1, [0]]) isNotEqualTo owner _unit) exitWith {false};
 if ((_report param [4, "", [""]]) isNotEqualTo getPlayerUID _unit) exitWith {false};
 
 private _expectedOwners = _state getOrDefault ["expectedOwners", []];
+private _initialParticipants = _state getOrDefault ["initialParticipants", []];
 private _reportedOwner = owner _unit;
-private _role = if (_reportedOwner in _expectedOwners) then {
-    if ((_state getOrDefault ["listenHost", false]) && {_reportedOwner isEqualTo 2}) then {"HOST"} else {"CLIENT"}
+private _reportedUID = getPlayerUID _unit;
+private _initialIndex = _initialParticipants findIf {
+    private _initialUID = _x param [0, "", [""]];
+    private _initialOwner = _x param [1, -1, [0]];
+    if (_reportedUID isNotEqualTo "" && {_initialUID isNotEqualTo ""}) then {
+        _reportedUID isEqualTo _initialUID
+    } else {
+        _reportedOwner isEqualTo _initialOwner
+    }
+};
+private _role = if (_initialIndex >= 0) then {
+    private _initialRole = (_initialParticipants select _initialIndex) param [2, "CLIENT", [""]];
+    if (_initialRole in ["HOST", "CLIENT"]) then {_initialRole} else {"CLIENT"}
 } else {
-    "JIP"
+    if (_initialParticipants isEqualTo [] && {_reportedOwner in _expectedOwners}) then {
+        if ((_state getOrDefault ["listenHost", false]) && {_reportedOwner isEqualTo 2}) then {"HOST"} else {"CLIENT"}
+    } else {
+        "JIP"
+    }
 };
 private _issues = [];
+if (_reportedUID isEqualTo "") then {
+    _issues pushBack "Client UID unavailable; distinct JIP identity cannot be proven";
+};
 {
     if (_x isEqualType "") then {_issues pushBack (_x select [0, 256])};
 } forEach ((_report param [13, [], [[]]]) select [0, 50]);
@@ -53,7 +72,7 @@ private _record = [
     1,
     _role,
     name _unit,
-    getPlayerUID _unit,
+    _reportedUID,
     _reportedOwner,
     systemTimeUTC,
     _dependencyPass,
@@ -65,7 +84,7 @@ private _record = [
     _issues
 ];
 private _records = _state getOrDefault ["records", createHashMap];
-_records set [format ["%1|%2", getPlayerUID _unit, _role], _record];
+_records set [format ["%1|%2", _reportedUID, _role], _record];
 _state set ["records", _records];
 missionNamespace setVariable ["RACA_rehearsalState", _state];
 [(_state getOrDefault ["adminOwner", -1])] call RACA_fnc_sendRehearsalSnapshot;

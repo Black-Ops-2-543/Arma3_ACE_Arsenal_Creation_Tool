@@ -240,7 +240,7 @@ Every runtime slot adds ACE actions to save and reapply a personal loadout for t
 
 Server administrators can reset quotas and clear, enable, disable, assign, or replace configured objects. These actions require a logged-in server admin, `serverCommandAvailable "#kick"`, or a UID listed in `RACA_adminUIDs`. An authorized player's ACE self-interaction menu exposes **RACA Administration**, which shows sanitized object/slot summaries, active-session and quota counts, the newest 100 audit events, scoped controls, and a clipboard audit export. The server rechecks authorization for every snapshot and command; the client display is never authoritative.
 
-The administration panel's **MP Rehearsal** starts a server-owned session, probes dependency and local sanitized-action registration on each connected interface, classifies later arrivals as JIP, and reports the server/listen-host/initial-client/JIP gates without exposing embedded presets. Starting and inspecting a rehearsal requires the same server-side authorization as every other administration action.
+The administration panel's **MP Rehearsal** starts a server-owned session, probes dependency and local sanitized-action registration on each connected interface, classifies later distinct player identities as JIP, and reports the server/listen-host/initial-client/JIP gates without exposing embedded presets. Initial identities are captured by Steam UID when the rehearsal starts, so disconnecting and reconnecting the same player remains initial-client evidence and cannot satisfy the JIP gate. A missing UID fails the identity proof instead of producing ambiguous release evidence. Starting and inspecting a rehearsal requires the same server-side authorization as every other administration action.
 
 ### Zeus modules
 
@@ -299,6 +299,14 @@ Building requires Arma 3 Tools, including AddonBuilder and BankRev. From the rep
 
 The default output is `build\@RestrictedArsenalCreationAssistant`. The build packages the add-ons, verifies PBO prefixes, copies mod metadata, and creates `checksums.sha256`.
 
+For the isolated dedicated-server synchronization rehearsal, build first and then stage the source-controlled smoke mission beneath a separate Arma profile:
+
+```powershell
+.\tools\prepare-multiplayer-smoke.ps1 -ArmaDirectory 'F:\SteamLibrary\steamapps\common\Arma 3'
+```
+
+The command validates the local server, CBA, ACE, and built RACA paths and prints reusable server/client launch arguments. See [the multiplayer smoke harness](tests/multiplayer/README.md) for the initial-client, reconnect, and distinct-JIP evidence sequence.
+
 After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch.
 
 If Arma 3 Tools is installed elsewhere, provide `-AddonBuilderPath`, `-ArmaToolsDirectory`, and `-BankRevPath`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use `-SkipConfig` or `-SkipSqf` only when the corresponding tool is unavailable.
@@ -314,8 +322,9 @@ Static validation covers configuration structure, SQF syntax, PBO prefixes, miss
 - `docs/IN_GAME_TEST_CHECKLIST.md` — in-game release checklist;
 - `docs/PORTABLE_PRESET_FORMAT.md` — JSON, SQF, and class-list interchange formats and file workflows;
 - `docs/RELEASE_PROCESS.md` and `CHANGELOG.md` — versioning, migration, evidence, and packaging gates;
-- `tools/validate.ps1` — source and configuration validation; and
-- `tools/build.ps1` — PBO packaging and checksum generation; and
+- `tests/multiplayer` and `tools/prepare-multiplayer-smoke.ps1` — isolated dedicated-server synchronization and identity evidence;
+- `tools/validate.ps1` — source and configuration validation;
+- `tools/build.ps1` — PBO packaging and checksum generation;
 - `tools/release.ps1` — clean-tree release packaging and cryptographic release report generation.
 
 ## License and dependencies
