@@ -39,11 +39,13 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Catalogue row mouse events no longer emit a local-variable script error while updating multi-row selections.
 - Multiplayer rehearsal no longer misclassifies a reconnected initial player as distinct JIP evidence.
 - Compatibility-detail source labels no longer raise an SQF type error when the owning add-on field is empty.
+- Listen-server hosts now complete saved-loadout, quota-status, administration, and rehearsal request/response flows when Arma delivers the remote call locally.
 - Unregistering a live arsenal now cancels its active sessions before pruning registry and quota state, restoring affected players immediately.
 - Automated acceptance now proves that confirmed preset deletion archives and removes an isolated disposable preset.
 - Automated acceptance now exercises environment health, manifests, support bundles, parameterized templates, revision history, role packs, saved views, and catalogue-tag normalization.
 - Live Creator acceptance now opens Quick Start and profile managers, inspects an item, toggles favorites, and completes undo/redo.
 - Automated runtime acceptance now covers access-policy evaluation, missing-content degradation, distance denial, exhausted exact/category policies, administrator authorization, and atomic unregister cleanup.
+- Automated runtime acceptance now covers stacked container quantities, unauthorized and over-quota rollback, expired-session cleanup, UID-aware reset boundaries, and personal-loadout rejection/deletion.
 
 ## [0.9.2]
 

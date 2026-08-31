@@ -7,7 +7,7 @@ params [
     ["_loadout", [], [[]]]
 ];
 if (!isServer || {isNull _unit} || {isNull _object} || {!alive _unit} || {!isPlayer _unit} || {_loadout isEqualTo []}) exitWith {false};
-if (!isRemoteExecuted || {remoteExecutedOwner isNotEqualTo owner _unit}) exitWith {false};
+if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo owner _unit}) exitWith {false};
 private _rawDistance = _object getVariable ["RACA_maxUseDistance", 12];
 private _maxDistance = if (_rawDistance isEqualType 0) then {_rawDistance max 1} else {12};
 if (_unit distance _object > _maxDistance) exitWith {

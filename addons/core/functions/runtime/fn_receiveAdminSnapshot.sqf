@@ -5,7 +5,7 @@ params [
     ["_objects", [], [[]]],
     ["_audit", [], [[]]]
 ];
-if (!hasInterface || {!isRemoteExecuted} || {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!hasInterface || {isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}} || {!isRemoteExecuted && {!isServer}}) exitWith {false};
 if (!_authorized) exitWith {systemChat format ["RACA: %1", _message]; false};
 private _snapshot = [_message, _objects, _audit, systemTimeUTC];
 uiNamespace setVariable ["RACA_adminSnapshot", _snapshot];

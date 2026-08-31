@@ -4,7 +4,7 @@ params [
     ["_report", [], [[]]]
 ];
 if (!isServer || {isNull _unit} || {!isPlayer _unit}) exitWith {false};
-if (!isRemoteExecuted || {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
+if (isRemoteExecuted && {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
 if (
     (count _report) < 14 ||
     {(_report param [0, "", [""]]) isNotEqualTo "RACA_REHEARSAL_PROBE"} ||

@@ -7,7 +7,7 @@ params [
     ["_operation", "SNAPSHOT", [""]]
 ];
 if (!isServer || {isNull _unit} || {!isPlayer _unit}) exitWith {false};
-if (!isRemoteExecuted || {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
+if (isRemoteExecuted && {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
 if !([_unit] call RACA_fnc_isAdminAuthorized) exitWith {
     ["DENIED", _unit, objNull, "", ["Unauthorized multiplayer rehearsal request", _operation]] call RACA_fnc_logEvent;
     false

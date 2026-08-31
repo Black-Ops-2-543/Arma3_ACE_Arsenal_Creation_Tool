@@ -6,8 +6,10 @@ SQF, and class-list interchange, fail-closed object preflight, missing-content
 degradation, redacted JIP manifests, access and administrator authorization,
 distance and exhausted-policy denial, server object registration and atomic
 unregister cleanup, the Zeus assign/disable/reset/clear lifecycle, combined
-quota accounting, Creator display creation, and the live preset-deletion
-control.
+quota accounting, stacked cargo quantities, unauthorized/over-quota/expired
+session rollback, UID-aware quota resets, listen-host request delivery,
+personal-loadout rejection and deletion, Creator display creation, and the
+live preset-deletion control.
 
 Every assertion is written to the RPT with the prefix `[RACA AUTOTEST]`. The
 mission ends with `END1` only when every assertion passes, allowing Arma's

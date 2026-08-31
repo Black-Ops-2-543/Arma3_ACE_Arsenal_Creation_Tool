@@ -196,6 +196,11 @@ else {
         $autotestClientInit -notmatch 'RACA_fnc_requestOpen' -or
         $autotestClientInit -notmatch 'RACA_fnc_isAdminAuthorized' -or
         $autotestClientInit -notmatch 'RACA_fnc_unregisterObject' -or
+        $autotestClientInit -notmatch 'RACA_fnc_countLoadout' -or
+        $autotestClientInit -notmatch 'RACA_fnc_resetQuotas' -or
+        $autotestClientInit -notmatch 'RACA_fnc_savePlayerLoadout' -or
+        $autotestClientInit -notmatch 'RACA_fnc_applyPlayerLoadout' -or
+        $autotestClientInit -notmatch 'RACA_fnc_deletePlayerLoadout' -or
         $autotestClientInit -notmatch 'RACA_fnc_finishSession' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleAssign' -or
         $autotestClientInit -notmatch 'RACA_fnc_moduleClear' -or
@@ -931,6 +936,48 @@ if (Test-Path -LiteralPath $savedLoadoutPath -PathType Leaf) {
     $savedLoadout = Get-Content -Raw -LiteralPath $savedLoadoutPath
     if ($savedLoadout -notmatch 'RACA_fnc_requestLoadoutApply' -or $savedLoadout -match '\bsetUnitLoadout\b') {
         $failures.Add("Saved loadouts must pass through the server authorization and quota session instead of applying directly on the client.")
+    }
+}
+
+$listenHostServerEndpoints = @(
+    'fn_requestLoadoutApply.sqf',
+    'fn_requestQuotaStatus.sqf',
+    'fn_requestAdminAccess.sqf',
+    'fn_requestAdminSnapshot.sqf',
+    'fn_requestRehearsal.sqf',
+    'fn_rehearsalClientReady.sqf',
+    'fn_receiveRehearsalProbe.sqf'
+)
+foreach ($endpointName in $listenHostServerEndpoints) {
+    $endpointPath = Join-Path $addonsDirectory ("core\functions\runtime\" + $endpointName)
+    if (-not (Test-Path -LiteralPath $endpointPath -PathType Leaf)) {
+        $failures.Add("Listen-host server endpoint is missing: '$endpointName'.")
+        continue
+    }
+    $endpointSource = Get-Content -Raw -LiteralPath $endpointPath
+    if ($endpointSource -match '!\s*isRemoteExecuted\s*\|\|' -or
+        $endpointSource -notmatch 'isRemoteExecuted\s*&&') {
+        $failures.Add("Listen-host server endpoint '$endpointName' must accept trusted server-local execution while retaining remote-owner validation.")
+    }
+}
+
+$listenHostClientResponses = @(
+    'fn_applyAuthorizedLoadout.sqf',
+    'fn_receiveAdminAccess.sqf',
+    'fn_receiveAdminSnapshot.sqf',
+    'fn_receiveQuotaStatus.sqf',
+    'fn_receiveRehearsalSnapshot.sqf'
+)
+foreach ($responseName in $listenHostClientResponses) {
+    $responsePath = Join-Path $addonsDirectory ("core\functions\runtime\" + $responseName)
+    if (-not (Test-Path -LiteralPath $responsePath -PathType Leaf)) {
+        $failures.Add("Listen-host client response is missing: '$responseName'.")
+        continue
+    }
+    $responseSource = Get-Content -Raw -LiteralPath $responsePath
+    if ($responseSource -notmatch 'isRemoteExecuted\s*&&' -or
+        $responseSource -notmatch '!isRemoteExecuted\s*&&\s*\{!isServer\}') {
+        $failures.Add("Listen-host client response '$responseName' must accept server-local delivery while rejecting untrusted direct client calls.")
     }
 }
 

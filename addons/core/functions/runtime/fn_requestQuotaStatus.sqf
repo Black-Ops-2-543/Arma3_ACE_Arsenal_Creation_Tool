@@ -4,7 +4,7 @@ params [
     ["_slotId", "", [""]]
 ];
 if (!isServer || {isNull _object} || {isNull _unit} || {!alive _unit} || {!isPlayer _unit}) exitWith {false};
-if (!isRemoteExecuted || {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
+if (isRemoteExecuted && {owner _unit isNotEqualTo remoteExecutedOwner}) exitWith {false};
 private _rawDistance = _object getVariable ["RACA_maxUseDistance", 12];
 private _maxDistance = if (_rawDistance isEqualType 0) then {_rawDistance max 1} else {12};
 if (_unit distance _object > _maxDistance) exitWith {

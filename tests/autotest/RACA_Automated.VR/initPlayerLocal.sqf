@@ -451,9 +451,85 @@ params ["_player"];
     [_cleanupBox, []] remoteExecCall ["RACA_fnc_registerActions", 0, _cleanupBox];
     deleteVehicle _cleanupBox;
 
+    private _stackedLoadout = [
+        [],
+        [],
+        [],
+        ["U_B_CombatUniform_mcam", [["FirstAidKit", 3]]],
+        ["V_PlateCarrier1_rgr", [["30Rnd_65x39_caseless_mag", 2]]],
+        ["B_AssaultPack_mcamo", [["FirstAidKit", 4]]],
+        "H_HelmetB",
+        "",
+        [],
+        ["ItemMap"]
+    ];
+    private _stackedCounts = [_stackedLoadout] call RACA_fnc_countLoadout;
+    [
+        (_stackedCounts getOrDefault ["FirstAidKit", 0]) isEqualTo 7 &&
+        {(_stackedCounts getOrDefault ["30Rnd_65x39_caseless_mag", 0]) isEqualTo 2} &&
+        {(_stackedCounts getOrDefault ["U_B_CombatUniform_mcam", 0]) isEqualTo 1} &&
+        {(_stackedCounts getOrDefault ["V_PlateCarrier1_rgr", 0]) isEqualTo 1} &&
+        {(_stackedCounts getOrDefault ["B_AssaultPack_mcamo", 0]) isEqualTo 1},
+        "Loadout accounting preserves stacked uniform, vest, and backpack cargo quantities"
+    ] call _record;
+
     private _originalLoadout = getUnitLoadout player;
     removeAllWeapons player;
     private _beforeLoadout = getUnitLoadout player;
+
+    private _unauthorizedSessionId = "raca_autotest_unauthorized_restore";
+    private _unauthorizedSessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    _unauthorizedSessions set [_unauthorizedSessionId, [_box, player, _slot, _beforeLoadout, owner player, diag_tickTime]];
+    missionNamespace setVariable ["RACA_openSessions", _unauthorizedSessions];
+    player addWeapon "hgun_P07_F";
+    private _unauthorizedAccepted = [_unauthorizedSessionId, player, getUnitLoadout player] call RACA_fnc_finishSession;
+    uiSleep 0.1;
+    private _unauthorizedAfter = [getUnitLoadout player] call RACA_fnc_countLoadout;
+    private _sessionsAfterUnauthorized = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    [
+        !_unauthorizedAccepted &&
+        {!(_unauthorizedSessionId in keys _sessionsAfterUnauthorized)} &&
+        {(_unauthorizedAfter getOrDefault ["hgun_P07_F", 0]) isEqualTo 0},
+        "An outside class rejects the session and restores the complete pre-session loadout"
+    ] call _record;
+
+    private _quotaViolationSlot = +_slot;
+    _quotaViolationSlot set [5, [
+        ["arifle_MX_F", 0, "player", "never"],
+        ["category:Weapons", 0, "mission", "never"]
+    ]];
+    private _quotaViolationSessionId = "raca_autotest_quota_restore";
+    private _quotaViolationSessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    _quotaViolationSessions set [_quotaViolationSessionId, [_box, player, _quotaViolationSlot, _beforeLoadout, owner player, diag_tickTime]];
+    missionNamespace setVariable ["RACA_openSessions", _quotaViolationSessions];
+    player addWeapon "arifle_MX_F";
+    private _quotaViolationAccepted = [_quotaViolationSessionId, player, getUnitLoadout player] call RACA_fnc_finishSession;
+    uiSleep 0.1;
+    private _quotaViolationAfter = [getUnitLoadout player] call RACA_fnc_countLoadout;
+    private _sessionsAfterQuotaViolation = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    [
+        !_quotaViolationAccepted &&
+        {!(_quotaViolationSessionId in keys _sessionsAfterQuotaViolation)} &&
+        {(_quotaViolationAfter getOrDefault ["arifle_MX_F", 0]) isEqualTo 0},
+        "A quota overrun rejects the session and restores the complete pre-session loadout"
+    ] call _record;
+
+    private _expiredSessionId = "raca_autotest_expired_restore";
+    private _expiredSessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    _expiredSessions set [_expiredSessionId, [_box, player, _slot, _beforeLoadout, owner player, diag_tickTime - 901]];
+    missionNamespace setVariable ["RACA_openSessions", _expiredSessions];
+    player addWeapon "arifle_MX_F";
+    private _expiredAccepted = [_expiredSessionId, player, getUnitLoadout player] call RACA_fnc_finishSession;
+    uiSleep 0.1;
+    private _expiredAfter = [getUnitLoadout player] call RACA_fnc_countLoadout;
+    private _sessionsAfterExpired = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    [
+        !_expiredAccepted &&
+        {!(_expiredSessionId in keys _sessionsAfterExpired)} &&
+        {(_expiredAfter getOrDefault ["arifle_MX_F", 0]) isEqualTo 0},
+        "An expired session is discarded and restores the complete pre-session loadout"
+    ] call _record;
+
     private _quotaSlot = +(_normalizedConfig select 2 select 0);
     _quotaSlot set [5, [
         ["arifle_MX_F", 5, "player", "never"],
@@ -474,6 +550,77 @@ params ["_player"];
         if (toLowerANSI (_quotaRecord param [6, ""]) isEqualTo "category:weapons" && {(_quotaRecord param [0, 0]) isEqualTo 1}) then {_categoryCharged = true};
     } forEach keys _quota;
     [_sessionAccepted && {_exactCharged} && {_categoryCharged}, "One issued weapon charges both exact and category quota counters"] call _record;
+    player setUnitLoadout _originalLoadout;
+
+    private _resetObjectId = [_box] call RACA_fnc_getRuntimeObjectId;
+    private _resetUid = getPlayerUID player;
+    private _otherUid = "raca_autotest_other_uid";
+    private _resetQuota = missionNamespace getVariable ["RACA_quotaState", createHashMap];
+    private _ownResetKey = format ["%1|autotest|%2|own_respawn", _resetObjectId, _resetUid];
+    private _otherResetKey = format ["%1|autotest|%2|other_respawn", _resetObjectId, _otherUid];
+    private _missionResetKey = format ["%1|autotest|mission|mission_respawn", _resetObjectId];
+    _resetQuota set [_ownResetKey, [1, "player", "respawn", _resetObjectId, "autotest", _resetUid, "own_respawn"]];
+    _resetQuota set [_otherResetKey, [1, "player", "respawn", _resetObjectId, "autotest", _otherUid, "other_respawn"]];
+    _resetQuota set [_missionResetKey, [1, "mission", "respawn", _resetObjectId, "autotest", "", "mission_respawn"]];
+    missionNamespace setVariable ["RACA_quotaState", _resetQuota];
+    private _resetRemoved = ["respawn", _box, "autotest", _resetUid] call RACA_fnc_resetQuotas;
+    private _quotaAfterScopedReset = missionNamespace getVariable ["RACA_quotaState", createHashMap];
+    [
+        _resetRemoved isEqualTo 2 &&
+        {!(_ownResetKey in keys _quotaAfterScopedReset)} &&
+        {_otherResetKey in keys _quotaAfterScopedReset} &&
+        {!(_missionResetKey in keys _quotaAfterScopedReset)},
+        "Respawn reset removes the triggering player's counters and shared counters without touching another UID"
+    ] call _record;
+
+    private _wasPlayerLoadoutsMissing = isNil {profileNamespace getVariable "RACA_playerLoadouts_v1"};
+    private _oldPlayerLoadouts = profileNamespace getVariable ["RACA_playerLoadouts_v1", []];
+    profileNamespace setVariable ["RACA_playerLoadouts_v1", []];
+    removeAllWeapons player;
+    player addWeapon "hgun_P07_F";
+    private _savedOutsideLoadout = [player, _box, "autotest", "Autotest rejected", "personal"] call RACA_fnc_savePlayerLoadout;
+    private _listedOutsideLoadout = (["personal"] call RACA_fnc_listPlayerLoadouts) findIf {
+        (_x param [2, ""]) isEqualTo "Autotest rejected" && {(_x param [3, ""]) isEqualTo "autotest"}
+    };
+    player setUnitLoadout _originalLoadout;
+    private _auditBeforeRejectedLoadout = count (missionNamespace getVariable ["RACA_auditLog", []]);
+    private _outsideLoadoutRequested = [player, _box, "autotest", "Autotest rejected", "personal"] call RACA_fnc_applyPlayerLoadout;
+    uiSleep 0.75;
+    private _auditAfterRejectedLoadout = missionNamespace getVariable ["RACA_auditLog", []];
+    private _rejectedLoadoutAudited = (_auditAfterRejectedLoadout select [_auditBeforeRejectedLoadout]) findIf {
+        (_x param [1, ""]) isEqualTo "DENIED" &&
+        {((_x param [6, []]) param [0, ""]) isEqualTo "Saved loadout contains restricted classes"}
+    };
+    private _sessionsAfterRejectedLoadout = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+    private _outsideLoadoutDeleted = ["autotest", "Autotest rejected", "personal"] call RACA_fnc_deletePlayerLoadout;
+    private _outsideLoadoutGone = (["personal"] call RACA_fnc_listPlayerLoadouts) findIf {
+        (_x param [2, ""]) isEqualTo "Autotest rejected" && {(_x param [3, ""]) isEqualTo "autotest"}
+    };
+    [
+        _savedOutsideLoadout &&
+        {_listedOutsideLoadout >= 0} &&
+        {_outsideLoadoutRequested} &&
+        {_rejectedLoadoutAudited >= 0} &&
+        {(keys _sessionsAfterRejectedLoadout findIf {((_sessionsAfterRejectedLoadout get _x) param [1, objNull]) isEqualTo player}) < 0} &&
+        {_outsideLoadoutDeleted} &&
+        {_outsideLoadoutGone < 0},
+        "Personal loadouts save locally, reject outside classes on the server, and delete without leaving a session",
+        format [
+            "saved=%1 listed=%2 requested=%3 audited=%4 sessions=%5 deleted=%6 gone=%7 uid='%8' recordUid='%9' auditDelta=%10",
+            _savedOutsideLoadout,
+            _listedOutsideLoadout,
+            _outsideLoadoutRequested,
+            _rejectedLoadoutAudited,
+            count keys _sessionsAfterRejectedLoadout,
+            _outsideLoadoutDeleted,
+            _outsideLoadoutGone,
+            getPlayerUID player,
+            ((["personal"] call RACA_fnc_listPlayerLoadouts) param [_listedOutsideLoadout, []]) param [6, ""],
+            (count _auditAfterRejectedLoadout) - _auditBeforeRejectedLoadout
+        ]
+    ] call _record;
+    if (_wasPlayerLoadoutsMissing) then {profileNamespace setVariable ["RACA_playerLoadouts_v1", nil]} else {profileNamespace setVariable ["RACA_playerLoadouts_v1", _oldPlayerLoadouts]};
+    saveProfileNamespace;
     player setUnitLoadout _originalLoadout;
 
     private _zeusTarget = createVehicle ["Box_NATO_Ammo_F", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];

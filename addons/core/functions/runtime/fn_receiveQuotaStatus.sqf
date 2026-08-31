@@ -4,7 +4,7 @@ params [
     ["_slotName", "Restricted Arsenal", [""]],
     ["_remaining", [], [[]]]
 ];
-if (!hasInterface || {!isRemoteExecuted} || {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!hasInterface || {isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}} || {!isRemoteExecuted && {!isServer}}) exitWith {false};
 if (!_authorized) exitWith {systemChat format ["RACA: %1", _message]; false};
 if (_remaining isEqualTo []) exitWith {systemChat format ["RACA %1: no quantity limits are configured.", _slotName]; true};
 systemChat format ["RACA %1 — remaining allowance:", _slotName];

@@ -1,6 +1,6 @@
 #include "..\..\script_component.hpp"
 params [["_snapshot", [], [[]]]];
-if (!hasInterface || {!isRemoteExecuted} || {remoteExecutedOwner isNotEqualTo 2}) exitWith {false};
+if (!hasInterface || {isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}} || {!isRemoteExecuted && {!isServer}}) exitWith {false};
 if (
     (count _snapshot) < 11 ||
     {(_snapshot param [0, "", [""]]) isNotEqualTo "RACA_REHEARSAL_SNAPSHOT"} ||
