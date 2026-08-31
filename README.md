@@ -325,7 +325,7 @@ Every assertion appears in the RPT as `[RACA AUTOTEST]`; the mission returns
 live preset-deletion-control checks all pass. See [the automated acceptance
 harness](tests/autotest/README.md).
 
-After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch.
+After committing a clean, fully tested release candidate, `tools\release.ps1` reruns validation, rebuilds the PBOs, verifies every manifest hash, enforces version/changelog/license consistency, and creates a hashed ZIP plus `release-report.json`. See [the release process](docs/RELEASE_PROCESS.md). Development versions require the explicit `-AllowDevelopmentVersion` switch. The latest local development results and explicit multiplayer unknowns are recorded in [development acceptance evidence](docs/DEVELOPMENT_ACCEPTANCE.md).
 
 If Arma 3 Tools is installed elsewhere, provide `-AddonBuilderPath`, `-ArmaToolsDirectory`, and `-BankRevPath`. Validation also supports custom CfgConvert, Java, and SQFLint paths; use `-SkipConfig` or `-SkipSqf` only when the corresponding tool is unavailable.
 
