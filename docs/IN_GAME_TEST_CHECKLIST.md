@@ -67,6 +67,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Overwriting creates a revision-history snapshot; the comparison reports additions/removals and restoring creates a newer revision while archiving the outgoing one.
 - [ ] Compare Draft copies complete added/removed class lists and both quantity policies.
 - [ ] **Delete** requires confirmation, removes only the selected profile preset, and keeps the current item selection as an unsaved recovery copy.
+- [ ] Delete and duplicate-import confirmations show real paragraph breaks, and duplicate Import Auto produces no `Suspending not allowed in this context` RPT error.
 - [ ] Deleting a source preset does not corrupt adopted children or standalone copies already embedded in missions.
 - [ ] Restarting Arma with the same profile preserves the preset.
 - [ ] JSON export is valid UTF-8 JSON and round-trips without losing the name or any bucket.
@@ -92,6 +93,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 
 - [ ] Any placed object's attributes contain a non-empty **Restricted Arsenals** category.
 - [ ] No `Cfg3DEN/Attributes.RACA_PresetAttribute` error appears.
+- [ ] Opening object attributes produces no control/array type error from `RACA_fnc_edenAttributeOnLoad`.
 - [ ] **Configure slots** opens the RACA Eden configuration editor without an undefined-control or function error.
 - [ ] A slot can be added, named, assigned a preset, enabled/disabled, reordered, and removed before applying.
 - [ ] A single object can save and reload two differently named slots that reference the same or different presets.

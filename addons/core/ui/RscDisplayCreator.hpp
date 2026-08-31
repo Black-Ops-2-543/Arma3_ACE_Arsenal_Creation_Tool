@@ -217,7 +217,7 @@ class RACA_RscDisplayCreator {
             text = "IMPORT AUTO";
             tooltip = "Import a JSON preset, existing SQF arsenal, or class list from the clipboard";
             x = "safeZoneX + 0.27 * safeZoneW";
-            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_importPreset";
+            onButtonClick = "ctrlParent (_this select 0) spawn RACA_fnc_importPreset";
         };
 
         class PresetHelp: RscText {

@@ -47,7 +47,16 @@ lnbClear _list;
         private _limitText = if (_limit isNotEqualTo []) then {format ["Exact limit: %1 (%2)", _limit select 1, _limit select 2]} else {
             if (_categoryLimit isNotEqualTo []) then {format ["Category limit: %1 (%2)", _categoryLimit select 1, _categoryLimit select 2]} else {"No quantity limit"}
         };
-        private _tooltip = format ["%1\nClass: %2\nCategory: %3\nSource: %4\nAuthor: %5\n%6%7", _displayName, _className, _itemCategory, _modName, _author, _limitText, ["", "\nFavorite"] select (_favorites getOrDefault [_className, false])];
+        private _tooltipLines = [
+            _displayName,
+            format ["Class: %1", _className],
+            format ["Category: %1", _itemCategory],
+            format ["Source: %1", _modName],
+            format ["Author: %1", _author],
+            _limitText
+        ];
+        if (_favorites getOrDefault [_className, false]) then {_tooltipLines pushBack "Favorite"};
+        private _tooltip = _tooltipLines joinString (toString [10]);
         {_list lnbSetTooltip [[_row, _x], _tooltip]} forEach [0, 1, 2, 3, 4];
         if (_inherited getOrDefault [_className, false]) then {
             {

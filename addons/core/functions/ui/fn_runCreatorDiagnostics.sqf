@@ -8,7 +8,7 @@ _analysis params ["_ok", "_entries", "_summary"];
 private _report = [_preset param [2, "Current selection"], _entries, _summary] call RACA_fnc_formatDiagnosticReport;
 uiNamespace setVariable ["RACA_creatorDiagnostics", [_analysis, _report]];
 private _diagnostics = _display displayCtrl RACA_IDC_DIAGNOSTICS;
-_diagnostics ctrlSetText ((_report splitString toString [13, 10]) select [0, 4] joinString "\n");
+_diagnostics ctrlSetText ((_report splitString toString [13, 10]) select [0, 4] joinString (toString [10]));
 _diagnostics ctrlSetBackgroundColor (
     if ((_summary select 0) > 0) then {[0.45, 0.08, 0.08, 0.6]} else {
         if ((_summary select 1) > 0) then {[0.45, 0.30, 0.05, 0.6]} else {[0.08, 0.35, 0.12, 0.6]}

@@ -96,6 +96,7 @@ $requiredRelativeFiles = @(
     'addons\core\functions\ui\fn_switchCreatorTab.sqf',
     'addons\eden\ui\PresetAttribute.hpp',
     'addons\eden\ui\EdenConfigDialog.hpp',
+    'addons\eden\functions\fn_edenAttributeOnLoad.sqf',
     'addons\eden\functions\fn_edenEditorApply.sqf',
     'addons\eden\functions\fn_edenDashboardBulk.sqf',
     'docs\PORTABLE_PRESET_FORMAT.md'
@@ -146,6 +147,18 @@ if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
             $failures.Add("The Eden configuration editor is missing '$requiredText'.")
         }
     }
+    if ($edenDialog -notmatch 'spawn\s+RACA_fnc_edenDashboardBulk') {
+        $failures.Add('Mission-wide Eden confirmations must run in a scheduled environment.')
+    }
+}
+
+$edenAttributeOnLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAttributeOnLoad.sqf'
+if (Test-Path -LiteralPath $edenAttributeOnLoadPath -PathType Leaf) {
+    $edenAttributeOnLoad = Get-Content -Raw -LiteralPath $edenAttributeOnLoadPath
+    if ($edenAttributeOnLoad -notmatch '_this\s+isEqualType\s+controlNull' -or
+        $edenAttributeOnLoad -notmatch 'RACA_fnc_edenPopulate') {
+        $failures.Add('The Eden attribute onLoad handler must accept the direct ControlsGroup value supplied by 3den.')
+    }
 }
 
 $edenBulkPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardBulk.sqf'
@@ -194,6 +207,9 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_EXPORT_FORMAT' -or
         $creatorUi -notmatch 'text\s*=\s*"IMPORT AUTO"') {
         $failures.Add("The creator must expose the export-format selector and automatic importer.")
+    }
+    if ($creatorUi -notmatch 'spawn\s+RACA_fnc_importPreset') {
+        $failures.Add('Import Auto must run in a scheduled environment so duplicate-preset confirmation can suspend safely.')
     }
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_BASE_PRESET' -or
         $creatorUi -notmatch 'text\s*=\s*"ADOPT / REFRESH"' -or
@@ -351,6 +367,22 @@ else {
     foreach ($requiredPattern in @('BIS_fnc_guiMessage', 'deleteAt', 'saveProfileNamespace', 'unsaved recovery copy')) {
         if ($deletePresetSource -notmatch [regex]::Escape($requiredPattern)) {
             $failures.Add("Preset deletion is missing required behavior '$requiredPattern'.")
+        }
+    }
+}
+
+foreach ($uiTextRelativePath in @(
+    'core\functions\presets\fn_deletePreset.sqf',
+    'core\functions\ui\fn_refreshItemList.sqf',
+    'core\functions\ui\fn_runCreatorDiagnostics.sqf',
+    'eden\functions\fn_edenDashboardBulk.sqf',
+    'eden\functions\fn_edenUpdateSummary.sqf'
+)) {
+    $uiTextPath = Join-Path $addonsDirectory $uiTextRelativePath
+    if (Test-Path -LiteralPath $uiTextPath -PathType Leaf) {
+        $uiTextSource = Get-Content -Raw -LiteralPath $uiTextPath
+        if ($uiTextSource.Contains('\n')) {
+            $failures.Add("User-facing text in '$uiTextRelativePath' contains a literal backslash-n instead of an Arma line break.")
         }
     }
 }

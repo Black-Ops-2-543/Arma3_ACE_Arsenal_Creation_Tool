@@ -19,4 +19,4 @@ private _lines = [format ["%1 slot(s) configured:", count _slots]];
         ["", ", hidden when denied"] select _hide
     ];
 } forEach _slots;
-_summary ctrlSetText (_lines joinString "\n");
+_summary ctrlSetText (_lines joinString (toString [10]));

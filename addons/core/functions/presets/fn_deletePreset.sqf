@@ -25,6 +25,8 @@ if (_preset isEqualTo []) exitWith {
 };
 
 private _name = _preset select 2;
+private _lineBreak = toString [10];
+private _paragraphBreak = _lineBreak + _lineBreak;
 private _dependentNames = [];
 {
     private _adoption = [_x] call RACA_fnc_getComposition;
@@ -35,7 +37,8 @@ private _dependentNames = [];
 
 private _dependencyNotice = if (_dependentNames isEqualTo []) then {""} else {
     format [
-        "\n\n%1 adopted preset(s) use this source: %2. Their complete saved item snapshots will remain usable, but their source link will show as missing.",
+        "%1%2 adopted preset(s) use this source: %3. Their complete saved item snapshots will remain usable, but their source link will show as missing.",
+        _paragraphBreak,
         count _dependentNames,
         _dependentNames joinString ", "
     ]
@@ -43,9 +46,10 @@ private _dependencyNotice = if (_dependentNames isEqualTo []) then {""} else {
 
 private _confirmed = [
     format [
-        "Delete profile preset '%1'?%2\n\nAlready saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
+        "Delete profile preset '%1'?%2%3Already saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
         _name,
-        _dependencyNotice
+        _dependencyNotice,
+        _paragraphBreak
     ],
     "Delete RACA Preset",
     "DELETE",

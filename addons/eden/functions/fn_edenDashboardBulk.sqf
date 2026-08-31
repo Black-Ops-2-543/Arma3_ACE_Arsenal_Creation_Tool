@@ -14,8 +14,9 @@ if (toUpperANSI _operation isEqualTo "ASSIGN" && {_config isEqualTo []}) exitWit
     false
 };
 private _slotCount = if (_config isEqualTo []) then {0} else {count (_config select 2)};
+private _paragraphBreak = (toString [10]) + (toString [10]);
 private _confirmed = [
-    format ["%1 %2 selected Eden object(s)%3?\n\nThis creates one undoable Eden history step and changes no unselected objects.", toUpperANSI _operation, count _objects, if (_operation isEqualTo "ASSIGN") then {format [" with %1 slot(s)", _slotCount]} else {""}],
+    format ["%1 %2 selected Eden object(s)%3?%4This creates one undoable Eden history step and changes no unselected objects.", toUpperANSI _operation, count _objects, if (_operation isEqualTo "ASSIGN") then {format [" with %1 slot(s)", _slotCount]} else {""}, _paragraphBreak],
     "RACA Mission-Wide Update", "APPLY", "CANCEL", _display
 ] call BIS_fnc_guiMessage;
 if (!_confirmed || {isNull _display}) exitWith {false};
