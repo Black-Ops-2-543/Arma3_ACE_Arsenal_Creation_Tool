@@ -4,20 +4,20 @@ This record captures the latest local acceptance evidence for the `0.10.0-dev` d
 
 ## Tested product
 
-- Product commit: `f18381d44abccab21ac457009e1c376781184d76`
+- Tested implementation commit: `de4f80cbf5ed8e45eed25ffd4b66ba93611a271f`
 - Working tree before packaging: clean
 - Static/configuration/SQF validation: pass
 - Core and Eden PBO build: pass
 - Archive: `RestrictedArsenalCreationAssistant-0.10.0-dev.zip`
-- Archive SHA-256: `eb449a6d0d65921054c9dbdb47574835a37827383d97224bd078750766354aea`
-- `addons/core.pbo` SHA-256: `04e1bc9ebc4bfbdbec08fb1582ed71284e1699fbea85c46df096d08b6ae918bd`
-- `addons/eden.pbo` SHA-256: `4599118134beefd05b219c1b3bb16f9a24796d23616b3d35dd885e68d5a5076f`
+- Archive SHA-256: `5d72e927e47778d5cc0368079477cb328d9b7facf5f6d7a7bb8e5193b0dac888`
+- `addons/core.pbo` SHA-256: `ba7e094e8c66f0dd50788d5df3daab79aa984cbd77e2ef7ddcb1a3d10b99e969`
+- `addons/eden.pbo` SHA-256: `e3670bd07993fc05573a55978cc8f11a734ee684fc2463baaaf4790085603c5e`
 
 The generated `dist/release-report.json` and the archive's embedded `checksums.sha256` matched independently calculated hashes.
 
 ## Automated Arma acceptance
 
-Result: **Pass — 49/49 assertions, 0 failures**.
+Result: **Pass — 55/55 assertions, 0 failures**.
 
 The isolated acceptance mission verified:
 
@@ -27,12 +27,13 @@ The isolated acceptance mission verified:
 - built-in role templates, parameter policies, custom role packs, saved catalogue views, and catalogue tags;
 - preset validation, revisions, immutable history, JSON round-trip, reusable SQF import, class-list import, and unsafe-input rejection;
 - quantity-policy normalization and fail-closed object preflight;
-- server registration, redacted client action manifests, and exact/category quota charging;
+- AND/OR access evaluation, custom denial messages, missing-content degradation, distance denial, and administrator authorization;
+- server registration, redacted client action manifests, exact/category quota charging, exhausted-policy denial, and atomic unregister cleanup;
 - Zeus assign, disable, quota reset, and clear lifecycle actions;
 - live Creator, Quick Start, item details, role-pack manager, saved-view manager, tag manager, favorites, undo/redo, compatibility details, and the preset-deletion control; and
 - confirmed archive-and-removal of a disposable preset inside the isolated test profile.
 
-Local RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-08-31_15-38-23.rpt`
+Local RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-08-31_15-58-30.rpt`
 
 No RACA configuration error, SQF expression error, undefined variable, missing RACA script, or failed assertion was found in that RPT.
 
