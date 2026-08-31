@@ -32,6 +32,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Filtered row selection, duplicate import, deletion, revision restore, administration, and Eden confirmation-dialog behavior.
 - Eden slot access-mode selection, configuration persistence, and string-valued access-rule matching.
 - Persistent JIP registration target and cleanup behavior.
+- Catalogue row mouse events no longer emit a local-variable script error while updating multi-row selections.
 
 ## [0.9.2]
 

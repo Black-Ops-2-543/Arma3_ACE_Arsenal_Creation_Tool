@@ -701,6 +701,9 @@ elseif ((Test-Path -LiteralPath $catalogRefreshPath -PathType Leaf) -and (Test-P
             $itemLimit -notmatch 'lbSelection\s+_list') {
             $failures.Add("Catalogue filters must expose counted mod/add-on/author dimensions, and selection, favorite, and item limits must honor Ctrl/Shift multi-selection.")
         }
+        if ($catalogToggle -match '\[\s*""\s*,') {
+            $failures.Add("Catalogue mouse-event parameters must use private variable names when type-checked by params.")
+        }
     }
 }
 

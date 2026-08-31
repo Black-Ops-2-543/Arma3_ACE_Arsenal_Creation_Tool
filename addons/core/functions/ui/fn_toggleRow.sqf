@@ -2,8 +2,8 @@
 params [
     ["_list", controlNull, [controlNull]],
     ["_button", 0, [0]],
-    ["", 0, [0]],
-    ["", 0, [0]],
+    ["_mouseX", 0, [0]],
+    ["_mouseY", 0, [0]],
     ["_shift", false, [true]],
     ["_ctrl", false, [true]]
 ];
