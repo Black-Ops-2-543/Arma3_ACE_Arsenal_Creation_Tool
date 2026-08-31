@@ -83,7 +83,19 @@ $requiredRelativeFiles = @(
     'addons\core\missions\Creator.VR\mission.sqm',
     'addons\core\missions\Creator.VR\description.ext',
     'addons\core\missions\Creator.VR\initPlayerLocal.sqf',
-    'addons\eden\ui\PresetAttribute.hpp'
+    'addons\core\functions\presets\fn_decodePortablePreset.sqf',
+    'addons\core\functions\presets\fn_decodeSqfPreset.sqf',
+    'addons\core\functions\presets\fn_exportPreset.sqf',
+    'addons\core\functions\presets\fn_applyBasePreset.sqf',
+    'addons\core\functions\presets\fn_flattenCurrentPreset.sqf',
+    'addons\core\functions\presets\fn_flattenPreset.sqf',
+    'addons\core\functions\presets\fn_formatPortableJson.sqf',
+    'addons\core\functions\presets\fn_formatSqfExport.sqf',
+    'addons\core\functions\presets\fn_wouldCreateCycle.sqf',
+    'addons\core\functions\ui\fn_refreshCategoryCombo.sqf',
+    'addons\core\functions\ui\fn_switchCreatorTab.sqf',
+    'addons\eden\ui\PresetAttribute.hpp',
+    'docs\PORTABLE_PRESET_FORMAT.md'
 )
 foreach ($relativeFile in $requiredRelativeFiles) {
     $requiredFile = Join-Path $repositoryRoot $relativeFile
@@ -153,6 +165,59 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUi -notmatch 'onMouseButtonUp\s*=\s*"[^"\r\n]*spawn[^"\r\n]*uiSleep[^"\r\n]*RACA_fnc_toggleRow') {
         $failures.Add("The item list must defer its mouse-up toggle until ListNBox commits the clicked row.")
     }
+    if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_EXPORT_FORMAT' -or
+        $creatorUi -notmatch 'text\s*=\s*"IMPORT AUTO"') {
+        $failures.Add("The creator must expose the export-format selector and automatic importer.")
+    }
+    if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_BASE_PRESET' -or
+        $creatorUi -notmatch 'text\s*=\s*"ADOPT / REFRESH"' -or
+        $creatorUi -notmatch 'text\s*=\s*"MAKE STANDALONE"') {
+        $failures.Add("The creator must expose source-preset selection, explicit adoption, and standalone conversion.")
+    }
+    if ($creatorUi -notmatch 'text\s*=\s*"ARSENAL CREATION ASSISTANT"' -or
+        $creatorUi -notmatch 'text\s*=\s*"PRESET MANAGEMENT"' -or
+        $creatorUi -notmatch 'text\s*=\s*"ASSIGNMENT"' -or
+        $creatorUi -match 'PRESET LIBRARY') {
+        $failures.Add("The creator must use the centered title and two-tab Preset Management/Assignment layout.")
+    }
+}
+
+$categoryUiPath = Join-Path $addonsDirectory 'core\functions\ui\fn_refreshCategoryCombo.sqf'
+if (Test-Path -LiteralPath $categoryUiPath -PathType Leaf) {
+    $categoryUi = Get-Content -Raw -LiteralPath $categoryUiPath
+    foreach ($categoryName in @('Weapons', 'Attachments', 'Magazines', 'Uniforms', 'Vests', 'Backpacks', 'Headgear', 'NVGs', 'Facewear', 'Equipment', 'Included', 'Inherited')) {
+        if ($categoryUi -notmatch ('"' + $categoryName + '"')) {
+            $failures.Add("The creator category selector is missing '$categoryName'.")
+        }
+    }
+    if ($categoryUi -notmatch 'count\s+_inherited') {
+        $failures.Add("The Inherited category must only appear when an adopted source snapshot exists.")
+    }
+}
+
+$itemRefreshPath = Join-Path $addonsDirectory 'core\functions\ui\fn_refreshItemList.sqf'
+if (Test-Path -LiteralPath $itemRefreshPath -PathType Leaf) {
+    $itemRefresh = Get-Content -Raw -LiteralPath $itemRefreshPath
+    if ($itemRefresh -notmatch '"Included"' -or $itemRefresh -notmatch '"Inherited"' -or
+        $itemRefresh -notmatch '0\.55,\s*0\.82,\s*1') {
+        $failures.Add("Assignment filtering must support Included/Inherited and mark adopted-source rows light blue.")
+    }
+}
+
+$classificationPath = Join-Path $addonsDirectory 'core\functions\catalog\fn_classifyClass.sqf'
+if (Test-Path -LiteralPath $classificationPath -PathType Leaf) {
+    $classification = Get-Content -Raw -LiteralPath $classificationPath
+    foreach ($categoryName in @('Weapons', 'Attachments', 'Magazines', 'Uniforms', 'Vests', 'Backpacks', 'Headgear', 'NVGs', 'Facewear', 'Equipment')) {
+        if ($classification -notmatch ('"' + $categoryName + '"')) {
+            $failures.Add("Item classification is missing '$categoryName'.")
+        }
+    }
+    if ($classification -match 'RACA_nonAmmunitionMagazines') {
+        $failures.Add("All ammunition magazines, including throwables and launcher rounds, must remain in Magazines.")
+    }
+    if ($classification -notmatch 'CBA_MiscItem' -or $classification -notmatch 'ACE_ItemCore') {
+        $failures.Add("Generic CBA/ACE inventory items must be classified as Equipment before itemType's bipod compatibility value is considered.")
+    }
 }
 
 $catalogPath = Join-Path $addonsDirectory 'core\functions\catalog\fn_scanItems.sqf'
@@ -163,6 +228,99 @@ if (Test-Path -LiteralPath $catalogPath -PathType Leaf) {
     }
     if ($catalogSource -match 'modParams\s*\[[^\]]*"author"') {
         $failures.Add("Catalogue scanning must not request the unsupported modParams 'author' option.")
+    }
+}
+
+$portableImportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_decodePortablePreset.sqf'
+if (Test-Path -LiteralPath $portableImportPath -PathType Leaf) {
+    $portableImport = Get-Content -Raw -LiteralPath $portableImportPath
+    if ($portableImport -notmatch '\bfromJSON\b') {
+        $failures.Add("Portable preset import must use Arma's data-only fromJSON parser.")
+    }
+    if ($portableImport -match '(?i)\bcompile(?:Final)?\s+(?:_text|copyFromClipboard)\b') {
+        $failures.Add("Portable preset import must never compile clipboard or imported text.")
+    }
+    if ($portableImport -match '1000000|1 MB' -or $portableImport -notmatch 'RACA_PORTABLE_PRESET') {
+        $failures.Add("Portable preset import must retain its versioned signature check without a fixed 1 MB ceiling.")
+    }
+}
+
+$portableExportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_exportPreset.sqf'
+if (Test-Path -LiteralPath $portableExportPath -PathType Leaf) {
+    $portableExport = Get-Content -Raw -LiteralPath $portableExportPath
+    foreach ($formatName in @('JSON', 'SQF', 'LIST')) {
+        if ($portableExport -notmatch ('"' + $formatName + '"')) {
+            $failures.Add("Preset export is missing the '$formatName' format path.")
+        }
+    }
+    if ($portableExport -notmatch '\bcopyToClipboard\b') {
+        $failures.Add("Preset export must copy its selected output to the clipboard.")
+    }
+}
+
+$portableJsonFormatPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatPortableJson.sqf'
+if (Test-Path -LiteralPath $portableJsonFormatPath -PathType Leaf) {
+    $portableJsonFormat = Get-Content -Raw -LiteralPath $portableJsonFormatPath
+    if ($portableJsonFormat -notmatch '\btoJSON\b') {
+        $failures.Add("Portable preset export must serialize JSON with Arma's toJSON command.")
+    }
+}
+
+$sqfImportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_decodeSqfPreset.sqf'
+if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
+    $sqfImport = Get-Content -Raw -LiteralPath $sqfImportPath
+    if ($sqfImport -match '(?i)\b(?:compile|compileFinal|execVM|preprocessFile|loadFile)\b') {
+        $failures.Add("Legacy SQF import must scan text only and must never load or execute it.")
+    }
+    if ($sqfImport -match '1000000|1 MB' -or $sqfImport -notmatch '\bRACA_fnc_classifyClass\b') {
+        $failures.Add("Legacy SQF import must use current-config classification without a fixed 1 MB ceiling.")
+    }
+    if ($sqfImport -notmatch '_isSqfIdentifier' -or $sqfImport -notmatch '\(_candidate find "_fnc_"\)') {
+        $failures.Add("Legacy SQF import must ignore quoted local variables and function identifiers.")
+    }
+}
+
+$sqfExportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatSqfExport.sqf'
+if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
+    $sqfExport = Get-Content -Raw -LiteralPath $sqfExportPath
+    foreach ($requiredPattern in @(
+        'params \[\["_box"',
+        'if \(!isServer\)',
+        'private _arsenalItems',
+        'arrayIntersect _arsenalItems',
+        'ace_arsenal_fnc_removeBox',
+        'ace_arsenal_fnc_initBox',
+        '\[this\] execVM "raca_arsenal\.sqf"'
+    )) {
+        if ($sqfExport -notmatch $requiredPattern) {
+            $failures.Add("Reusable SQF export is missing required mission behavior matching '$requiredPattern'.")
+        }
+    }
+}
+
+$presetValidationPath = Join-Path $addonsDirectory 'core\functions\presets\fn_validatePreset.sqf'
+if (Test-Path -LiteralPath $presetValidationPath -PathType Leaf) {
+    $presetValidation = Get-Content -Raw -LiteralPath $presetValidationPath
+    if ($presetValidation -notmatch 'RACA_ADOPTION' -or
+        $presetValidation -notmatch 'RACA_COMPOSITION' -or
+        $presetValidation -notmatch 'An unsafe adoption removal was rejected') {
+        $failures.Add("Preset validation must emit safe versioned adoption metadata and accept the legacy composition signature.")
+    }
+}
+
+$cyclePath = Join-Path $addonsDirectory 'core\functions\presets\fn_wouldCreateCycle.sqf'
+if (Test-Path -LiteralPath $cyclePath -PathType Leaf) {
+    $cycleSource = Get-Content -Raw -LiteralPath $cyclePath
+    if ($cycleSource -notmatch 'createHashMap' -or $cycleSource -notmatch 'RACA_fnc_getComposition') {
+        $failures.Add("Adoption ancestry must track visited presets and inspect source metadata.")
+    }
+}
+
+$edenPopulatePath = Join-Path $addonsDirectory 'eden\functions\fn_edenPopulate.sqf'
+if (Test-Path -LiteralPath $edenPopulatePath -PathType Leaf) {
+    $edenPopulate = Get-Content -Raw -LiteralPath $edenPopulatePath
+    if ($edenPopulate -notmatch 'RACA_fnc_flattenPreset') {
+        $failures.Add("Eden must embed standalone preset copies with no runtime source dependency.")
     }
 }
 
@@ -219,8 +377,29 @@ if (-not $SkipSqf) {
     else {
         foreach ($sqfFile in $sqfFiles) {
             Write-Host "Checking SQF syntax: $($sqfFile.FullName)"
-            & $javaCommand.Source '-jar' $SqfLintJar '-nw' '-oc' $sqfFile.FullName
-            $toolExitCode = $LASTEXITCODE
+            $lintTarget = $sqfFile.FullName
+            $temporaryLintTarget = $null
+
+            try {
+                $sqfSource = Get-Content -Raw -LiteralPath $sqfFile.FullName
+                if ($sqfSource -match '\b(?:fromJSON|toJSON)\b') {
+                    # SQFLint 0.12.4 predates Arma 3's 2.18 JSON commands. Give
+                    # it syntax-equivalent unary commands while retaining the
+                    # real, data-only engine commands in the shipped source.
+                    $temporaryLintTarget = Join-Path $sqfFile.DirectoryName ('.' + $sqfFile.BaseName + '.raca-lint-' + [guid]::NewGuid().ToString('N') + $sqfFile.Extension)
+                    $lintSource = $sqfSource -replace '\bfromJSON\b', 'parseSimpleArray' -replace '\btoJSON\b', 'str'
+                    [System.IO.File]::WriteAllText($temporaryLintTarget, $lintSource, [System.Text.UTF8Encoding]::new($false))
+                    $lintTarget = $temporaryLintTarget
+                }
+
+                & $javaCommand.Source '-jar' $SqfLintJar '-nw' '-oc' $lintTarget
+                $toolExitCode = $LASTEXITCODE
+            }
+            finally {
+                if ($null -ne $temporaryLintTarget -and (Test-Path -LiteralPath $temporaryLintTarget -PathType Leaf)) {
+                    Remove-Item -LiteralPath $temporaryLintTarget -Force
+                }
+            }
 
             if ($toolExitCode -ne 0) {
                 $failures.Add("SQFLint rejected '$($sqfFile.FullName)' (exit code $toolExitCode).")

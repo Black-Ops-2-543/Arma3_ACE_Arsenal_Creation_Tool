@@ -31,9 +31,11 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 ## 2. Catalogue and presentation
 
 - [ ] The catalogue finishes loading and reports a non-zero item count.
+- [ ] The centered title reads **ARSENAL CREATION ASSISTANT** and no **PRESET LIBRARY** heading remains.
+- [ ] **Preset Management** contains preset files and adoption tools; **Assignment** contains the table, search, filters, and bulk selection tools.
 - [ ] Included, Item, Class Name, Mod, and Author headers align with their columns at the active UI scale.
-- [ ] Weapons, Magazines, Equipment, Backpacks, and Facewear filters show plausible content.
-- [ ] **Magazines** excludes grenades, mines, placed explosives, and ACE medical supplies.
+- [ ] Weapons, Attachments, Magazines, Uniforms, Vests, Backpacks, Headgear, NVGs, Facewear, Equipment, and Included filters show plausible content.
+- [ ] **Magazines** includes ammunition magazines, rockets, 40 mm rounds, grenades, mines, and placed explosives.
 - [ ] **Equipment** includes magazine-backed ACE medical supplies such as `ACE_painkillers` when available.
 - [ ] Searching `ACE_` does not return the vanilla `.338 LM 10Rnd Mag` / `10Rnd_338_Mag` solely because ACE patches it.
 - [ ] Searching a display name, exact class, content mod name, author, and owning add-on each finds the expected item.
@@ -56,7 +58,21 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Saving the same name with different content overwrites it rather than creating a case-variant duplicate.
 - [ ] Restarting Arma with the same profile preserves the preset.
 
-## 5. Eden integration
+## 5. Preset adoption
+
+- [ ] A child can select an adopted source, apply it, then save child-only additions and source-item removals.
+- [ ] Every item in the adopted source snapshot is light blue, whether currently included or excluded.
+- [ ] **Inherited** appears only while an adoption exists and shows the complete source snapshot; **Included** shows the current result.
+- [ ] The summary reports total, source-included, added, and removed counts accurately.
+- [ ] Loading a child after its source changes warns without changing the child's stored selection.
+- [ ] **Adopt / Refresh** deliberately reapplies the changed source and the saved overrides.
+- [ ] Selecting a descendant as a source is rejected as circular adoption.
+- [ ] **Make Standalone** preserves the current item result and removes the source relationship.
+- [ ] JSON export/import preserves safe adoption metadata.
+- [ ] An otherwise-valid JSON document larger than 1 MB imports without RACA rejecting it for size.
+- [ ] SQF, class-list, Eden, and runtime data contain the complete standalone item result and no required source reference.
+
+## 6. Eden integration
 
 - [ ] Any placed object's attributes contain a non-empty **Restricted Arsenals** category.
 - [ ] No `Cfg3DEN/Attributes.RACA_PresetAttribute` error appears.
@@ -65,7 +81,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Selecting a preset, confirming attributes, reopening them, and saving/reloading the scenario preserves the selection.
 - [ ] Selecting **&lt;None&gt;** persists and leaves the object without an RACA-applied arsenal.
 
-## 6. Runtime and multiplayer
+## 7. Runtime and multiplayer
 
 - [ ] In single-player preview, the configured object's ACE Arsenal interaction opens normally.
 - [ ] Only the embedded preset's classes are available.

@@ -13,3 +13,4 @@ _combo lbAdd "<Select a saved preset>";
     _combo lbAdd (_x select 2);
 } forEach _library;
 _combo lbSetCurSel 0;
+[_display] call RACA_fnc_refreshBaseCombo;

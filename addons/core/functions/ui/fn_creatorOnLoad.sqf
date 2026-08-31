@@ -5,18 +5,28 @@ if (isNull _display) exitWith {};
 
 uiNamespace setVariable ["RACA_builderDisplay", _display];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+uiNamespace setVariable ["RACA_builderComposition", []];
+uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 uiNamespace setVariable ["RACA_visibleClasses", []];
 
-private _category = _display displayCtrl RACA_IDC_CATEGORY;
-lbClear _category;
+[_display] call RACA_fnc_refreshCategoryCombo;
+
+private _exportFormat = _display displayCtrl RACA_IDC_EXPORT_FORMAT;
+lbClear _exportFormat;
 {
-    private _index = _category lbAdd _x;
-    _category lbSetData [_index, _x];
-} forEach ["All", "Weapons", "Magazines", "Equipment", "Backpacks", "Facewear"];
-_category lbSetCurSel 0;
+    _x params ["_label", "_data"];
+    private _index = _exportFormat lbAdd _label;
+    _exportFormat lbSetData [_index, _data];
+} forEach [
+    ["JSON preset", "JSON"],
+    ["Reusable SQF", "SQF"],
+    ["Class list", "LIST"]
+];
+_exportFormat lbSetCurSel 0;
 
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_updateSummary;
+[_display, "PRESETS"] call RACA_fnc_switchCreatorTab;
 
 private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
 _list ctrlEnable false;

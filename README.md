@@ -34,10 +34,12 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
-- separates weapons, conventional magazines, equipment, backpacks, and facewear;
-- treats grenades, mines, explosives, and magazine-backed ACE medical items as equipment;
+- separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
+- keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
 - saves named presets in the active Arma profile and supports loading and case-insensitive overwriting;
+- adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
+- exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - adds a preset selector and Refresh button to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
 - applies the selection through ACE's public arsenal API;
@@ -66,14 +68,22 @@ Start Arma 3 after confirming the dependencies load without errors.
 
 Open **Tutorials > Restricted Arsenal Creator**. RACA loads a catalogue from the current session.
 
-The creator provides:
+The creator is divided into two tabs. **Preset Management** contains naming, saving, loading, import/export, and adoption maintenance. **Assignment** contains the complete item table, search, category filters, current inclusion state, and bulk include/exclude tools.
+
+The controls include:
 
 - **Search** — searches names, class names, categories, mods, owning add-ons, and authors;
 - **Category** — filters by item type;
 - **Included** — shows whether a row belongs to the current selection;
 - **Saved presets** — chooses a previously saved list;
 - **Save / Overwrite** — stores the current selection under the entered name;
-- **Load** — loads the selected saved preset; and
+- **Load** — loads the selected saved preset;
+- **Adopted source preset** — selects an optional saved source for the current preset;
+- **Adopt / Refresh** — adopts that source or deliberately reapplies a changed source while preserving additions and removals;
+- **Make Standalone** — saves the complete current result with no source link;
+- **Export format** — chooses round-trip JSON, reusable mission SQF, or a simple class list;
+- **Export** — copies the selected preset in that format;
+- **Import Auto** — detects and safely imports RACA JSON, an existing SQF arsenal, or a class list from the clipboard; and
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk.
 
 ### 3. Build the selection
@@ -83,9 +93,9 @@ Use Category and Search to narrow the catalogue. Click a row to toggle it, or se
 For a basic rifleman arsenal:
 
 1. Use **Weapons** to include the permitted rifles and launchers.
-2. Search for their magazines and use **Magazines**.
-3. Use **Equipment** for medical supplies, grenades, mines, and other permitted equipment.
-4. Add permitted uniforms, vests, helmets, facewear, and backpacks.
+2. Use **Magazines** for ammunition, rockets, 40 mm rounds, grenades, mines, and explosives.
+3. Use **Equipment** for maps, watches, binoculars, medical supplies, inventory items, and anything not covered by a dedicated category.
+4. Add permitted uniforms, vests, headgear, NVGs, facewear, backpacks, and attachments.
 5. Confirm the summary shows a non-zero item count.
 
 Bulk actions affect only rows currently visible through the active filters. Use **Exclude Visible** to remove a filtered group, or **Clear All** to start over.
@@ -96,7 +106,36 @@ Enter a descriptive name such as \`Rifleman - Training\`, \`Pilot - Rotary Wing\
 
 RACA rejects an empty name and an empty selection. Saving the same name again updates the existing preset instead of creating a case-variant duplicate. Presets are stored in the active Arma profile.
 
-### 5. Assign it to an Eden object
+### 5. Adopt a source preset
+
+To derive a role-specific preset from a common inventory:
+
+1. Load an existing adopted preset to refresh it, or load/craft the selection that should become a new child.
+2. Enter a unique child name.
+3. Choose an **Adopted source preset** and press **Adopt / Refresh**.
+4. Open **Assignment**. Every item from the adopted source is light blue, including source items that you exclude. Use **Inherited** to view only that complete source snapshot and **Included** to view the current result.
+5. Include child-only items and exclude source items that this role must not receive.
+6. Press **Save / Overwrite**.
+
+RACA stores complete final item buckets alongside the adopted source name, a source fingerprint, additive overrides, and subtractive overrides. Loading never applies a changed source silently. If the source changed, RACA warns and continues showing the child's last saved complete contents; press **Adopt / Refresh** to apply the updated source deliberately, then save. A missing source produces a similar warning without breaking the stored child.
+
+Circular adoption is rejected. **Make Standalone** immediately saves the current result without adoption metadata. Whether a preset remains adopted or becomes standalone, Eden embeds only a complete standalone copy in the mission, so a deployed mission never needs the author's profile or an unresolved source reference.
+
+### 6. Export or import the selection
+
+Select a saved preset, or leave **Saved presets** on **<Current selection>**, then choose an export format:
+
+- **JSON preset** is RACA's authoritative round-trip format. Choose **Export**, paste the clipboard into a UTF-8 `.json` file, and archive or share it. To restore it, copy the complete document and choose **Import Auto**. A JSON export preserves the preset name and all cargo buckets; the importer validates that exact versioned structure.
+- **Reusable SQF** creates a complete mission script. Save the clipboard text as `raca_arsenal.sqf` in the 3den mission folder. Put `[this] execVM "raca_arsenal.sqf";` in the Init field of every object that should use it. All of those objects share the same file and therefore stay linked to one maintained list. The script runs the ACE setup on the server and synchronizes the resulting arsenal.
+- **Class list** creates a single comma-separated list such as `arifle_MX_F, FirstAidKit, 30Rnd_65x39_caseless_mag` for documentation or other tooling.
+
+To migrate an existing unit arsenal, copy the complete SQF file, enter the desired imported preset name in **Preset name**, and choose **Import Auto**. RACA extracts quoted, currently available config class names from common SQF arrays—including files that combine category arrays with `+`—without compiling or executing the file. It reports and excludes missing quoted classes. The same importer accepts the simple class-list export.
+
+Duplicate preset names prompt for overwrite or a uniquely named imported copy. JSON is the guaranteed RACA-to-RACA interchange path; SQF import is intentionally a conservative migration parser because arbitrary SQF can compute its item list at runtime.
+
+Clipboard import is available in the single-player creator only. Arma disables `copyFromClipboard` in multiplayer for security reasons. For format details, compatibility notes, and examples, see [Preset interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
+
+### 7. Assign it to an Eden object
 
 Close the creator and open Eden. Place or select the object that should provide the arsenal and open its attributes.
 
@@ -111,7 +150,7 @@ RACA stores a complete copy of the selected preset in the scenario attribute. Ch
 
 Choose **<None>** to remove RACA's assignment from the object.
 
-### 6. Test the mission
+### 8. Test the mission
 
 Preview the mission and interact with the configured object through ACE. It should open the normal ACE Arsenal interface, but only classes in the embedded preset should be available.
 
@@ -137,6 +176,10 @@ sequenceDiagram
 
 Presets are stored in the profile variable \`RACA_presetLibrary_v1\`. They are authoring data, not a runtime dependency of a saved mission. Eden embeds the selected preset in the scenario.
 
+Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, and unsupported versions are rejected. RACA imposes no fixed byte ceiling; the practical limit is the memory available to Arma and the operating-system clipboard. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
+
+Adopted presets remain authoring conveniences. Their stored final buckets are always complete. JSON preserves safe adoption metadata for profile-to-profile editing, while class-list and SQF exports are intentionally standalone. Eden also strips adoption metadata before writing the object attribute.
+
 ### Missing content mods
 
 RACA validates the embedded selection at mission start. Classes unavailable in the active mod set are skipped while valid classes are applied. Missing-content warnings are written to the RPT with the \`[RACA]\` prefix.
@@ -150,6 +193,8 @@ Before applying a preset, RACA removes the previously registered ACE virtual ars
 ### Multiplayer
 
 The server initializes the arsenal and the configured contents are synchronized for clients and JIP. Multiplayer acceptance should still be verified in-game because the Arma engine is authoritative.
+
+The generated **Reusable SQF** export is separate from RACA's Eden integration: it is a standalone ACE script with no RACA runtime dependency. It validates its object argument, runs on the server, removes an earlier ACE virtual arsenal, and initializes the exported classes globally.
 
 ## Troubleshooting
 
@@ -185,6 +230,7 @@ Static validation covers configuration structure, SQF syntax, PBO prefixes, miss
 - \`addons/core\` — creator mission, catalogue scanning, preset storage, validation, and ACE application;
 - \`addons/eden\` — Eden object attribute and preset selection controls;
 - \`docs/IN_GAME_TEST_CHECKLIST.md\` — in-game release checklist;
+- \`docs/PORTABLE_PRESET_FORMAT.md\` — JSON, SQF, and class-list interchange formats and file workflows;
 - \`tools/validate.ps1\` — source and configuration validation; and
 - \`tools/build.ps1\` — PBO packaging and checksum generation.
 

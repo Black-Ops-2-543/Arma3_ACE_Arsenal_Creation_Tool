@@ -3,7 +3,8 @@
  * currently loaded base game, DLC, and mods.
  *
  * Record layout:
- * [displayName, className, category, bucket, modName, author, picture, searchBlob]
+ * [displayName, className, category, bucket, modName, author, picture,
+ *  searchBlob, sourceAddon]
  */
 params [["_display", displayNull, [displayNull]]];
 
@@ -85,7 +86,8 @@ private _total = count _classNames;
             _modName,
             _author,
             _picture,
-            _searchBlob
+            _searchBlob,
+            _sourceAddon
         ];
     };
 

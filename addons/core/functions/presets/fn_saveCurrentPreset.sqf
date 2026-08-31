@@ -17,6 +17,66 @@ if (_itemCount isEqualTo 0) exitWith {
 
 private _library = call RACA_fnc_getPresetLibrary;
 private _normalizedName = toLowerANSI _name;
+private _baseCombo = _display displayCtrl RACA_IDC_BASE_PRESET;
+private _baseSelection = lbCurSel _baseCombo;
+private _compositionError = "";
+
+if (_baseSelection > 0) then {
+    private _parent = _library param [_baseSelection - 1, []];
+    ([_parent] call RACA_fnc_validatePreset) params ["_validatedParent"];
+    if (_validatedParent isEqualTo []) then {
+            _compositionError = "The selected adopted source is invalid.";
+    } else {
+        private _parentName = _validatedParent select 2;
+        if ([_name, _parentName, _library] call RACA_fnc_wouldCreateCycle) then {
+            _compositionError = "Save rejected because this adoption would create a circular source link.";
+        } else {
+            private _parentClasses = createHashMap;
+            {
+                {_parentClasses set [_x, true]} forEach _x;
+            } forEach (_validatedParent select 3);
+
+            private _finalClasses = createHashMap;
+            {
+                {_finalClasses set [_x, true]} forEach _x;
+            } forEach (_preset select 3);
+
+            private _additions = [[], [], [], []];
+            {
+                private _bucketIndex = _forEachIndex;
+                {
+                    if !(_parentClasses getOrDefault [_x, false]) then {
+                        (_additions select _bucketIndex) pushBack _x;
+                    };
+                } forEach _x;
+            } forEach (_preset select 3);
+
+            private _removals = [];
+            {
+                {
+                    if !(_finalClasses getOrDefault [_x, false]) then {
+                        _removals pushBackUnique _x;
+                    };
+                } forEach _x;
+            } forEach (_validatedParent select 3);
+            _removals sort true;
+
+            _preset pushBack [
+                "RACA_ADOPTION",
+                1,
+                _parentName,
+                [_validatedParent] call RACA_fnc_fingerprintPreset,
+                _additions,
+                _removals
+            ];
+        };
+    };
+};
+
+if (_compositionError isNotEqualTo "") exitWith {
+    [_display, _compositionError] call RACA_fnc_setStatus;
+};
+
 private _existingIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 
 if (_existingIndex < 0) then {
@@ -27,9 +87,14 @@ if (_existingIndex < 0) then {
 
 profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
 saveProfileNamespace;
+uiNamespace setVariable ["RACA_builderComposition", [_preset] call RACA_fnc_getComposition];
 [_display] call RACA_fnc_refreshPresetCombo;
 
 private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 _combo lbSetCurSel (_savedIndex + 1);
-[_display, format ["Saved '%1' with %2 included items.", _name, _itemCount]] call RACA_fnc_setStatus;
+private _composition = [_preset] call RACA_fnc_getComposition;
+private _compositionSuffix = if (_composition isEqualTo []) then {""} else {
+    format [" with adopted source '%1'", _composition select 2]
+};
+[_display, format ["Saved '%1' with %2 included items%3.", _name, _itemCount, _compositionSuffix]] call RACA_fnc_setStatus;
