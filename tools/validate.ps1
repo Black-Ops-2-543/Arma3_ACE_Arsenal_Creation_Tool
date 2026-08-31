@@ -420,6 +420,9 @@ if (Test-Path -LiteralPath $coreConfigPath -PathType Leaf) {
             $failures.Add("CfgRemoteExec is missing the controlled runtime endpoint '$remoteFunction'.")
         }
     }
+    if ($coreConfig -notmatch 'class\s+RACA_fnc_registerActions\s*\{[^}]*allowedTargets\s*=\s*0\s*;[^}]*jip\s*=\s*1\s*;') {
+        $failures.Add("Only the sanitized client action registrar must be enabled for persistent JIP execution.")
+    }
 }
 
 $applyObjectPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_applyObjectConfig.sqf'
@@ -427,8 +430,17 @@ if (Test-Path -LiteralPath $applyObjectPath -PathType Leaf) {
     $applyObject = Get-Content -Raw -LiteralPath $applyObjectPath
     if ($applyObject -notmatch '!isServer\s*\|\|' -or
         $applyObject -notmatch 'RACA_objectConfig"\s*,\s*_config\s*,\s*false' -or
-        $applyObject -notmatch 'RACA_fnc_buildActionManifest') {
+        $applyObject -notmatch 'RACA_fnc_buildActionManifest' -or
+        $applyObject -notmatch 'remoteExecCall\s*\["RACA_fnc_registerActions"\s*,\s*0\s*,\s*_object\s*\]') {
         $failures.Add("Runtime object application must stay server-only, keep full configuration private, and broadcast only an action manifest.")
+    }
+}
+
+$bulkUpdatePath = Join-Path $addonsDirectory 'core\functions\runtime\fn_bulkUpdateObjects.sqf'
+if (Test-Path -LiteralPath $bulkUpdatePath -PathType Leaf) {
+    $bulkUpdate = Get-Content -Raw -LiteralPath $bulkUpdatePath
+    if ($bulkUpdate -notmatch 'remoteExecCall\s*\["RACA_fnc_registerActions"\s*,\s*0\s*,\s*_object\s*\]') {
+        $failures.Add("Clearing an object must replace its object-bound JIP action registration.")
     }
 }
 

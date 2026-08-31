@@ -26,6 +26,6 @@ _object setVariable ["RACA_objectConfig", _config, false];
 _object setVariable ["RACA_appliedPreset", nil, true];
 [_object, _config] call RACA_fnc_registerObject;
 private _manifest = [_config] call RACA_fnc_buildActionManifest;
-[_object, _manifest] remoteExecCall ["RACA_fnc_registerActions", 0, format ["RACA_actions_%1", netId _object]];
+[_object, _manifest] remoteExecCall ["RACA_fnc_registerActions", 0, _object];
 ["ADMIN_CHANGE", objNull, _object, "", ["Object configuration applied", count (_config select 2)]] call RACA_fnc_logEvent;
 true

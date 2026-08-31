@@ -110,6 +110,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 
 - [ ] In single-player preview, the configured object's ACE Arsenal interaction opens normally.
 - [ ] Every enabled slot creates its own named ACE interaction and opens only its embedded preset's classes.
+- [ ] A client joining after the object was configured receives the same slot actions, and deleting the object leaves no stale interactions or JIP registration errors in the RPT.
 - [ ] Disabled slots create no usable interaction.
 - [ ] Hidden denied slots are invisible to an unauthorized player; visible denied slots show the configured denial message without opening.
 - [ ] A client cannot open a slot for another player unit, open from beyond the configured distance, or begin a second session while one is active.
