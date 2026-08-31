@@ -53,6 +53,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Removing a tag from selected rows and confirmed tag deletion change only tag metadata; current draft inclusion, favorites, presets, and mission objects remain unchanged, and temporarily unavailable tagged classes return when their content mod is reloaded.
 - [ ] **Saved Views** captures the complete search/category/mod/add-on/author/tag/sort workspace, migrates older views with **All tags**, restores it after other filters change, persists after restarting Arma, and never changes the draft selection.
 - [ ] Re-capturing a case-insensitive duplicate view requires confirmation; deleting a view requires confirmation and leaves every preset and the current draft intact.
+- [ ] Cancelling duplicate saved-view or custom role-pack replacement leaves the prior record unchanged and does not show a false success message; reaching either collection limit behaves the same way.
 - [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
 - [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.
 - [ ] **Details** and Enter open the selected item inspector; its class/config/source/type/compatibility metadata matches the active row, its draft/favorite/limit state updates immediately, and Copy Details copies the visible report.
@@ -97,6 +98,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Preflight reports ACE3, CBA_A3, and RACA Eden health plus active catalogue class/mod/add-on/author/category counts; the support bundle contains the same environment evidence.
 - [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
 - [ ] Item and category limits save and reload each reset choice (Never, Every interaction, Player respawn, Admin: new round, and Admin: new phase), and JSON round-trip preserves the same four-field policy records.
+- [ ] The Max field accepts only whole numbers at or above `-1`; blank, decimal, alphabetic, and values below `-1` are rejected without changing the draft or Undo history.
 
 ## 5. Preset adoption
 
@@ -119,6 +121,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Opening object attributes produces no control/array type error from `RACA_fnc_edenAttributeOnLoad`.
 - [ ] **Configure slots** opens the RACA Eden configuration editor without an undefined-control or function error.
 - [ ] A slot can be added, named, assigned a preset, enabled/disabled, reordered, and removed before applying.
+- [ ] A slot name over 128 characters, denial message over 512 characters, icon path over 512 characters, or oversized condition value shows an inline error; slot navigation, reorder, condition changes, and Apply stop without discarding the invalid current field.
 - [ ] A single object can save and reload two differently named slots that reference the same or different presets.
 - [ ] Each slot independently preserves its AND/OR mode, side/faction/group/rank/unit/UID/vehicle-role/item/permission conditions, denial message, icon, and hide-when-denied state.
 - [ ] **Simulate access** lists every playable or AI soldier in the mission; the chosen unit shows correct PASS/FAIL rows for editor-verifiable conditions, labels UID/permission conditions UNKNOWN, computes AND/OR without treating unknown as pass, and copies the same report.
@@ -130,6 +133,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Copy Report** produces a mission-wide record containing every configured object's type, entity ID, slot count, and full preflight findings.
 - [ ] A malformed or missing-content object appears as BLOCKED or WARN instead of disappearing from the dashboard.
 - [ ] Hand-edited wrong-type slot/access/limit fields, duplicate slot IDs, unsupported access conditions, and invalid condition values appear as specific BLOCKED findings and cannot be applied at runtime.
+- [ ] **Apply configuration** runs the same object preflight and refuses any BLOCKED transaction while keeping the editor open and the working changes available for correction.
 - [ ] Double-clicking a dashboard row selects only its corresponding Eden object.
 - [ ] Bulk assign changes every selected object and no unselected object after confirmation.
 - [ ] Bulk clear removes RACA configuration only from selected objects, and one Eden Undo reverses the full bulk operation.
@@ -145,6 +149,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A client cannot open a slot for another player unit, open from beyond the configured distance, or begin a second session while one is active.
 - [ ] Adding a class outside the slot through any concurrent inventory route causes the complete pre-session loadout to be restored.
 - [ ] Exact-class and category limits enforce quantities stored inside uniform, vest, and backpack cargo stacks.
+- [ ] When a class has both an exact limit and a category limit, one issued item consumes both counters; exhausting either policy blocks that class, and the category counter totals all issued classes in the category.
 - [ ] `-1` remains unlimited; interaction-scope limits reset on each open; player/life/mission/arsenal limits persist and reset only at the selected Never/interaction/respawn/round/phase/manual boundary.
 - [ ] A non-interaction limit set to **Every interaction** resets before both normal ACE Arsenal opening and saved-loadout application; player/life counters reset only for the triggering UID while mission/arsenal counters reset for the shared slot.
 - [ ] Exhausted exact classes and exhausted categories are absent from the next ACE session and the remaining-quota message is correct.
@@ -156,15 +161,18 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Repeated previews do not accumulate unrestricted ACE virtual cargo.
 - [ ] The client has no public `RACA_objectConfig`, `RACA_quotaState`, or `RACA_openSessions` data containing the full server policy.
 - [ ] A disconnect, respawn, or stale-session timeout leaves no locked session and does not preserve unauthorized equipment.
+- [ ] Respawning while an arsenal is open immediately removes the old unit's server session, permits the new unit to use arsenals, and leaves no delayed quota commit from the old display.
 - [ ] Only a logged-in server admin or a UID in `RACA_adminUIDs` sees the **RACA Administration** ACE self-action.
 - [ ] The admin dashboard reports every registered object, slot names/states, quota-record count, active-session count, and the newest audit records without exposing full embedded presets.
 - [ ] Admin refresh, object quota reset, global quota reset, enable, disable, and confirmed clear execute on the server and refresh the displayed snapshot.
+- [ ] Cancelling an administration Clear/global-reset prompt sends no server command and leaves configuration/quota counts unchanged.
 - [ ] Copy Audit produces a readable clipboard record and a non-admin client cannot request a snapshot or execute an admin command by remote call.
 - [ ] With an initial remote client connected, **MP Rehearsal > Start New** records the server and every current interface as SERVER, HOST (listen server), or CLIENT without exposing embedded presets.
 - [ ] A client joining after Start New announces readiness, is classified as JIP, and reports the same configured-object/enabled-slot action-manifest counts.
 - [ ] Disconnecting and reconnecting an initial-client Steam UID keeps that participant in its initial role and does not satisfy the distinct JIP-client gate; a missing UID produces explicit failed identity evidence.
 - [ ] Missing dependencies, missing local manifests, and slot-count mismatches produce FAIL with specific issues; absent initial/JIP roles remain WAITING while active and become INCOMPLETE when finalized.
 - [ ] Refresh Probes replaces each role/UID's latest evidence, Finalize freezes new JIP evidence, Copy Report matches the visible gates/participants, and a non-admin cannot start or inspect the rehearsal.
+- [ ] Cancelling **Start New** when a rehearsal report already exists does not replace it or send a new rehearsal request.
 - [ ] On a hosted multiplayer server, the host sees the restricted contents.
 - [ ] A connected client sees the same restricted contents.
 - [ ] A client joining in progress sees the same restricted contents.

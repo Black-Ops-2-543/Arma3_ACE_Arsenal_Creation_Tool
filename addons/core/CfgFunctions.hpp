@@ -97,6 +97,7 @@ class CfgFunctions {
             class pushCreatorHistory {};
             class quickStartApply {};
             class quickStartOnLoad {};
+            class readQuantityPolicy {};
             class queueDraftRecovery {};
             class queueRefresh {};
             class refreshHistoryButtons {};

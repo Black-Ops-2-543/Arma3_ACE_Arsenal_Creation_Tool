@@ -221,6 +221,43 @@ if (Test-Path -LiteralPath $edenSelectSlotPath -PathType Leaf) {
     }
 }
 
+$edenCommitPath = Join-Path $addonsDirectory 'eden\functions\fn_edenEditorCommitSlot.sqf'
+$edenApplyPath = Join-Path $addonsDirectory 'eden\functions\fn_edenEditorApply.sqf'
+$edenCommitCallers = @(
+    (Join-Path $addonsDirectory 'eden\functions\fn_edenEditorAddSlot.sqf'),
+    (Join-Path $addonsDirectory 'eden\functions\fn_edenEditorAddCondition.sqf'),
+    (Join-Path $addonsDirectory 'eden\functions\fn_edenEditorMoveSlot.sqf'),
+    (Join-Path $addonsDirectory 'eden\functions\fn_edenEditorRemoveCondition.sqf')
+)
+if (-not (Test-Path -LiteralPath $edenCommitPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $edenApplyPath -PathType Leaf) -or
+    $edenCommitCallers.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add('The Eden slot editor must preserve transactional validation across every editing action.')
+}
+else {
+    $edenCommit = Get-Content -Raw -LiteralPath $edenCommitPath
+    $edenApply = Get-Content -Raw -LiteralPath $edenApplyPath
+    if ($edenCommit -notmatch 'count _name\) > 128' -or
+        $edenCommit -notmatch 'count _denialMessage\) > 512' -or
+        $edenCommit -notmatch 'count _icon\) > 512' -or
+        $edenApply -notmatch 'if !\(\[_display, -1, false\] call RACA_fnc_edenEditorCommitSlot\)' -or
+        $edenApply -notmatch 'RACA_fnc_preflightObjectConfig') {
+        $failures.Add('Eden slot edits must validate field bounds, stop when commit fails, and pass object preflight before application.')
+    }
+    foreach ($edenCommitCaller in $edenCommitCallers) {
+        $edenCommitCallerSource = Get-Content -Raw -LiteralPath $edenCommitCaller
+        if ($edenCommitCallerSource -notmatch 'if !\(\[_display, -1, false\] call RACA_fnc_edenEditorCommitSlot\)') {
+            $failures.Add("Eden editor action '$([System.IO.Path]::GetFileName($edenCommitCaller))' must stop when the current slot cannot be committed.")
+        }
+    }
+    if ((Test-Path -LiteralPath $edenSelectSlotPath -PathType Leaf)) {
+        $edenSelectSlot = Get-Content -Raw -LiteralPath $edenSelectSlotPath
+        if ($edenSelectSlot -notmatch '_canLeavePrevious' -or $edenSelectSlot -notmatch 'lbSetCurSel _previous') {
+            $failures.Add('Eden slot navigation must remain on the current slot when its pending fields cannot be committed.')
+        }
+    }
+}
+
 $edenBulkPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardBulk.sqf'
 if (Test-Path -LiteralPath $edenBulkPath -PathType Leaf) {
     $edenBulk = Get-Content -Raw -LiteralPath $edenBulkPath
@@ -264,7 +301,10 @@ else {
         'INVALID_LIMIT_CONTAINER',
         'INVALID_LIMIT_VALUE_TYPE',
         'INVALID_LIMIT_SCOPE_TYPE',
-        'INVALID_RESET_POLICY_TYPE'
+        'INVALID_RESET_POLICY_TYPE',
+        'SLOT_NAME_TOO_LONG',
+        'DENIAL_MESSAGE_TOO_LONG',
+        'SLOT_ICON_TOO_LONG'
     )) {
         if ($objectPreflight -notmatch [regex]::Escape($requiredDiagnostic)) {
             $failures.Add("Object preflight is missing fail-closed diagnostic '$requiredDiagnostic'.")
@@ -533,6 +573,43 @@ foreach ($modalWorkflowRelativePath in $modalWorkflowPaths) {
     }
 }
 
+$confirmationGatePaths = @{
+    'core\functions\runtime\fn_adminExecute.sqf' = @('private _confirmed = true', 'if (!_confirmed) exitWith {false}', 'remoteExecCall ["RACA_fnc_adminCommand", 2]')
+    'core\functions\runtime\fn_rehearsalExecute.sqf' = @('private _confirmed = true', 'if (!_confirmed) exitWith {false}', 'remoteExecCall ["RACA_fnc_requestRehearsal", 2]')
+}
+foreach ($confirmationGateRelativePath in $confirmationGatePaths.Keys) {
+    $confirmationGatePath = Join-Path $addonsDirectory $confirmationGateRelativePath
+    if (-not (Test-Path -LiteralPath $confirmationGatePath -PathType Leaf)) {
+        $failures.Add("Confirmed action workflow '$confirmationGateRelativePath' is missing.")
+        continue
+    }
+
+    $confirmationGateSource = Get-Content -Raw -LiteralPath $confirmationGatePath
+    foreach ($requiredPattern in $confirmationGatePaths[$confirmationGateRelativePath]) {
+        if (-not $confirmationGateSource.Contains($requiredPattern)) {
+            $failures.Add("Confirmed action workflow '$confirmationGateRelativePath' must stop after cancellation and is missing '$requiredPattern'.")
+        }
+    }
+}
+
+foreach ($guardedCaptureRelativePath in @(
+    'core\functions\ui\fn_rolePackCapture.sqf',
+    'core\functions\ui\fn_savedCatalogViewCapture.sqf'
+)) {
+    $guardedCapturePath = Join-Path $addonsDirectory $guardedCaptureRelativePath
+    if (-not (Test-Path -LiteralPath $guardedCapturePath -PathType Leaf)) {
+        $failures.Add("Guarded profile capture '$guardedCaptureRelativePath' is missing.")
+        continue
+    }
+
+    $guardedCaptureSource = Get-Content -Raw -LiteralPath $guardedCapturePath
+    foreach ($requiredPattern in @('private _canSave = true', '_canSave = false', 'if (!_canSave) exitWith {}')) {
+        if (-not $guardedCaptureSource.Contains($requiredPattern)) {
+            $failures.Add("Guarded profile capture '$guardedCaptureRelativePath' must not report or persist a cancelled replacement and is missing '$requiredPattern'.")
+        }
+    }
+}
+
 foreach ($uiTextRelativePath in @(
     'core\functions\presets\fn_deletePreset.sqf',
     'core\functions\ui\fn_refreshItemList.sqf',
@@ -735,6 +812,23 @@ if (Test-Path -LiteralPath $finishSessionPath -PathType Leaf) {
         $finishSession -notmatch '_unauthorized') {
         $failures.Add("Session completion must use the server-observed loadout, reject unauthorized additions, and keep quota state server-local.")
     }
+    if ($finishSession -notmatch '_applicableRuleIds' -or
+        $finishSession -notmatch '_exactRuleIndex' -or
+        $finishSession -notmatch '_categoryRuleIndex' -or
+        $finishSession -notmatch 'forEach _applicableRuleIds') {
+        $failures.Add("Session accounting must charge both exact-class and category quota rules when both apply to one issued item.")
+    }
+}
+
+$runtimeInitPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_initRuntime.sqf'
+if (Test-Path -LiteralPath $runtimeInitPath -PathType Leaf) {
+    $runtimeInit = Get-Content -Raw -LiteralPath $runtimeInitPath
+    if ($runtimeInit -notmatch 'EntityRespawned' -or
+        $runtimeInit -notmatch '_oldEntity' -or
+        $runtimeInit -notmatch 'RACA_openSessions' -or
+        $runtimeInit -notmatch 'Old arsenal sessions discarded') {
+        $failures.Add("Player respawn must immediately discard sessions that still reference the old unit.")
+    }
 }
 
 $savedLoadoutPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_applyPlayerLoadout.sqf'
@@ -787,11 +881,13 @@ if (Test-Path -LiteralPath $quotaStatusPath -PathType Leaf) {
 
 $limitResetUiPath = Join-Path $addonsDirectory 'core\functions\ui\fn_creatorOnLoad.sqf'
 $limitResetSyncPath = Join-Path $addonsDirectory 'core\functions\ui\fn_syncLimitPolicy.sqf'
+$quantityPolicyPath = Join-Path $addonsDirectory 'core\functions\ui\fn_readQuantityPolicy.sqf'
 $categoryLimitPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setCategoryLimit.sqf'
 $itemLimitPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setItemLimit.sqf'
 $creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
 if (-not (Test-Path -LiteralPath $limitResetUiPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $limitResetSyncPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $quantityPolicyPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $categoryLimitPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $itemLimitPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $creatorUiPath -PathType Leaf)) {
@@ -800,6 +896,7 @@ if (-not (Test-Path -LiteralPath $limitResetUiPath -PathType Leaf) -or
 else {
     $limitResetUi = Get-Content -Raw -LiteralPath $limitResetUiPath
     $limitResetSync = Get-Content -Raw -LiteralPath $limitResetSyncPath
+    $quantityPolicy = Get-Content -Raw -LiteralPath $quantityPolicyPath
     $categoryLimit = Get-Content -Raw -LiteralPath $categoryLimitPath
     $itemLimit = Get-Content -Raw -LiteralPath $itemLimitPath
     $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
@@ -811,9 +908,12 @@ else {
     if ($creatorUi -notmatch 'RACA_IDC_LIMIT_RESET' -or
         $limitResetSync -notmatch '_scope isEqualTo "interaction"' -or
         $limitResetSync -notmatch 'ctrlEnable false' -or
-        $itemLimit -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $quantityPolicy -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $quantityPolicy -notmatch 'trim ctrlText' -or
+        $quantityPolicy -notmatch 'toArray _limitText' -or
+        $itemLimit -notmatch 'RACA_fnc_readQuantityPolicy' -or
         $itemLimit -notmatch '_scope, _reset' -or
-        $categoryLimit -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $categoryLimit -notmatch 'RACA_fnc_readQuantityPolicy' -or
         $categoryLimit -notmatch '_scope, _reset') {
         $failures.Add("Quantity authoring must store reset policy and force interaction scope to reset on every use.")
     }

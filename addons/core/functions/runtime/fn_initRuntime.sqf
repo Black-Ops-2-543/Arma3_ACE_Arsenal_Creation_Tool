@@ -7,7 +7,14 @@ if (isServer) then {
     addMissionEventHandler ["EntityRespawned", {
         params ["_newEntity", "_oldEntity"];
         _newEntity setVariable ["RACA_lifeIndex", (_oldEntity getVariable ["RACA_lifeIndex", 0]) + 1, true];
+        private _sessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+        {
+            private _record = _sessions get _x;
+            if ((_record param [1, objNull]) isEqualTo _oldEntity) then {_sessions deleteAt _x};
+        } forEach keys _sessions;
+        missionNamespace setVariable ["RACA_openSessions", _sessions];
         ["respawn", objNull, "", getPlayerUID _newEntity] call RACA_fnc_resetQuotas;
+        ["RESPAWN", _newEntity, objNull, "", ["Old arsenal sessions discarded"]] call RACA_fnc_logEvent;
     }];
     addMissionEventHandler ["HandleDisconnect", {
         params ["_unit", "_id", "_uid"];

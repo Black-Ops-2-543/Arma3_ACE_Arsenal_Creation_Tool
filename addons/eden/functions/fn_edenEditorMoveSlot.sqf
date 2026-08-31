@@ -1,6 +1,6 @@
 params [["_display", displayNull, [displayNull]], ["_direction", 0, [0]]];
 if (isNull _display || {_direction isEqualTo 0}) exitWith {false};
-[_display, -1, false] call RACA_fnc_edenEditorCommitSlot;
+if !([_display, -1, false] call RACA_fnc_edenEditorCommitSlot) exitWith {false};
 private _index = _display getVariable ["RACA_currentSlot", -1];
 private _config = _display getVariable ["RACA_workingConfig", []];
 private _slots = _config param [2, []];

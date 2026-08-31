@@ -34,11 +34,17 @@ if ((_rawConfig param [0, "", [""]]) isEqualTo "RACA_OBJECT_CONFIG") then {
             if (_rawSlotName isEqualTo "") then {
                 _entries pushBack ["WARNING", "EMPTY_SLOT_NAME", format ["Slot record %1 has no display name and will use its preset name.", _forEachIndex + 1], "", "", ""];
             };
+            if ((count _rawSlotName) > 128) then {
+                _entries pushBack ["ERROR", "SLOT_NAME_TOO_LONG", format ["Slot record %1 has a display name longer than 128 characters.", _forEachIndex + 1], "", "", ""];
+            };
             if ((count _x) > 3 && {!((_x select 3) isEqualType true)}) then {
                 _entries pushBack ["ERROR", "INVALID_SLOT_STATE", format ["Slot '%1' has a non-Boolean enabled state.", _rawSlotName], "", "", ""];
             };
             if ((count _x) > 6 && {!((_x select 6) isEqualType "")}) then {
                 _entries pushBack ["ERROR", "INVALID_SLOT_ICON", format ["Slot '%1' has a non-text interaction icon path.", _rawSlotName], "", "", ""];
+            };
+            if ((count _x) > 6 && {(_x select 6) isEqualType ""} && {(count (_x select 6)) > 512}) then {
+                _entries pushBack ["ERROR", "SLOT_ICON_TOO_LONG", format ["Slot '%1' has an interaction icon path longer than 512 characters.", _rawSlotName], "", "", ""];
             };
             if ((count _x) > 7 && {!((_x select 7) isEqualType true)}) then {
                 _entries pushBack ["ERROR", "INVALID_SLOT_VISIBILITY", format ["Slot '%1' has a non-Boolean hide-when-denied state.", _rawSlotName], "", "", ""];
@@ -92,6 +98,9 @@ if ((_rawConfig param [0, "", [""]]) isEqualTo "RACA_OBJECT_CONFIG") then {
                     };
                     if ((count _rawAccess) > 5 && {!((_rawAccess select 5) isEqualType "")}) then {
                         _entries pushBack ["ERROR", "INVALID_DENIAL_MESSAGE", format ["Slot '%1' has a non-text denial message.", _rawSlotName], "", "", ""];
+                    };
+                    if ((count _rawAccess) > 5 && {(_rawAccess select 5) isEqualType ""} && {(count (_rawAccess select 5)) > 512}) then {
+                        _entries pushBack ["ERROR", "DENIAL_MESSAGE_TOO_LONG", format ["Slot '%1' has a denial message longer than 512 characters.", _rawSlotName], "", "", ""];
                     };
                     if ((count _rawAccess) > 6 && {!((_rawAccess select 6) isEqualType [])}) then {
                         _entries pushBack ["ERROR", "INVALID_OPTIONAL_ITEMS", format ["Slot '%1' has a non-array optional-item collection.", _rawSlotName], "", "", ""];

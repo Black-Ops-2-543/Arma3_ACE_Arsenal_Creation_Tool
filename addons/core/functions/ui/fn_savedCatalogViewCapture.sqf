@@ -37,16 +37,19 @@ private _existing = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerAN
 [_display, _parent, _views, _record, _existing] spawn {
     disableSerialization;
     params ["_display", "_parent", "_views", "_record", "_existing"];
+    private _canSave = true;
     if (_existing >= 0) then {
         private _confirmed = [format ["Replace saved catalogue view '%1'?", _record select 2], "RACA Saved Views", true, true, _display] call BIS_fnc_guiMessage;
-        if (!_confirmed) exitWith {};
-        _views set [_existing, _record];
+        if (_confirmed) then {_views set [_existing, _record]} else {_canSave = false};
     } else {
-        if ((count _views) >= 50) exitWith {
+        if ((count _views) >= 50) then {
             (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "The 50-view limit has been reached. Delete an older saved view first.";
+            _canSave = false;
+        } else {
+            _views pushBack _record;
         };
-        _views pushBack _record;
     };
+    if (!_canSave) exitWith {};
     profileNamespace setVariable ["RACA_savedCatalogViews_v1", _views];
     saveProfileNamespace;
     [_display] call RACA_fnc_savedCatalogViewRefresh;

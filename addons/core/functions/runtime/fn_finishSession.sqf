@@ -51,15 +51,21 @@ private _allCountedClasses = keys _afterCounts;
         if (!(_allowedClasses getOrDefault [_className, false]) && {(([_className] call RACA_fnc_classifyClass) select 0) >= 0}) then {
             _unauthorized pushBack [_className, _delta];
         };
-        private _ruleIndex = _limits findIf {(_x select 0) isEqualTo _className};
-        if (_ruleIndex < 0) then {
-            ([_className] call RACA_fnc_classifyClass) params ["", "_category"];
-            _ruleIndex = _limits findIf {toLowerANSI (_x select 0) isEqualTo toLowerANSI format ["category:%1", _category]};
+        private _applicableRuleIds = [];
+        private _exactRuleIndex = _limits findIf {(_x select 0) isEqualTo _className};
+        if (_exactRuleIndex >= 0) then {
+            _applicableRuleIds pushBackUnique ((_limits select _exactRuleIndex) select 0);
         };
-        if (_ruleIndex >= 0) then {
-            private _ruleId = (_limits select _ruleIndex) select 0;
+        ([_className] call RACA_fnc_classifyClass) params ["", "_category"];
+        private _categoryRuleId = format ["category:%1", _category];
+        private _categoryRuleIndex = _limits findIf {toLowerANSI (_x select 0) isEqualTo toLowerANSI _categoryRuleId};
+        if (_categoryRuleIndex >= 0) then {
+            _applicableRuleIds pushBackUnique ((_limits select _categoryRuleIndex) select 0);
+        };
+        {
+            private _ruleId = _x;
             _deltasByRule set [_ruleId, (_deltasByRule getOrDefault [_ruleId, 0]) + _delta];
-        };
+        } forEach _applicableRuleIds;
     };
     if (_delta < 0) then {_returned pushBack [_className, -_delta]};
 } forEach _allCountedClasses;

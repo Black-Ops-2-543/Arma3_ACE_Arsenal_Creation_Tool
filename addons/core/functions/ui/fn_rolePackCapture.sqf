@@ -36,16 +36,19 @@ private _existing = _packs findIf {toLowerANSI (_x select 2) isEqualTo toLowerAN
 [_display, _parent, _packs, _record, _existing] spawn {
     disableSerialization;
     params ["_display", "_parent", "_packs", "_record", "_existing"];
+    private _canSave = true;
     if (_existing >= 0) then {
         private _confirmed = [format ["Replace custom role pack '%1'?", _record select 2], "RACA Role Packs", true, true, _display] call BIS_fnc_guiMessage;
-        if (!_confirmed) exitWith {};
-        _packs set [_existing, _record];
+        if (_confirmed) then {_packs set [_existing, _record]} else {_canSave = false};
     } else {
-        if ((count _packs) >= 50) exitWith {
+        if ((count _packs) >= 50) then {
             (_display displayCtrl RACA_IDC_ROLE_PACK_DETAILS) ctrlSetText "The 50-pack limit has been reached. Delete an older custom role pack first.";
+            _canSave = false;
+        } else {
+            _packs pushBack _record;
         };
-        _packs pushBack _record;
     };
+    if (!_canSave) exitWith {};
     profileNamespace setVariable ["RACA_rolePacks_v1", _packs];
     saveProfileNamespace;
     [_display] call RACA_fnc_rolePackRefresh;

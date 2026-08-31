@@ -1,7 +1,7 @@
 #include "..\script_component.hpp"
 params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {false};
-[_display, -1, false] call RACA_fnc_edenEditorCommitSlot;
+if !([_display, -1, false] call RACA_fnc_edenEditorCommitSlot) exitWith {false};
 private _slotIndex = _display getVariable ["RACA_currentSlot", -1];
 private _conditionIndex = lbCurSel (_display displayCtrl RACA_EDEN_IDC_CONDITION_LIST);
 private _config = _display getVariable ["RACA_workingConfig", []];

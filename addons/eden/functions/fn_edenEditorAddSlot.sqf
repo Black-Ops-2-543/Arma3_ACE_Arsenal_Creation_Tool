@@ -1,7 +1,7 @@
 #include "..\script_component.hpp"
 params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {false};
-[_display, -1, false] call RACA_fnc_edenEditorCommitSlot;
+if !([_display, -1, false] call RACA_fnc_edenEditorCommitSlot) exitWith {false};
 private _presetOptions = _display getVariable ["RACA_presetOptions", []];
 if (_presetOptions isEqualTo []) exitWith {
     (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText "No saved presets are available. Create a preset in RACA before adding an Eden slot.";

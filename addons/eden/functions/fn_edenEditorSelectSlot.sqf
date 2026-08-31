@@ -4,7 +4,15 @@ if (isNull _list || {_index < 0}) exitWith {};
 private _display = ctrlParent _list;
 if (_display getVariable ["RACA_editorRefreshing", false]) exitWith {};
 private _previous = _display getVariable ["RACA_currentSlot", -1];
-if (_previous >= 0 && {_previous isNotEqualTo _index}) then {[_display, _previous, false] call RACA_fnc_edenEditorCommitSlot};
+private _canLeavePrevious = true;
+if (_previous >= 0 && {_previous isNotEqualTo _index}) then {
+    _canLeavePrevious = [_display, _previous, false] call RACA_fnc_edenEditorCommitSlot;
+};
+if (!_canLeavePrevious) exitWith {
+    _display setVariable ["RACA_editorRefreshing", true];
+    _list lbSetCurSel _previous;
+    _display setVariable ["RACA_editorRefreshing", false];
+};
 private _config = _display getVariable ["RACA_workingConfig", []];
 private _slot = (_config param [2, []]) param [_index, []];
 if (_slot isEqualTo []) exitWith {};

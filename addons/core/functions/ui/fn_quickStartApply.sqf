@@ -4,8 +4,12 @@ if (isNull _display) exitWith {false};
 private _parent = _display getVariable ["RACA_parentCreator", displayNull];
 if (isNull _parent) exitWith {false};
 private _name = ctrlText (_display displayCtrl RACA_IDC_QUICK_NAME);
-if (_name isEqualTo "") exitWith {
+if ((_name splitString (toString [9, 10, 13, 32])) isEqualTo []) exitWith {
     (_display displayCtrl RACA_IDC_QUICK_HELP) ctrlSetText "Enter a descriptive preset name first.";
+    false
+};
+if ((count _name) > 128) exitWith {
+    (_display displayCtrl RACA_IDC_QUICK_HELP) ctrlSetText "Preset names are limited to 128 characters.";
     false
 };
 [_parent] call RACA_fnc_pushCreatorHistory;
