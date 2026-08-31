@@ -380,6 +380,30 @@ else {
     }
 }
 
+$modalWorkflowPaths = @(
+    'core\functions\presets\fn_deletePreset.sqf',
+    'core\functions\presets\fn_importPreset.sqf',
+    'core\functions\ui\fn_requestCreatorClose.sqf',
+    'core\functions\ui\fn_restorePresetRevision.sqf',
+    'core\functions\runtime\fn_adminExecute.sqf',
+    'eden\functions\fn_edenDashboardBulk.sqf'
+)
+foreach ($modalWorkflowRelativePath in $modalWorkflowPaths) {
+    $modalWorkflowPath = Join-Path $addonsDirectory $modalWorkflowRelativePath
+    if (-not (Test-Path -LiteralPath $modalWorkflowPath -PathType Leaf)) {
+        $failures.Add("Modal workflow '$modalWorkflowRelativePath' is missing.")
+        continue
+    }
+
+    $modalWorkflowSource = Get-Content -Raw -LiteralPath $modalWorkflowPath
+    if ($modalWorkflowSource -notmatch 'disableSerialization\s*;') {
+        $failures.Add("Modal workflow '$modalWorkflowRelativePath' must preserve UI handles across scheduled confirmation dialogs.")
+    }
+    if ($modalWorkflowSource -notmatch 'findDisplay\s+RACA_') {
+        $failures.Add("Modal workflow '$modalWorkflowRelativePath' must reacquire its active parent display after confirmation.")
+    }
+}
+
 foreach ($uiTextRelativePath in @(
     'core\functions\presets\fn_deletePreset.sqf',
     'core\functions\ui\fn_refreshItemList.sqf',

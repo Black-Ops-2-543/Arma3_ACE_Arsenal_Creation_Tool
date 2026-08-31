@@ -1,4 +1,5 @@
 #include "..\..\script_component.hpp"
+disableSerialization;
 params [["_display", displayNull, [displayNull]]];
 
 if (isNull _display) exitWith {};
@@ -47,6 +48,10 @@ if (_existingIndex >= 0) then {
         false
     ] call BIS_fnc_guiMessage;
 
+    uiSleep 0.01;
+    private _activeDisplay = findDisplay RACA_IDD_CREATOR;
+    if (!isNull _activeDisplay) then {_display = _activeDisplay};
+
     if (_overwrite) then {
         [_library select _existingIndex, "Before import overwrite"] call RACA_fnc_archivePreset;
         _library set [_existingIndex, _preset];
@@ -69,12 +74,16 @@ if (_existingIndex >= 0) then {
 
 profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
 saveProfileNamespace;
-[_display] call RACA_fnc_refreshPresetCombo;
 
-private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
-private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
-_combo lbSetCurSel (_savedIndex + 1);
-[_display] call RACA_fnc_loadSelectedPreset;
+private _activeDisplay = findDisplay RACA_IDD_CREATOR;
+if (!isNull _activeDisplay) then {_display = _activeDisplay};
+if (!isNull _display) then {
+    [_display] call RACA_fnc_refreshPresetCombo;
+    private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
+    private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
+    _combo lbSetCurSel (_savedIndex + 1);
+    [_display] call RACA_fnc_loadSelectedPreset;
+};
 
 private _itemCount = 0;
 {_itemCount = _itemCount + count _x} forEach (_preset select 3);
@@ -87,9 +96,11 @@ private _warningText = if (_missingCount > 0) then {
 } else {
     if (_warnings isEqualTo []) then {""} else {format [" %1 migration/validation notice(s).", count _warnings]}
 };
-[
-    _display,
-    format ["Imported %1 '%2' with %3 available items.%4", _sourceFormat, _name, _itemCount, _warningText]
-] call RACA_fnc_setStatus;
+if (!isNull _display) then {
+    [
+        _display,
+        format ["Imported %1 '%2' with %3 available items.%4", _sourceFormat, _name, _itemCount, _warningText]
+    ] call RACA_fnc_setStatus;
+};
 uiNamespace setVariable ["RACA_creatorDirty", false];
-[_display] call RACA_fnc_refreshHistoryButtons;
+if (!isNull _display) then {[_display] call RACA_fnc_refreshHistoryButtons};

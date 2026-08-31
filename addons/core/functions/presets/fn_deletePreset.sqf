@@ -1,4 +1,5 @@
 #include "..\..\script_component.hpp"
+disableSerialization;
 /*
  * Deletes the selected profile preset only after an explicit confirmation.
  * The creator selection is deliberately retained as an unsaved recovery copy,
@@ -57,7 +58,11 @@ private _confirmed = [
     _display
 ] call BIS_fnc_guiMessage;
 
-if (!_confirmed || {isNull _display}) exitWith {
+uiSleep 0.01;
+private _activeDisplay = findDisplay RACA_IDD_CREATOR;
+if (!isNull _activeDisplay) then {_display = _activeDisplay};
+
+if (!_confirmed) exitWith {
     if (!isNull _display) then {[_display, format ["Kept '%1'.", _name]] call RACA_fnc_setStatus};
     false
 };
@@ -67,8 +72,10 @@ _library deleteAt _presetIndex;
 profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
 saveProfileNamespace;
 
-(_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText "";
 uiNamespace setVariable ["RACA_creatorDirty", true];
-[_display] call RACA_fnc_refreshPresetCombo;
-[_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
+if (!isNull _display) then {
+    (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText "";
+    [_display] call RACA_fnc_refreshPresetCombo;
+    [_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
+};
 true

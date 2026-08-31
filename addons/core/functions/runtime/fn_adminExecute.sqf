@@ -1,4 +1,5 @@
 #include "..\..\script_component.hpp"
+disableSerialization;
 params [
     ["_display", displayNull, [displayNull]],
     ["_operation", "refresh", [""]]
@@ -20,11 +21,16 @@ if (_destructive) then {
         if (_global) then {"Reset every RACA quota record in this mission?"} else {format ["Clear all restricted-arsenal configuration from '%1'?", _record param [2, _record param [1, "object"]]]},
         "Confirm RACA Administration", "CONFIRM", "CANCEL", _display
     ] call BIS_fnc_guiMessage;
-    if (!_confirmed || {isNull _display}) exitWith {false};
+    if (!_confirmed) exitWith {false};
+    uiSleep 0.01;
+    private _activeDisplay = findDisplay RACA_IDD_ADMIN;
+    if (!isNull _activeDisplay) then {_display = _activeDisplay};
 };
 private _targets = if (_global) then {[]} else {[_target]};
 [player, _operation, _targets, []] remoteExecCall ["RACA_fnc_adminCommand", 2];
-(_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Requested '%1'. Refreshing server state...", _operation];
+if (!isNull _display) then {
+    (_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Requested '%1'. Refreshing server state...", _operation];
+};
 uiSleep 0.35;
 [player] remoteExecCall ["RACA_fnc_requestAdminSnapshot", 2];
 true
