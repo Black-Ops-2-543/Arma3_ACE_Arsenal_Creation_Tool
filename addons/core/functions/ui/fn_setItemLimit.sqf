@@ -17,11 +17,16 @@ private _limit = parseNumber ctrlText (_display displayCtrl RACA_IDC_LIMIT_VALUE
 if (_limit < -1) exitWith {[_display, "Quantity must be -1 (unlimited), zero, or a positive number."] call RACA_fnc_setStatus};
 private _scopeCtrl = _display displayCtrl RACA_IDC_LIMIT_SCOPE;
 private _scope = _scopeCtrl lbData (lbCurSel _scopeCtrl);
+private _resetCtrl = _display displayCtrl RACA_IDC_LIMIT_RESET;
+private _reset = _resetCtrl lbData (lbCurSel _resetCtrl);
+if !(_scope in ["interaction", "player", "life", "mission", "arsenal"]) then {_scope = "arsenal"};
+if !(_reset in ["never", "interaction", "respawn", "round", "phase"]) then {_reset = "never"};
+if (_scope isEqualTo "interaction") then {_reset = "interaction"};
 [_display] call RACA_fnc_pushCreatorHistory;
 private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 {
-    _limits set [_x, [_x, floor _limit, _scope, ["never", "interaction"] select (_scope isEqualTo "interaction")]];
+    _limits set [_x, [_x, floor _limit, _scope, _reset]];
 } forEach _classes;
 uiNamespace setVariable ["RACA_builderLimits", _limits];
 [_display] call RACA_fnc_refreshItemList;
-[_display, format ["%1 limit set to %2 for %3 selected class(es).", _scope, floor _limit, count _classes]] call RACA_fnc_setStatus;
+[_display, format ["%1 limit set to %2 for %3 selected class(es); reset: %4.", _scope, floor _limit, count _classes, _reset]] call RACA_fnc_setStatus;

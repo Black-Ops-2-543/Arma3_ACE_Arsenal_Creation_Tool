@@ -14,7 +14,7 @@ private _objects = [];
 {
     _x params ["_object", "_config", "_variableName", "_type"];
     if (!isNull _object) then {
-        private _objectId = netId _object;
+        private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
         private _slots = [];
         {
             private _preset = _x select 2;

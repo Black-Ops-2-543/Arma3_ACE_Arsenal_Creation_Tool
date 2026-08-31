@@ -21,7 +21,7 @@ if (!_allowed) exitWith {[false, _reason, _slot select 1, []] remoteExecCall ["R
 
 private _quota = missionNamespace getVariable ["RACA_quotaState", createHashMap];
 private _uid = getPlayerUID _unit;
-private _objectId = netId _object;
+private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
 private _life = _unit getVariable ["RACA_lifeIndex", 0];
 private _remaining = [];
 {

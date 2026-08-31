@@ -38,6 +38,7 @@ if (_restricted isNotEqualTo []) exitWith {
     [_unit, getUnitLoadout _unit, format ["Saved loadout '%1' contains classes outside this arsenal: %2", _name, _restricted]] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     false
 };
+["interaction", _object, _slotId, getPlayerUID _unit] call RACA_fnc_resetQuotas;
 private _sessionId = format ["loadout:%1:%2:%3", netId _unit, floor (diag_tickTime * 1000), floor random 1000000];
 _sessions set [_sessionId, [_object, _unit, _slot, getUnitLoadout _unit, owner _unit, diag_tickTime]];
 missionNamespace setVariable ["RACA_openSessions", _sessions];

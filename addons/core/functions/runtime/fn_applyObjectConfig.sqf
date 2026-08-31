@@ -21,6 +21,7 @@ if (!_canApply && {!_allowErrors}) exitWith {
 
 [_object, true] call ace_arsenal_fnc_removeBox;
 [_object, "The restricted arsenal changed while it was open. Your pre-arsenal loadout was restored."] call RACA_fnc_cancelObjectSessions;
+[_object, _config] call RACA_fnc_pruneObjectQuotas;
 _object setVariable ["RACA_objectConfig", nil, true];
 _object setVariable ["RACA_objectConfig", _config, false];
 _object setVariable ["RACA_appliedPreset", nil, true];

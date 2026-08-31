@@ -64,6 +64,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A single left-click toggles the row that was clicked immediately.
 - [ ] Space toggles the currently selected row immediately.
 - [ ] Ctrl-click selects separate rows and Shift-click selects a continuous range without immediately changing inclusion; **Space**, **Favorite**, and **Limit Item** each affect the complete selected set, while inclusion/limit changes reverse in one Undo step.
+- [ ] Assignment shows a readable **Scope / Reset / Max** quantity-policy row; choosing Interaction forces **Every interaction** and disables only the reset selector, while every other scope re-enables it.
 - [ ] Typing a space in the Search box does not toggle an item.
 - [ ] Exclude one item, change category or search so it disappears, then return: it remains excluded.
 - [ ] **Include Visible** and **Exclude Visible** affect only the filtered rows.
@@ -95,6 +96,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **View Details** shows color-coded Error/Warning/Information rows, severity filters preserve the full report, copy matches the underlying analysis, and double-clicking an available class selects it in Assignment.
 - [ ] Preflight reports ACE3, CBA_A3, and RACA Eden health plus active catalogue class/mod/add-on/author/category counts; the support bundle contains the same environment evidence.
 - [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
+- [ ] Item and category limits save and reload each reset choice (Never, Every interaction, Player respawn, Admin: new round, and Admin: new phase), and JSON round-trip preserves the same four-field policy records.
 
 ## 5. Preset adoption
 
@@ -127,6 +129,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] The mission dashboard lists every configured object with READY/WARN/BLOCKED state, enabled-slot count, and issue totals.
 - [ ] **Copy Report** produces a mission-wide record containing every configured object's type, entity ID, slot count, and full preflight findings.
 - [ ] A malformed or missing-content object appears as BLOCKED or WARN instead of disappearing from the dashboard.
+- [ ] Hand-edited wrong-type slot/access/limit fields, duplicate slot IDs, unsupported access conditions, and invalid condition values appear as specific BLOCKED findings and cannot be applied at runtime.
 - [ ] Double-clicking a dashboard row selects only its corresponding Eden object.
 - [ ] Bulk assign changes every selected object and no unselected object after confirmation.
 - [ ] Bulk clear removes RACA configuration only from selected objects, and one Eden Undo reverses the full bulk operation.
@@ -142,11 +145,13 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A client cannot open a slot for another player unit, open from beyond the configured distance, or begin a second session while one is active.
 - [ ] Adding a class outside the slot through any concurrent inventory route causes the complete pre-session loadout to be restored.
 - [ ] Exact-class and category limits enforce quantities stored inside uniform, vest, and backpack cargo stacks.
-- [ ] `-1` remains unlimited; interaction limits reset on each open; player/life/mission/arsenal limits persist and reset only at their documented boundary.
+- [ ] `-1` remains unlimited; interaction-scope limits reset on each open; player/life/mission/arsenal limits persist and reset only at the selected Never/interaction/respawn/round/phase/manual boundary.
+- [ ] A non-interaction limit set to **Every interaction** resets before both normal ACE Arsenal opening and saved-loadout application; player/life counters reset only for the triggering UID while mission/arsenal counters reset for the shared slot.
 - [ ] Exhausted exact classes and exhausted categories are absent from the next ACE session and the remaining-quota message is correct.
 - [ ] **Check remaining allowance** reports the same server-side exact/category values without opening ACE Arsenal and denies unauthorized or distant requests.
 - [ ] Saving a personal loadout and reapplying it uses the same access and quota checks; an outside class or exhausted quantity is rejected and restored.
 - [ ] Reconfiguring, clearing, or deleting an arsenal object while it is open closes the session and restores the pre-session loadout.
+- [ ] Reconfiguring preserves usage for unchanged quota rules but removes counters for deleted slots, removed or unlimited rules, and changed scope/reset policies; clearing or deleting the object removes every associated quota record from the admin count.
 - [ ] A preset containing a now-missing mod class still initializes with the remaining valid classes and writes a warning to RPT.
 - [ ] Repeated previews do not accumulate unrestricted ACE virtual cargo.
 - [ ] The client has no public `RACA_objectConfig`, `RACA_quotaState`, or `RACA_openSessions` data containing the full server policy.

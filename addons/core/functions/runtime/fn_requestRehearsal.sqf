@@ -18,8 +18,7 @@ private _buildExpectedObjects = {
     {
         _x params ["_object", "_config"];
         if (!isNull _object) then {
-            private _objectId = netId _object;
-            if (_objectId isEqualTo "0:0") then {_objectId = str _object};
+            private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
             private _enabledSlots = {(_x param [3, false, [true]])} count (_config select 2);
             _expected pushBack [_objectId, _enabledSlots];
         };

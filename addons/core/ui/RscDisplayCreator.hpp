@@ -576,36 +576,74 @@ class RACA_RscDisplayCreator {
 
         class LimitScope: RscCombo {
             idc = RACA_IDC_LIMIT_SCOPE;
-            x = "safeZoneX + 0.385 * safeZoneW";
-            y = "safeZoneY + 0.725 * safeZoneH";
-            w = "0.09 * safeZoneW";
+            x = "safeZoneX + 0.13 * safeZoneW";
+            y = "safeZoneY + 0.77 * safeZoneH";
+            w = "0.15 * safeZoneW";
             h = "0.04 * safeZoneH";
             tooltip = "Quantity scope: interaction, player, life, mission, or shared arsenal";
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_syncLimitPolicy";
+        };
+
+        class QuantityLabel: RscText {
+            idc = RACA_IDC_QUANTITY_LABEL;
+            text = "SCOPE";
+            x = "safeZoneX + 0.055 * safeZoneW";
+            y = "safeZoneY + 0.77 * safeZoneH";
+            w = "0.07 * safeZoneW";
+            h = "0.04 * safeZoneH";
+        };
+
+        class LimitResetLabel: QuantityLabel {
+            idc = RACA_IDC_LIMIT_RESET_LABEL;
+            text = "RESET";
+            x = "safeZoneX + 0.29 * safeZoneW";
+        };
+
+        class LimitReset: LimitScope {
+            idc = RACA_IDC_LIMIT_RESET;
+            x = "safeZoneX + 0.365 * safeZoneW";
+            w = "0.16 * safeZoneW";
+            tooltip = "When this allowance becomes available again. Round and phase resets are triggered by a runtime administrator.";
+            onLBSelChanged = "";
+        };
+
+        class LimitValueLabel: QuantityLabel {
+            idc = RACA_IDC_LIMIT_VALUE_LABEL;
+            text = "MAX";
+            x = "safeZoneX + 0.535 * safeZoneW";
+            w = "0.05 * safeZoneW";
         };
 
         class LimitValue: RscEdit {
             idc = RACA_IDC_LIMIT_VALUE;
-            x = "safeZoneX + 0.48 * safeZoneW";
-            y = "safeZoneY + 0.725 * safeZoneH";
-            w = "0.05 * safeZoneW";
+            x = "safeZoneX + 0.59 * safeZoneW";
+            y = "safeZoneY + 0.77 * safeZoneH";
+            w = "0.06 * safeZoneW";
             h = "0.04 * safeZoneH";
             text = "-1";
             tooltip = "Maximum quantity; -1 means unlimited";
         };
 
+        class LimitHint: QuantityLabel {
+            idc = RACA_IDC_LIMIT_HINT;
+            text = "-1 = unlimited. Interaction scope always resets for each use.";
+            x = "safeZoneX + 0.66 * safeZoneW";
+            w = "0.275 * safeZoneW";
+        };
+
         class SetLimit: ClearAll {
             idc = RACA_IDC_SET_LIMIT;
             text = "LIMIT ITEM";
-            x = "safeZoneX + 0.535 * safeZoneW";
-            w = "0.075 * safeZoneW";
+            x = "safeZoneX + 0.385 * safeZoneW";
+            w = "0.10 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setItemLimit";
         };
 
         class SetCategoryLimit: SetLimit {
             idc = RACA_IDC_SET_CATEGORY_LIMIT;
             text = "LIMIT CATEGORY";
-            x = "safeZoneX + 0.615 * safeZoneW";
-            w = "0.10 * safeZoneW";
+            x = "safeZoneX + 0.49 * safeZoneW";
+            w = "0.12 * safeZoneW";
             tooltip = "Apply the quantity and scope to the active equipment category";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCategoryLimit";
         };
@@ -613,8 +651,8 @@ class RACA_RscDisplayCreator {
         class Favorite: SetLimit {
             idc = RACA_IDC_FAVORITE;
             text = "FAVORITE";
-            x = "safeZoneX + 0.72 * safeZoneW";
-            w = "0.08 * safeZoneW";
+            x = "safeZoneX + 0.615 * safeZoneW";
+            w = "0.10 * safeZoneW";
             tooltip = "Add or remove the selected class from profile favorites";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_toggleFavorite";
         };
@@ -622,16 +660,16 @@ class RACA_RscDisplayCreator {
         class ViewMode: SetLimit {
             idc = RACA_IDC_VIEW_MODE;
             text = "ICONS";
-            x = "safeZoneX + 0.805 * safeZoneW";
-            w = "0.065 * safeZoneW";
+            x = "safeZoneX + 0.72 * safeZoneW";
+            w = "0.10 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCatalogView";
         };
 
         class ItemDetails: SetLimit {
             idc = RACA_IDC_ITEM_DETAILS_BUTTON;
             text = "DETAILS";
-            x = "safeZoneX + 0.875 * safeZoneW";
-            w = "0.06 * safeZoneW";
+            x = "safeZoneX + 0.825 * safeZoneW";
+            w = "0.11 * safeZoneW";
             tooltip = "Inspect the selected item's config, source, compatibility metadata, draft state, and effective quantity policy";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openItemDetails";
         };
@@ -641,9 +679,9 @@ class RACA_RscDisplayCreator {
             text = "0 items included";
             style = 16;
             x = "safeZoneX + 0.055 * safeZoneW";
-            y = "safeZoneY + 0.785 * safeZoneH";
+            y = "safeZoneY + 0.815 * safeZoneH";
             w = "0.88 * safeZoneW";
-            h = "0.06 * safeZoneH";
+            h = "0.045 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.4};
         };
 

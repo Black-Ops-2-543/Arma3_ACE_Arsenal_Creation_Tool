@@ -248,6 +248,30 @@ else {
     }
 }
 
+$objectPreflightPath = Join-Path $addonsDirectory 'core\functions\diagnostics\fn_preflightObjectConfig.sqf'
+if (-not (Test-Path -LiteralPath $objectPreflightPath -PathType Leaf)) {
+    $failures.Add('Object preflight must fail closed on malformed slot, access, and quota policy fields.')
+}
+else {
+    $objectPreflight = Get-Content -Raw -LiteralPath $objectPreflightPath
+    foreach ($requiredDiagnostic in @(
+        'INVALID_SLOT_CONTAINER',
+        'DUPLICATE_SLOT_ID',
+        'INVALID_ACCESS_CONTAINER',
+        'MALFORMED_ACCESS_CONDITION',
+        'UNSUPPORTED_ACCESS_CONDITION',
+        'INVALID_ACCESS_VALUE',
+        'INVALID_LIMIT_CONTAINER',
+        'INVALID_LIMIT_VALUE_TYPE',
+        'INVALID_LIMIT_SCOPE_TYPE',
+        'INVALID_RESET_POLICY_TYPE'
+    )) {
+        if ($objectPreflight -notmatch [regex]::Escape($requiredDiagnostic)) {
+            $failures.Add("Object preflight is missing fail-closed diagnostic '$requiredDiagnostic'.")
+        }
+    }
+}
+
 $creatorMenuPath = Join-Path $addonsDirectory 'core\RscDisplayMain.hpp'
 if (Test-Path -LiteralPath $creatorMenuPath -PathType Leaf) {
     $creatorMenu = Get-Content -Raw -LiteralPath $creatorMenuPath
@@ -758,6 +782,66 @@ if (Test-Path -LiteralPath $quotaStatusPath -PathType Leaf) {
         $quotaStatus -notmatch '_unit distance _object' -or
         $quotaStatus -notmatch 'RACA_fnc_evaluateAccess') {
         $failures.Add("Player quota inspection must be owner-bound, distance-limited, and access-authorized on the server.")
+    }
+}
+
+$limitResetUiPath = Join-Path $addonsDirectory 'core\functions\ui\fn_creatorOnLoad.sqf'
+$limitResetSyncPath = Join-Path $addonsDirectory 'core\functions\ui\fn_syncLimitPolicy.sqf'
+$categoryLimitPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setCategoryLimit.sqf'
+$itemLimitPath = Join-Path $addonsDirectory 'core\functions\ui\fn_setItemLimit.sqf'
+$creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
+if (-not (Test-Path -LiteralPath $limitResetUiPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $limitResetSyncPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $categoryLimitPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $itemLimitPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $creatorUiPath -PathType Leaf)) {
+    $failures.Add("The creator must expose the complete scope, reset, and maximum quantity policy.")
+}
+else {
+    $limitResetUi = Get-Content -Raw -LiteralPath $limitResetUiPath
+    $limitResetSync = Get-Content -Raw -LiteralPath $limitResetSyncPath
+    $categoryLimit = Get-Content -Raw -LiteralPath $categoryLimitPath
+    $itemLimit = Get-Content -Raw -LiteralPath $itemLimitPath
+    $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
+    foreach ($resetPolicy in @('never', 'interaction', 'respawn', 'round', 'phase')) {
+        if ($limitResetUi -notmatch ('"' + $resetPolicy + '"')) {
+            $failures.Add("The quantity reset selector is missing policy '$resetPolicy'.")
+        }
+    }
+    if ($creatorUi -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $limitResetSync -notmatch '_scope isEqualTo "interaction"' -or
+        $limitResetSync -notmatch 'ctrlEnable false' -or
+        $itemLimit -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $itemLimit -notmatch '_scope, _reset' -or
+        $categoryLimit -notmatch 'RACA_IDC_LIMIT_RESET' -or
+        $categoryLimit -notmatch '_scope, _reset') {
+        $failures.Add("Quantity authoring must store reset policy and force interaction scope to reset on every use.")
+    }
+}
+
+$quotaPrunePath = Join-Path $addonsDirectory 'core\functions\runtime\fn_pruneObjectQuotas.sqf'
+$unregisterObjectPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_unregisterObject.sqf'
+$missionRegistryPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_getMissionRegistry.sqf'
+$loadoutRequestPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_requestLoadoutApply.sqf'
+if (-not (Test-Path -LiteralPath $quotaPrunePath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $unregisterObjectPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $missionRegistryPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $loadoutRequestPath -PathType Leaf)) {
+    $failures.Add("Quota lifecycle cleanup must cover reconfiguration, unregistration, stale objects, and saved loadouts.")
+}
+else {
+    $quotaPrune = Get-Content -Raw -LiteralPath $quotaPrunePath
+    $unregisterObject = Get-Content -Raw -LiteralPath $unregisterObjectPath
+    $missionRegistry = Get-Content -Raw -LiteralPath $missionRegistryPath
+    $loadoutRequest = Get-Content -Raw -LiteralPath $loadoutRequestPath
+    if ($quotaPrune -notmatch 'RACA_quotaState' -or
+        $quotaPrune -notmatch '_currentPolicy isEqualTo \[_recordScope, _recordReset\]' -or
+        $applyObject -notmatch 'RACA_fnc_pruneObjectQuotas' -or
+        $unregisterObject -notmatch 'RACA_fnc_pruneObjectQuotas' -or
+        $missionRegistry -notmatch 'RACA_fnc_pruneObjectQuotas' -or
+        $requestOpen -notmatch '"interaction"\s*,\s*_object\s*,\s*_slotId' -or
+        $loadoutRequest -notmatch '"interaction"\s*,\s*_object\s*,\s*_slotId') {
+        $failures.Add("Quota counters must reset at interaction boundaries and be pruned when their slot or object lifecycle ends.")
     }
 }
 

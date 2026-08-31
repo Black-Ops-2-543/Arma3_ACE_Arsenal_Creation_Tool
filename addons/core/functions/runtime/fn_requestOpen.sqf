@@ -43,10 +43,12 @@ if (!_allowed) exitWith {
     false
 };
 
+private _uid = getPlayerUID _unit;
+["interaction", _object, _slotId, _uid] call RACA_fnc_resetQuotas;
+
 private _sessionId = format ["%1:%2:%3", netId _unit, floor (diag_tickTime * 1000), floor random 1000000];
 private _quota = missionNamespace getVariable ["RACA_quotaState", createHashMap];
-private _uid = getPlayerUID _unit;
-private _objectId = netId _object;
+private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
 private _life = _unit getVariable ["RACA_lifeIndex", 0];
 private _remaining = [];
 private _exhaustedClasses = createHashMap;

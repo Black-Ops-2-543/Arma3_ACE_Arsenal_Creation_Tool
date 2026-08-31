@@ -129,6 +129,7 @@ class CfgFunctions {
             class setStatus {};
             class setVisibleSelection {};
             class switchCreatorTab {};
+            class syncLimitPolicy {};
             class toggleFavorite {};
             class toggleRow {};
             class updateSummary {};
@@ -155,6 +156,7 @@ class CfgFunctions {
             class evaluateAccess {};
             class finishSession {};
             class getMissionRegistry {};
+            class getRuntimeObjectId {};
             class initRuntime {preInit = 1;};
             class initClient {postInit = 1;};
             class isAdminAuthorized {};
@@ -166,6 +168,7 @@ class CfgFunctions {
             class openAuthorized {};
             class openRehearsal {};
             class previewPreset {};
+            class pruneObjectQuotas {};
             class rehearsalClientReady {};
             class rehearsalCopy {};
             class rehearsalExecute {};

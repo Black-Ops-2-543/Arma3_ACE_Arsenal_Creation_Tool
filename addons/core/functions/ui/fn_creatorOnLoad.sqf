@@ -51,10 +51,26 @@ lbClear _exportFormat;
 ];
 _exportFormat lbSetCurSel 0;
 
+private _resetCombo = _display displayCtrl RACA_IDC_LIMIT_RESET;
+lbClear _resetCombo;
+{
+    _x params ["_label", "_data"];
+    private _index = _resetCombo lbAdd _label;
+    _resetCombo lbSetData [_index, _data];
+} forEach [
+    ["Never", "never"],
+    ["Every interaction", "interaction"],
+    ["Player respawn", "respawn"],
+    ["Admin: new round", "round"],
+    ["Admin: new phase", "phase"]
+];
+_resetCombo lbSetCurSel 0;
+
 private _scopeCombo = _display displayCtrl RACA_IDC_LIMIT_SCOPE;
 lbClear _scopeCombo;
 {private _index = _scopeCombo lbAdd _x; _scopeCombo lbSetData [_index, toLowerANSI _x]} forEach ["Interaction", "Player", "Life", "Mission", "Arsenal"];
 _scopeCombo lbSetCurSel 4;
+[_display] call RACA_fnc_syncLimitPolicy;
 
 [_display] call RACA_fnc_refreshRoleTemplateCombo;
 

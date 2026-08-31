@@ -23,6 +23,7 @@ if (isServer) then {
     [] spawn {
         while {true} do {
             uiSleep 60;
+            call RACA_fnc_getMissionRegistry;
             private _sessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
             {
                 private _record = _sessions get _x;

@@ -44,8 +44,8 @@ The current release:
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon, plus profile-wide custom unit role packs captured from any draft;
-- provides color-coded, severity-filterable creator preflight reports for ACE/CBA/Eden availability, active catalogue scope, invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items;
-- saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
+- provides color-coded, severity-filterable creator preflight reports for ACE/CBA/Eden availability, active catalogue scope, invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources, with navigation to available affected items; object preflight also blocks wrong field types, duplicate slot IDs, malformed access conditions, and malformed quantity policies before runtime;
+- saves per-item and per-category quantity policies with interaction, player, life, mission, or shared-arsenal scopes and explicit reset timing;
 - adds a transactional multi-slot configuration editor and mission-wide dashboard to every Eden object's attributes;
 - embeds the selected preset in the mission, so runtime use does not depend on the creator's profile;
 - provides server-authoritative access checks, controlled ACE interactions, quota enforcement, audit logging, and saved player loadouts for runtime-configured arsenals;
@@ -235,7 +235,9 @@ The full embedded preset, quota state, open-session records, and mission registr
 
 An access rule may require side, faction, group, minimum rank, unit type, player UID, vehicle role, a required item, or a mission-defined ACE permission. Rules support AND/OR matching and a custom denial message. A restricted slot can remain visible when denied, or hide itself from unauthorized players.
 
-Quantity limits can be assigned to an individual class or category. Their scope is one interaction, one player, one life, the mission, or the shared arsenal; they can be reset on interaction, respawn, round, phase, or manually. RACA reports remaining limited quantities when an authorized player opens the slot, and every slot has a server-checked **Check remaining allowance** child action so players can inspect the same values before opening.
+Quantity limits can be assigned to an individual class or category. The creator's Assignment tab exposes the complete policy as **Scope**, **Reset**, and **Max**. Scope can be one interaction, one player, one life, the mission, or the shared arsenal. Reset timing can be never, every authorized interaction, player respawn, an administrator's new-round/new-phase command, or a manual administrator/Zeus reset. Interaction scope always starts fresh for each use and therefore locks its reset timing to **Every interaction**. RACA applies the same interaction boundary when a saved personal loadout is requested, reports remaining limited quantities when an authorized player opens the slot, and gives every slot a server-checked **Check remaining allowance** child action.
+
+Reconfiguring an object preserves counters only for slot rules whose class/category, scope, and reset policy are unchanged. Counters for removed slots, removed or unlimited rules, and changed policies are discarded. Clearing, unregistering, or deleting a configured object also removes its quota records, including records discovered during the periodic stale-object cleanup.
 
 ### Player loadouts and administration
 
