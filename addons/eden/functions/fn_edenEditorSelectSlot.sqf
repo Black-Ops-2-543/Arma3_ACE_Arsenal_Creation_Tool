@@ -27,7 +27,7 @@ private _presetSelection = 0;
 _presetCombo lbSetCurSel _presetSelection;
 private _modeCombo = _display displayCtrl RACA_EDEN_IDC_ACCESS_MODE;
 private _mode = toUpperANSI (_access param [2, "AND"]);
-_modeCombo lbSetCurSel (["AND", "OR"] find _mode max 0);
+_modeCombo lbSetCurSel ((["AND", "OR"] find _mode) max 0);
 private _conditionList = _display displayCtrl RACA_EDEN_IDC_CONDITION_LIST;
 lbClear _conditionList;
 {

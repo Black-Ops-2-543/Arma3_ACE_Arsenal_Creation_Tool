@@ -98,6 +98,7 @@ $requiredRelativeFiles = @(
     'addons\eden\ui\EdenConfigDialog.hpp',
     'addons\eden\functions\fn_edenAttributeOnLoad.sqf',
     'addons\eden\functions\fn_edenEditorApply.sqf',
+    'addons\eden\functions\fn_edenEditorSelectSlot.sqf',
     'addons\eden\functions\fn_edenDashboardBulk.sqf',
     'docs\PORTABLE_PRESET_FORMAT.md'
 )
@@ -158,6 +159,14 @@ if (Test-Path -LiteralPath $edenAttributeOnLoadPath -PathType Leaf) {
     if ($edenAttributeOnLoad -notmatch '_this\s+isEqualType\s+controlNull' -or
         $edenAttributeOnLoad -notmatch 'RACA_fnc_edenPopulate') {
         $failures.Add('The Eden attribute onLoad handler must accept the direct ControlsGroup value supplied by 3den.')
+    }
+}
+
+$edenSelectSlotPath = Join-Path $addonsDirectory 'eden\functions\fn_edenEditorSelectSlot.sqf'
+if (Test-Path -LiteralPath $edenSelectSlotPath -PathType Leaf) {
+    $edenSelectSlot = Get-Content -Raw -LiteralPath $edenSelectSlotPath
+    if ($edenSelectSlot -match 'find\s+_mode\s+max') {
+        $failures.Add('The Eden access-mode selection must clamp the numeric find result, not pass the mode string to max.')
     }
 }
 
