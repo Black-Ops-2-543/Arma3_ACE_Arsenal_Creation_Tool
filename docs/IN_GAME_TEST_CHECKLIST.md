@@ -26,6 +26,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Tutorials** contains **Restricted Arsenal Creator**.
 - [ ] Opening it produces no **Cannot load mission** dialog.
 - [ ] The VR scene loads, followed by the creator interface.
+- [ ] With an empty RACA profile, Quick Start opens once and creates either a blank draft or a reviewable role-starter draft without saving automatically.
+- [ ] Quick Start remains available manually after onboarding.
 - [ ] Closing the creator returns to the scene or menu without a script error.
 
 ## 2. Catalogue and presentation
@@ -39,6 +41,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Equipment** includes magazine-backed ACE medical supplies such as `ACE_painkillers` when available.
 - [ ] Searching `ACE_` does not return the vanilla `.338 LM 10Rnd Mag` / `10Rnd_338_Mag` solely because ACE patches it.
 - [ ] Searching a display name, exact class, content mod name, author, and owning add-on each finds the expected item.
+- [ ] Source filtering restricts visible rows to one loaded mod and composes correctly with category and text search.
+- [ ] Favorites persist after closing and reopening Arma, and the Favorites category contains exactly the marked classes.
+- [ ] Row tooltips identify class, category, source, author, favorite state, and exact/category limit.
 
 ## 3. Selection-state regressions
 
@@ -48,6 +53,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Exclude one item, change category or search so it disappears, then return: it remains excluded.
 - [ ] **Include Visible** and **Exclude Visible** affect only the filtered rows.
 - [ ] **Clear All** removes every selection, including currently hidden rows.
+- [ ] Undo/redo buttons and `Ctrl+Z` / `Ctrl+Y` correctly reverse row, bulk, starter, adoption, and limit changes without changing a saved preset.
+- [ ] Closing a dirty draft asks before discarding it; closing immediately after save or load does not show a false warning.
 
 ## 4. Preset persistence
 
@@ -56,9 +63,15 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A named non-empty preset appears immediately in Saved presets.
 - [ ] Loading that preset restores the exact selection after filters and searches have changed.
 - [ ] Saving the same name with different content overwrites it rather than creating a case-variant duplicate.
+- [ ] Overwriting creates a revision-history snapshot; the comparison reports additions/removals and restoring creates a newer revision while archiving the outgoing one.
+- [ ] Compare Draft copies complete added/removed class lists and both quantity policies.
 - [ ] **Delete** requires confirmation, removes only the selected profile preset, and keeps the current item selection as an unsaved recovery copy.
 - [ ] Deleting a source preset does not corrupt adopted children or standalone copies already embedded in missions.
 - [ ] Restarting Arma with the same profile preserves the preset.
+- [ ] JSON export is valid UTF-8 JSON and round-trips without losing the name or any bucket.
+- [ ] Required-mod manifest export groups every selected class by source mod and owning add-on.
+- [ ] Support-bundle export contains environment metadata, compatibility analysis, manifest, and the portable preset; Import Auto rejects it as non-preset data.
+- [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
 
 ## 5. Preset adoption
 

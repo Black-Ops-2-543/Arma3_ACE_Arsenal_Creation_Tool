@@ -80,6 +80,7 @@ if (_compositionError isNotEqualTo "") exitWith {
 private _existingIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 private _revision = 1;
 if (_existingIndex >= 0) then {
+    [_library select _existingIndex, "Before overwrite"] call RACA_fnc_archivePreset;
     _revision = ((([_library select _existingIndex] call RACA_fnc_getRuntimePolicy) select 4) + 1) max 1;
 };
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
@@ -99,6 +100,8 @@ uiNamespace setVariable ["RACA_builderComposition", [_preset] call RACA_fnc_getC
 private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 _combo lbSetCurSel (_savedIndex + 1);
+uiNamespace setVariable ["RACA_creatorDirty", false];
+[_display] call RACA_fnc_refreshHistoryButtons;
 private _composition = [_preset] call RACA_fnc_getComposition;
 private _compositionSuffix = if (_composition isEqualTo []) then {""} else {
     format [" with adopted source '%1'", _composition select 2]

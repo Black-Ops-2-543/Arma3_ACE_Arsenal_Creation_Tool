@@ -12,6 +12,16 @@ uiNamespace setVariable ["RACA_catalogShowIcons", true];
 uiNamespace setVariable ["RACA_catalogDensity", "comfortable"];
 uiNamespace setVariable ["RACA_creatorDiagnostics", []];
 uiNamespace setVariable ["RACA_visibleClasses", []];
+uiNamespace setVariable ["RACA_creatorUndo", []];
+uiNamespace setVariable ["RACA_creatorRedo", []];
+uiNamespace setVariable ["RACA_creatorDirty", false];
+private _favoriteClasses = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
+if !(_favoriteClasses isEqualType []) then {_favoriteClasses = []};
+private _favorites = createHashMap;
+{
+    if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {_favorites set [_x, true]};
+} forEach _favoriteClasses;
+uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
 
 [_display] call RACA_fnc_refreshCategoryCombo;
 
@@ -24,7 +34,9 @@ lbClear _exportFormat;
 } forEach [
     ["JSON preset", "JSON"],
     ["Reusable SQF", "SQF"],
-    ["Class list", "LIST"]
+    ["Class list", "LIST"],
+    ["Required-mod manifest", "MANIFEST"],
+    ["Support bundle", "SUPPORT"]
 ];
 _exportFormat lbSetCurSel 0;
 
@@ -45,6 +57,7 @@ _templateCombo lbSetCurSel 0;
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_updateSummary;
 [_display, "PRESETS"] call RACA_fnc_switchCreatorTab;
+[_display] call RACA_fnc_refreshHistoryButtons;
 
 private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
 _list ctrlEnable false;
@@ -61,6 +74,11 @@ _list ctrlEnable false;
 
     if (isNull _display) exitWith {};
     _list ctrlEnable true;
+    [_display] call RACA_fnc_refreshSourceCombo;
     [_display] call RACA_fnc_refreshItemList;
     [_display, format ["Ready. %1 loaded arsenal items are searchable.", count _catalog]] call RACA_fnc_setStatus;
+    if ((call RACA_fnc_getPresetLibrary) isEqualTo [] && {!(profileNamespace getVariable ["RACA_onboardingSeen_v1", false])}) then {
+        uiSleep 0.1;
+        if (!isNull _display) then {[_display] call RACA_fnc_openQuickStart};
+    };
 };

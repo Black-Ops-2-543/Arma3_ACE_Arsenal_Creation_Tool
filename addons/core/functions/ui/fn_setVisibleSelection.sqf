@@ -8,6 +8,9 @@ if (isNull _display) exitWith {};
 private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _visible = uiNamespace getVariable ["RACA_visibleClasses", []];
 
+if (_visible isEqualTo []) exitWith {[_display, "No visible items match the current filters."] call RACA_fnc_setStatus};
+[_display] call RACA_fnc_pushCreatorHistory;
+
 {
     if (_include) then {
         _selected set [_x, true];

@@ -22,6 +22,8 @@ if ([_childName, _sourceName, _library] call RACA_fnc_wouldCreateCycle) exitWith
     [_display, "Adoption rejected because it would create a circular source link."] call RACA_fnc_setStatus;
 };
 
+[_display] call RACA_fnc_pushCreatorHistory;
+
 private _currentSelection = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _previousSourceItems = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
 private _additions = createHashMap;

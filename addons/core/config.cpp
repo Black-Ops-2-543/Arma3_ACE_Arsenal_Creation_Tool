@@ -6,6 +6,9 @@ class CfgPatches {
         author = "* Black Ops *";
         url = "https://github.com/Black-Ops-2-543/Arma3_ACE_Arsenal_Creation_Tool";
         requiredVersion = 2.22;
+        version[] = {0, 10, 0};
+        versionStr = "0.10.0-dev";
+        versionAr[] = {0, 10, 0};
         requiredAddons[] = {"A3_Modules_F", "cba_main", "ace_arsenal", "ace_interact_menu"};
         units[] = {
             "RACA_ModuleAssign",

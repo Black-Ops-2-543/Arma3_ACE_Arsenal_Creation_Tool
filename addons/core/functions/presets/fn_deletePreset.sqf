@@ -58,11 +58,13 @@ if (!_confirmed || {isNull _display}) exitWith {
     false
 };
 
+[_preset, "Deleted from profile library"] call RACA_fnc_archivePreset;
 _library deleteAt _presetIndex;
 profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
 saveProfileNamespace;
 
 (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText "";
+uiNamespace setVariable ["RACA_creatorDirty", true];
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
 true

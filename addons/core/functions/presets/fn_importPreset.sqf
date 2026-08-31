@@ -48,6 +48,7 @@ if (_existingIndex >= 0) then {
     ] call BIS_fnc_guiMessage;
 
     if (_overwrite) then {
+        [_library select _existingIndex, "Before import overwrite"] call RACA_fnc_archivePreset;
         _library set [_existingIndex, _preset];
     } else {
         private _baseName = _name select [0, 116];
@@ -90,3 +91,5 @@ private _warningText = if (_missingCount > 0) then {
     _display,
     format ["Imported %1 '%2' with %3 available items.%4", _sourceFormat, _name, _itemCount, _warningText]
 ] call RACA_fnc_setStatus;
+uiNamespace setVariable ["RACA_creatorDirty", false];
+[_display] call RACA_fnc_refreshHistoryButtons;

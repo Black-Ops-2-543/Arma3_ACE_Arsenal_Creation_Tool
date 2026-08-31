@@ -38,6 +38,16 @@ switch (_exportFormat) do {
         _output = [_preset] call RACA_fnc_formatSqfExport;
         _formatLabel = "drop-in raca_arsenal.sqf";
     };
+    case "MANIFEST": {
+        private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
+        _output = [[_preset, _catalog] call RACA_fnc_buildModManifest] call RACA_fnc_formatPortableJson;
+        _formatLabel = "required-mod JSON manifest";
+    };
+    case "SUPPORT": {
+        private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
+        _output = [[_preset, _catalog] call RACA_fnc_buildSupportBundle] call RACA_fnc_formatPortableJson;
+        _formatLabel = "diagnostic support bundle";
+    };
     default {
         private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
         private _portable = [_preset, _catalog] call RACA_fnc_buildPortablePreset;

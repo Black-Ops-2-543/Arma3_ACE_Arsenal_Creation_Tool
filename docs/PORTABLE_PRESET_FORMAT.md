@@ -70,6 +70,12 @@ JSON preserves adoption metadata so another RACA profile can continue editing th
 
 For migration compatibility, the importer also accepts current raw `RACA_PRESET` arrays and the legacy portable format 0 shape `["RACA_PORTABLE_PRESET", 0, name, buckets]`. Both are converted to the current in-profile schema before saving. Unsupported future format versions are rejected without modifying the profile library.
 
+## Diagnostic JSON exports
+
+The creator also exports `RACA_MOD_MANIFEST` and `RACA_SUPPORT_BUNDLE` JSON documents. A manifest groups every selected class by its detected source mod and owning add-on. A support bundle contains environment metadata, compatibility analysis, that manifest, and a complete portable preset for maintainers to inspect.
+
+These signatures are intentionally not accepted by **Import Auto**. Only `RACA_PORTABLE_PRESET` is the guaranteed preset interchange envelope; keeping diagnostic documents distinct prevents a support attachment from being mistaken for authoring data.
+
 ### JSON file workflow
 
 1. Choose **JSON preset** and then **Export** in the creator.

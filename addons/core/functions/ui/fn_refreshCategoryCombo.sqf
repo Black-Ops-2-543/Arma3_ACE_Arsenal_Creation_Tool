@@ -18,7 +18,8 @@ private _categories = [
     "NVGs",
     "Facewear",
     "Equipment",
-    "Included"
+    "Included",
+    "Favorites"
 ];
 
 private _inherited = uiNamespace getVariable ["RACA_builderInherited", createHashMap];

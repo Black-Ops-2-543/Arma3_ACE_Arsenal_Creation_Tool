@@ -15,6 +15,8 @@ if (_className isEqualTo "") exitWith {};
 private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _include = !(_selected getOrDefault [_className, false]);
 
+[ctrlParent _list] call RACA_fnc_pushCreatorHistory;
+
 if (_include) then {
     _selected set [_className, true];
 } else {

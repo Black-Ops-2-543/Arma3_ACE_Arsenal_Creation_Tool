@@ -67,6 +67,50 @@ class RACA_RscDisplayCreator {
             onButtonClick = "[ctrlParent (_this select 0), 'ASSIGNMENT'] call RACA_fnc_switchCreatorTab";
         };
 
+        class QuickStart: PresetTab {
+            idc = RACA_IDC_QUICK_START;
+            text = "QUICK START";
+            tooltip = "Create a guided blank or role-based draft";
+            x = "safeZoneX + 0.055 * safeZoneW";
+            w = "0.115 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openQuickStart";
+        };
+
+        class History: QuickStart {
+            idc = RACA_IDC_HISTORY;
+            text = "REVISION HISTORY";
+            tooltip = "Compare and restore automatically archived preset revisions";
+            x = "safeZoneX + 0.18 * safeZoneW";
+            w = "0.125 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openPresetHistory";
+        };
+
+        class Undo: QuickStart {
+            idc = RACA_IDC_UNDO;
+            text = "UNDO";
+            tooltip = "Undo the last creator selection or policy change (Ctrl+Z)";
+            x = "safeZoneX + 0.315 * safeZoneW";
+            w = "0.07 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'UNDO'] call RACA_fnc_restoreCreatorHistory";
+        };
+
+        class Redo: Undo {
+            idc = RACA_IDC_REDO;
+            text = "REDO";
+            tooltip = "Redo the last undone change (Ctrl+Y)";
+            x = "safeZoneX + 0.395 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'REDO'] call RACA_fnc_restoreCreatorHistory";
+        };
+
+        class CompareDraft: Undo {
+            idc = RACA_IDC_COMPARE_DRAFT;
+            text = "COMPARE DRAFT";
+            tooltip = "Copy a class and quantity-policy diff between the current draft and selected saved preset";
+            x = "safeZoneX + 0.475 * safeZoneW";
+            w = "0.12 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_compareSelectedPreset";
+        };
+
         class PresetPanel: RscText {
             idc = RACA_IDC_PRESET_PANEL;
             x = "safeZoneX + 0.055 * safeZoneW";
@@ -115,6 +159,7 @@ class RACA_RscDisplayCreator {
             y = "safeZoneY + 0.373 * safeZoneH";
             w = "0.39 * safeZoneW";
             h = "0.037 * safeZoneH";
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshHistoryButtons";
         };
 
         class SavePreset: RscButton {
@@ -292,7 +337,7 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.815 * safeZoneW";
             y = "safeZoneY + 0.765 * safeZoneH";
             w = "0.105 * safeZoneW";
-            onButtonClick = "private _d=ctrlParent (_this select 0); private _c=_d displayCtrl RACA_IDC_ROLE_TEMPLATE; [(_c lbData (lbCurSel _c)), uiNamespace getVariable ['RACA_itemCatalog',[]], true] call RACA_fnc_applyRoleTemplate; _d call RACA_fnc_refreshItemList";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_applySelectedRoleTemplate";
         };
 
         class SearchLabel: RscText {
@@ -300,16 +345,16 @@ class RACA_RscDisplayCreator {
             text = "Search";
             x = "safeZoneX + 0.055 * safeZoneW";
             y = "safeZoneY + 0.17 * safeZoneH";
-            w = "0.065 * safeZoneW";
+            w = "0.05 * safeZoneW";
             h = "0.035 * safeZoneH";
         };
 
         class Search: RscEdit {
             idc = RACA_IDC_SEARCH;
             tooltip = "Search display name, class name, category, mod, owning add-on, or author";
-            x = "safeZoneX + 0.12 * safeZoneW";
+            x = "safeZoneX + 0.11 * safeZoneW";
             y = "safeZoneY + 0.17 * safeZoneH";
-            w = "0.46 * safeZoneW";
+            w = "0.295 * safeZoneW";
             h = "0.035 * safeZoneH";
             onKeyUp = "ctrlParent (_this select 0) call RACA_fnc_queueRefresh";
         };
@@ -317,16 +362,31 @@ class RACA_RscDisplayCreator {
         class CategoryLabel: SearchLabel {
             idc = RACA_IDC_CATEGORY_LABEL;
             text = "Category";
-            x = "safeZoneX + 0.60 * safeZoneW";
-            w = "0.07 * safeZoneW";
+            x = "safeZoneX + 0.415 * safeZoneW";
+            w = "0.06 * safeZoneW";
         };
 
         class Category: RscCombo {
             idc = RACA_IDC_CATEGORY;
-            x = "safeZoneX + 0.67 * safeZoneW";
+            x = "safeZoneX + 0.48 * safeZoneW";
             y = "safeZoneY + 0.17 * safeZoneH";
-            w = "0.265 * safeZoneW";
+            w = "0.17 * safeZoneW";
             h = "0.035 * safeZoneH";
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshItemList";
+        };
+
+        class SourceFilterLabel: SearchLabel {
+            idc = RACA_IDC_SOURCE_FILTER_LABEL;
+            text = "Source";
+            x = "safeZoneX + 0.66 * safeZoneW";
+            w = "0.055 * safeZoneW";
+        };
+
+        class SourceFilter: Category {
+            idc = RACA_IDC_SOURCE_FILTER;
+            x = "safeZoneX + 0.72 * safeZoneW";
+            w = "0.215 * safeZoneW";
+            tooltip = "Filter the catalogue to one loaded source mod";
             onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshItemList";
         };
 
@@ -381,7 +441,7 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.055 * safeZoneW";
             y = "safeZoneY + 0.247 * safeZoneH";
             w = "0.88 * safeZoneW";
-            h = "0.49 * safeZoneH";
+            h = "0.46 * safeZoneH";
             columns[] = {0.015, 0.10, 0.36, 0.55, 0.67, 0.82};
             multiSelect = 1;
             drawSideArrows = 0;
@@ -395,8 +455,8 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_INCLUDE_VISIBLE;
             text = "INCLUDE VISIBLE";
             x = "safeZoneX + 0.055 * safeZoneW";
-            y = "safeZoneY + 0.76 * safeZoneH";
-            w = "0.13 * safeZoneW";
+            y = "safeZoneY + 0.725 * safeZoneH";
+            w = "0.12 * safeZoneW";
             h = "0.04 * safeZoneH";
             onButtonClick = "[ctrlParent (_this select 0), true] call RACA_fnc_setVisibleSelection";
         };
@@ -404,32 +464,32 @@ class RACA_RscDisplayCreator {
         class ExcludeVisible: IncludeVisible {
             idc = RACA_IDC_EXCLUDE_VISIBLE;
             text = "EXCLUDE VISIBLE";
-            x = "safeZoneX + 0.195 * safeZoneW";
+            x = "safeZoneX + 0.18 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), false] call RACA_fnc_setVisibleSelection";
         };
 
         class ClearAll: IncludeVisible {
             idc = RACA_IDC_CLEAR_ALL;
             text = "CLEAR ALL";
-            x = "safeZoneX + 0.335 * safeZoneW";
-            w = "0.09 * safeZoneW";
+            x = "safeZoneX + 0.305 * safeZoneW";
+            w = "0.075 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_clearSelection";
         };
 
         class LimitScope: RscCombo {
             idc = RACA_IDC_LIMIT_SCOPE;
-            x = "safeZoneX + 0.435 * safeZoneW";
-            y = "safeZoneY + 0.76 * safeZoneH";
-            w = "0.10 * safeZoneW";
+            x = "safeZoneX + 0.385 * safeZoneW";
+            y = "safeZoneY + 0.725 * safeZoneH";
+            w = "0.09 * safeZoneW";
             h = "0.04 * safeZoneH";
             tooltip = "Quantity scope: interaction, player, life, mission, or shared arsenal";
         };
 
         class LimitValue: RscEdit {
             idc = RACA_IDC_LIMIT_VALUE;
-            x = "safeZoneX + 0.54 * safeZoneW";
-            y = "safeZoneY + 0.76 * safeZoneH";
-            w = "0.06 * safeZoneW";
+            x = "safeZoneX + 0.48 * safeZoneW";
+            y = "safeZoneY + 0.725 * safeZoneH";
+            w = "0.05 * safeZoneW";
             h = "0.04 * safeZoneH";
             text = "-1";
             tooltip = "Maximum quantity; -1 means unlimited";
@@ -437,17 +497,35 @@ class RACA_RscDisplayCreator {
 
         class SetLimit: ClearAll {
             idc = RACA_IDC_SET_LIMIT;
-            text = "SET LIMIT";
-            x = "safeZoneX + 0.605 * safeZoneW";
-            w = "0.08 * safeZoneW";
+            text = "LIMIT ITEM";
+            x = "safeZoneX + 0.535 * safeZoneW";
+            w = "0.075 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setItemLimit";
+        };
+
+        class SetCategoryLimit: SetLimit {
+            idc = RACA_IDC_SET_CATEGORY_LIMIT;
+            text = "LIMIT CATEGORY";
+            x = "safeZoneX + 0.615 * safeZoneW";
+            w = "0.10 * safeZoneW";
+            tooltip = "Apply the quantity and scope to the active equipment category";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCategoryLimit";
+        };
+
+        class Favorite: SetLimit {
+            idc = RACA_IDC_FAVORITE;
+            text = "FAVORITE";
+            x = "safeZoneX + 0.72 * safeZoneW";
+            w = "0.08 * safeZoneW";
+            tooltip = "Add or remove the selected class from profile favorites";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_toggleFavorite";
         };
 
         class ViewMode: SetLimit {
             idc = RACA_IDC_VIEW_MODE;
-            text = "VIEW";
-            x = "safeZoneX + 0.69 * safeZoneW";
-            w = "0.07 * safeZoneW";
+            text = "ICONS";
+            x = "safeZoneX + 0.805 * safeZoneW";
+            w = "0.065 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_setCatalogView";
         };
 
@@ -455,9 +533,9 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_SUMMARY;
             text = "0 items included";
             style = 16;
-            x = "safeZoneX + 0.765 * safeZoneW";
-            y = "safeZoneY + 0.755 * safeZoneH";
-            w = "0.17 * safeZoneW";
+            x = "safeZoneX + 0.055 * safeZoneW";
+            y = "safeZoneY + 0.785 * safeZoneH";
+            w = "0.88 * safeZoneW";
             h = "0.06 * safeZoneH";
             colorBackground[] = {0, 0, 0, 0.4};
         };
@@ -479,6 +557,156 @@ class RACA_RscDisplayCreator {
             y = "safeZoneY + 0.88 * safeZoneH";
             w = "0.12 * safeZoneW";
             h = "0.045 * safeZoneH";
+            onButtonClick = "ctrlParent (_this select 0) spawn RACA_fnc_requestCreatorClose";
+        };
+    };
+};
+
+class RACA_RscDisplayQuickStart {
+    idd = RACA_IDD_QUICK_START;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_quickStartOnLoad";
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.25 * safeZoneW";
+            y = "safeZoneY + 0.20 * safeZoneH";
+            w = "0.50 * safeZoneW";
+            h = "0.56 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.98};
+        };
+        class Title: RscText {
+            idc = -1;
+            text = "RACA QUICK START";
+            style = 2;
+            x = "safeZoneX + 0.27 * safeZoneW";
+            y = "safeZoneY + 0.22 * safeZoneH";
+            w = "0.46 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+    class controls {
+        class Help: RscText {
+            idc = RACA_IDC_HISTORY_DETAILS;
+            text = "1. Name the arsenal.  2. Start blank or choose a role starter.  3. Review every suggestion on Assignment.  4. Run preflight and save. Role starters are broad loaded-mod suggestions, never an authorization decision.";
+            style = 16;
+            x = "safeZoneX + 0.28 * safeZoneW";
+            y = "safeZoneY + 0.29 * safeZoneH";
+            w = "0.44 * safeZoneW";
+            h = "0.14 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.25};
+        };
+        class NameLabel: RscText {
+            idc = -1;
+            text = "Draft preset name";
+            x = "safeZoneX + 0.28 * safeZoneW";
+            y = "safeZoneY + 0.45 * safeZoneH";
+            w = "0.44 * safeZoneW";
+            h = "0.03 * safeZoneH";
+        };
+        class Name: RscEdit {
+            idc = RACA_IDC_QUICK_NAME;
+            x = "safeZoneX + 0.28 * safeZoneW";
+            y = "safeZoneY + 0.485 * safeZoneH";
+            w = "0.44 * safeZoneW";
+            h = "0.04 * safeZoneH";
+        };
+        class RoleLabel: NameLabel {
+            text = "Starting point";
+            y = "safeZoneY + 0.54 * safeZoneH";
+        };
+        class Role: RscCombo {
+            idc = RACA_IDC_QUICK_ROLE;
+            x = "safeZoneX + 0.28 * safeZoneW";
+            y = "safeZoneY + 0.575 * safeZoneH";
+            w = "0.44 * safeZoneW";
+            h = "0.04 * safeZoneH";
+        };
+        class Create: RscButton {
+            idc = RACA_IDC_QUICK_CREATE;
+            text = "CREATE REVIEW DRAFT";
+            x = "safeZoneX + 0.28 * safeZoneW";
+            y = "safeZoneY + 0.66 * safeZoneH";
+            w = "0.27 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_quickStartApply";
+        };
+        class Cancel: Create {
+            idc = 2;
+            text = "CANCEL";
+            x = "safeZoneX + 0.57 * safeZoneW";
+            w = "0.15 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
+        };
+    };
+};
+
+class RACA_RscDisplayHistory {
+    idd = RACA_IDD_HISTORY;
+    movingEnable = 0;
+    enableSimulation = 1;
+    onLoad = "(_this select 0) call RACA_fnc_historyOnLoad";
+    class controlsBackground {
+        class Background: RscText {
+            idc = -1;
+            x = "safeZoneX + 0.12 * safeZoneW";
+            y = "safeZoneY + 0.10 * safeZoneH";
+            w = "0.76 * safeZoneW";
+            h = "0.78 * safeZoneH";
+            colorBackground[] = {0.02, 0.025, 0.03, 0.98};
+        };
+        class Title: RscText {
+            idc = -1;
+            text = "PRESET REVISION HISTORY";
+            style = 2;
+            x = "safeZoneX + 0.14 * safeZoneW";
+            y = "safeZoneY + 0.12 * safeZoneH";
+            w = "0.72 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+        };
+    };
+    class controls {
+        class HistoryList: RscListNBox {
+            idc = RACA_IDC_HISTORY_LIST;
+            x = "safeZoneX + 0.14 * safeZoneW";
+            y = "safeZoneY + 0.19 * safeZoneH";
+            w = "0.72 * safeZoneW";
+            h = "0.43 * safeZoneH";
+            columns[] = {0.02, 0.12, 0.36, 0.54, 0.88};
+            colorBackground[] = {0, 0, 0, 0.45};
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_historySelect";
+        };
+        class Details: RscText {
+            idc = RACA_IDC_HISTORY_DETAILS;
+            text = "Select an archived revision.";
+            style = 16;
+            x = "safeZoneX + 0.14 * safeZoneW";
+            y = "safeZoneY + 0.64 * safeZoneH";
+            w = "0.72 * safeZoneW";
+            h = "0.11 * safeZoneH";
+            colorBackground[] = {0, 0, 0, 0.35};
+        };
+        class Restore: RscButton {
+            idc = RACA_IDC_HISTORY_RESTORE;
+            text = "RESTORE AS NEW REVISION";
+            x = "safeZoneX + 0.14 * safeZoneW";
+            y = "safeZoneY + 0.78 * safeZoneH";
+            w = "0.30 * safeZoneW";
+            h = "0.05 * safeZoneH";
+            colorBackground[] = {0.19, 0.42, 0.19, 0.95};
+            onButtonClick = "ctrlParent (_this select 0) spawn RACA_fnc_restorePresetRevision";
+        };
+        class Close: Restore {
+            idc = 2;
+            text = "CLOSE";
+            x = "safeZoneX + 0.71 * safeZoneW";
+            w = "0.15 * safeZoneW";
+            colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";
         };
     };

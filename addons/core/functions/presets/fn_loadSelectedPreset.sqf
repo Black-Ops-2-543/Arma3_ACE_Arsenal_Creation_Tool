@@ -16,6 +16,8 @@ if (_preset isEqualTo []) exitWith {
     [_display, "The selected preset is invalid."] call RACA_fnc_setStatus;
 };
 
+[_display] call RACA_fnc_pushCreatorHistory;
+
 private _selected = createHashMap;
 {
     {_selected set [_x, true]} forEach _x;
@@ -48,6 +50,8 @@ uiNamespace setVariable ["RACA_builderLimits", _limitsMap];
 [_display] call RACA_fnc_refreshItemList;
 [_display] call RACA_fnc_updateSummary;
 [_display] call RACA_fnc_runCreatorDiagnostics;
+uiNamespace setVariable ["RACA_creatorDirty", false];
+[_display] call RACA_fnc_refreshHistoryButtons;
 
 private _notices = [];
 if (_warnings isNotEqualTo []) then {

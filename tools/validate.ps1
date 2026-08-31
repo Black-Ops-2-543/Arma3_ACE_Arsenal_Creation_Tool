@@ -274,7 +274,7 @@ if (Test-Path -LiteralPath $portableImportPath -PathType Leaf) {
 $portableExportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_exportPreset.sqf'
 if (Test-Path -LiteralPath $portableExportPath -PathType Leaf) {
     $portableExport = Get-Content -Raw -LiteralPath $portableExportPath
-    foreach ($formatName in @('JSON', 'SQF', 'LIST')) {
+    foreach ($formatName in @('JSON', 'SQF', 'LIST', 'MANIFEST', 'SUPPORT')) {
         if ($portableExport -notmatch ('"' + $formatName + '"')) {
             $failures.Add("Preset export is missing the '$formatName' format path.")
         }
@@ -361,6 +361,44 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUiSource -notmatch 'RACA_IDC_DELETE_PRESET' -or $creatorUiSource -notmatch 'RACA_fnc_deletePreset') {
         $failures.Add("The creator must expose preset deletion from Preset Management.")
     }
+    foreach ($creatorFeature in @('QUICK START', 'REVISION HISTORY', 'COMPARE DRAFT', 'LIMIT CATEGORY', 'FAVORITE', 'RACA_IDC_SOURCE_FILTER', 'RACA_fnc_requestCreatorClose')) {
+        if ($creatorUiSource -notmatch [regex]::Escape($creatorFeature)) {
+            $failures.Add("The creator excellence workflow is missing '$creatorFeature'.")
+        }
+    }
+}
+
+$historyArchivePath = Join-Path $addonsDirectory 'core\functions\presets\fn_archivePreset.sqf'
+if (Test-Path -LiteralPath $historyArchivePath -PathType Leaf) {
+    $historyArchive = Get-Content -Raw -LiteralPath $historyArchivePath
+    if ($historyArchive -notmatch 'RACA_presetHistory_v1' -or $historyArchive -notmatch '_matchingKept < 20' -or $historyArchive -notmatch 'saveProfileNamespace') {
+        $failures.Add("Preset revision history must be profile-persistent and retain at most 20 snapshots per preset.")
+    }
+}
+
+$savePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_saveCurrentPreset.sqf'
+if (Test-Path -LiteralPath $savePresetPath -PathType Leaf) {
+    $savePreset = Get-Content -Raw -LiteralPath $savePresetPath
+    if ($savePreset -notmatch 'RACA_fnc_archivePreset' -or $savePreset -notmatch 'RACA_creatorDirty"\s*,\s*false') {
+        $failures.Add("Preset overwrite must archive the outgoing revision and mark the saved creator state clean.")
+    }
+}
+
+$manifestPath = Join-Path $addonsDirectory 'core\functions\presets\fn_buildModManifest.sqf'
+$supportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_buildSupportBundle.sqf'
+if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+    (Get-Content -Raw -LiteralPath $manifestPath) -notmatch 'RACA_MOD_MANIFEST') {
+    $failures.Add("The creator must provide a versioned required-mod manifest export.")
+}
+if (-not (Test-Path -LiteralPath $supportPath -PathType Leaf) -or
+    (Get-Content -Raw -LiteralPath $supportPath) -notmatch 'RACA_SUPPORT_BUNDLE') {
+    $failures.Add("The creator must provide a versioned diagnostic support-bundle export.")
+}
+
+$historyPushPath = Join-Path $addonsDirectory 'core\functions\ui\fn_pushCreatorHistory.sqf'
+$historyRestorePath = Join-Path $addonsDirectory 'core\functions\ui\fn_restoreCreatorHistory.sqf'
+if (-not (Test-Path -LiteralPath $historyPushPath -PathType Leaf) -or -not (Test-Path -LiteralPath $historyRestorePath -PathType Leaf)) {
+    $failures.Add("The creator must provide bounded undo and redo state transitions.")
 }
 
 $edenPopulatePath = Join-Path $addonsDirectory 'eden\functions\fn_edenPopulate.sqf'

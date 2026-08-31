@@ -34,12 +34,15 @@ The current release:
 
 - scans the ACE-compatible catalogue from the base game, DLC, and currently loaded mods;
 - searches display names, class names, categories, mods, owning add-ons, and authors;
+- provides first-run Quick Start, source-mod filtering, persistent favorites, item context tooltips, and undo/redo;
 - separates weapons, attachments, magazines, uniforms, vests, backpacks, headgear, NVGs, facewear, and general equipment;
 - keeps every ammunition magazine—including rockets, 40 mm rounds, grenades, mines, and explosives—in Magazines while keeping magazine-backed inventory/medical items in Equipment;
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
 - saves named presets in the active Arma profile and supports loading, case-insensitive overwriting, and guarded deletion;
+- archives up to 20 prior revisions per preset before destructive library changes, with comparison and rollback as a new revision;
 - adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
+- exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon;
 - provides creator preflight reports for invalid data, missing classes, duplicate entries, bucket corrections, and likely content-mod sources;
 - saves per-item quantity policies with interaction, player, life, mission, or shared-arsenal scopes;
@@ -77,20 +80,26 @@ The controls include:
 
 - **Search** — searches names, class names, categories, mods, owning add-ons, and authors;
 - **Category** — filters by item type;
+- **Source** — filters to one loaded source mod, while search still covers owning add-ons and authors;
+- **Favorite** — stores the selected class in a profile-wide Favorites view;
 - **Included** — shows whether a row belongs to the current selection;
 - **Saved presets** — chooses a previously saved list;
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
 - **Delete** — removes the selected preset from the active profile after confirmation while keeping the current items as an unsaved recovery copy;
+- **Quick Start** — creates an unsaved blank or role-based draft and leads directly to review;
+- **Revision History** — compares automatically archived versions and restores one as a new revision;
+- **Compare Draft** — copies the exact added/removed class and quantity-policy difference against the selected saved preset;
+- **Undo / Redo** — reverses creator item and policy changes, also available with `Ctrl+Z` / `Ctrl+Y`;
 - **Adopted source preset** — selects an optional saved source for the current preset;
 - **Adopt / Refresh** — adopts that source or deliberately reapplies a changed source while preserving additions and removals;
 - **Make Standalone** — saves the complete current result with no source link;
-- **Export format** — chooses round-trip JSON, reusable mission SQF, or a simple class list;
+- **Export format** — chooses round-trip JSON, reusable mission SQF, a simple class list, a required-mod manifest, or a support bundle;
 - **Export** — copies the selected preset in that format;
 - **Import Auto** — detects and safely imports RACA JSON, an existing SQF arsenal, or a class list from the clipboard; and
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk.
 
-The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, and **Copy Report**. Assignment includes an optional quantity-limit control for the selected class; **View** switches between the current included items and the full adopted-source snapshot.
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Run Preflight**, and **Copy Report**. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows its class, category, source, author, favorite state, and effective limit.
 
 ### 3. Build the selection
 
@@ -108,7 +117,7 @@ Bulk actions affect only rows currently visible through the active filters. Use 
 
 To begin from a practical role baseline, choose a **Role starter** in Preset Management and select **Apply Starter**. Starters are search-based suggestions drawn from the current catalogue, so review the resulting list rather than treating it as a fixed faction loadout.
 
-To set a limit, select an item row, choose its scope, enter a quantity, and select **Set Limit**. Use `-1` for unlimited. Limits are stored with the preset; full server-side enforcement applies when the preset is used by RACA's controlled runtime-object configuration.
+To set an exact limit, select an item row, choose its scope, enter a quantity, and select **Limit Item**. To share one allowance across a complete equipment category, choose that category and select **Limit Category**. Use `-1` for unlimited. Limits are stored with the preset; full server-side enforcement applies when the preset is used by RACA's controlled runtime-object configuration.
 
 ### 4. Save the preset
 
@@ -140,6 +149,10 @@ Select a saved preset, or leave **Saved presets** on **<Current selection>**, th
 - **JSON preset** is RACA's authoritative round-trip format. Choose **Export**, paste the clipboard into a UTF-8 `.json` file, and archive or share it. To restore it, copy the complete document and choose **Import Auto**. A JSON export preserves the preset name and all cargo buckets; the importer validates that exact versioned structure.
 - **Reusable SQF** creates a complete mission script. Save the clipboard text as `raca_arsenal.sqf` in the 3den mission folder. Put `[this] execVM "raca_arsenal.sqf";` in the Init field of every object that should use it. All of those objects share the same file and therefore stay linked to one maintained list. The script runs the ACE setup on the server and synchronizes the resulting arsenal.
 - **Class list** creates a single comma-separated list such as `arifle_MX_F, FirstAidKit, 30Rnd_65x39_caseless_mag` for documentation or other tooling.
+- **Required-mod manifest** creates versioned JSON grouped by source mod and owning add-on, with every required class listed explicitly.
+- **Support bundle** creates versioned JSON containing RACA/Arma environment data, activated add-ons, compatibility results, the mod manifest, and the complete portable preset. Attach it to a bug report without hand-assembling diagnostics.
+
+JSON preset is the only export intended for guaranteed re-import. The manifest and support bundle are diagnostic artifacts and are deliberately rejected by **Import Auto** as preset data.
 
 To migrate an existing unit arsenal, copy the complete SQF file, enter the desired imported preset name in **Preset name**, and choose **Import Auto**. RACA extracts quoted, currently available config class names from common SQF arrays—including files that combine category arrays with `+`—without compiling or executing the file. It reports and excludes missing quoted classes. The same importer accepts the simple class-list export.
 
@@ -219,6 +232,8 @@ The **Restricted Arsenals** Zeus category includes modules to assign/replace a p
 ### Presets and profiles
 
 Presets are stored in the profile variable `RACA_presetLibrary_v1`. They are authoring data, not a runtime dependency of a saved mission. Eden embeds the selected preset in the scenario.
+
+Before overwrite, rollback, standalone conversion, import replacement, or deletion, RACA archives the outgoing profile preset. Revision history retains the newest 20 snapshots for each preset and restores an old snapshot as a new monotonically increasing revision, so rollback never silently erases the version it replaced.
 
 Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, and unsupported versions are rejected. RACA imposes no fixed byte ceiling; the practical limit is the memory available to Arma and the operating-system clipboard. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 

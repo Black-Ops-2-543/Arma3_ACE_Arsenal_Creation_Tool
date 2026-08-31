@@ -18,9 +18,13 @@ private _buckets = [[], [], [], []];
 {_x sort true} forEach _buckets;
 private _limitsMap = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 private _limits = [];
+private _limitKeys = keys _limitsMap;
+_limitKeys sort true;
 {
-    _limits pushBack (_limitsMap get _x);
-} forEach keys _limitsMap;
+    if ((toLowerANSI _x find "category:") isEqualTo 0 || {_selected getOrDefault [_x, false]}) then {
+        _limits pushBack (_limitsMap get _x);
+    };
+} forEach _limitKeys;
 _limits = [_limits] call RACA_fnc_normalizeLimits;
 [
     "RACA_PRESET",
