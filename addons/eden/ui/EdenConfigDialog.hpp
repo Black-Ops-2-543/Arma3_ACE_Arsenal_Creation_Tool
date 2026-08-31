@@ -212,14 +212,21 @@ class RACA_RscDisplayEdenConfig {
             text = "REFRESH";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.565 * safeZoneH";
-            w = "0.07 * safeZoneW";
+            w = "0.055 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardRefresh";
         };
         class SelectDashboard: RefreshDashboard {
-            text = "SELECT OBJECT";
-            x = "safeZoneX + 0.785 * safeZoneW";
-            w = "0.09 * safeZoneW";
+            text = "SELECT";
+            x = "safeZoneX + 0.77 * safeZoneW";
+            w = "0.08 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardSelect";
+        };
+        class CopyDashboardReport: RefreshDashboard {
+            text = "COPY REPORT";
+            tooltip = "Copy a detailed compatibility report for every configured arsenal object";
+            x = "safeZoneX + 0.855 * safeZoneW";
+            w = "0.085 * safeZoneW";
+            onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardCopy";
         };
         class BulkAssign: RefreshDashboard {
             text = "ASSIGN TO SELECTED";
@@ -246,7 +253,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class DashboardHelp: ctrlStatic {
             idc = -1;
-            text = "Choose any mission unit in the simulator. UID and mission permission rules remain runtime-only unknowns.";
+            text = "Dashboard rows show READY, WARN, or BLOCKED for applied Eden attributes. Apply current editor changes before refreshing.";
             style = 16;
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";

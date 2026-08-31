@@ -10,6 +10,7 @@ class CfgFunctions {
             class edenAccessSimulatorRefresh {};
             class edenClearAttribute {};
             class edenDashboardBulk {};
+            class edenDashboardCopy {};
             class edenDashboardRefresh {};
             class edenDashboardSelect {};
             class edenEditorAddCondition {};
