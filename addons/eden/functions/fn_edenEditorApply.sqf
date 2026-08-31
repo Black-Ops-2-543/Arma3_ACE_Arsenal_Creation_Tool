@@ -7,12 +7,22 @@ private _slots = _working param [2, []];
 private _config = [];
 private _preflightAllowed = true;
 if (_slots isNotEqualTo []) then {
-    ([_working, uiNamespace getVariable ["RACA_itemCatalog", []]] call RACA_fnc_preflightObjectConfig) params ["_canApply", "_normalized", "", "_summary"];
+    ([_working, uiNamespace getVariable ["RACA_itemCatalog", []]] call RACA_fnc_preflightObjectConfig) params ["_canApply", "_normalized", "_entries", "_summary"];
+    _display setVariable ["RACA_transactionPreflightReport", ["Unsaved Eden object configuration", _entries, _summary] call RACA_fnc_formatDiagnosticReport];
+    _display setVariable ["RACA_transactionPreflightSummary", _summary];
     _preflightAllowed = _canApply;
     if (!_preflightAllowed) then {
         _summary params ["_errors", "_warnings"];
+        private _firstErrorIndex = _entries findIf {(_x select 0) isEqualTo "ERROR"};
+        private _firstError = if (_firstErrorIndex < 0) then {
+            ["ERROR", "UNKNOWN", "An unspecified preflight blocker was found.", "", "", ""]
+        } else {
+            _entries select _firstErrorIndex
+        };
         (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText format [
-            "Configuration blocked by preflight: %1 error(s), %2 warning(s). Review the mission dashboard report before applying.",
+            "Blocked: %1 - %2 (%3 error(s), %4 warning(s)). COPY REPORT has full details.",
+            _firstError select 1,
+            _firstError select 2,
             _errors,
             _warnings
         ];
@@ -21,6 +31,8 @@ if (_slots isNotEqualTo []) then {
     };
 };
 if (!_preflightAllowed) exitWith {false};
+_display setVariable ["RACA_transactionPreflightReport", ""];
+_display setVariable ["RACA_transactionPreflightSummary", [0, 0, 0]];
 if (_slots isNotEqualTo [] && {_config isEqualTo []}) exitWith {
     (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText "The slot configuration is invalid and was not applied. Review each slot and preset.";
     false

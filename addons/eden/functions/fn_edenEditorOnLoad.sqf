@@ -10,6 +10,8 @@ private _working = if (_normalized isEqualTo []) then {
 } else {+_normalized};
 _display setVariable ["RACA_workingConfig", _working];
 _display setVariable ["RACA_currentSlot", -1];
+_display setVariable ["RACA_transactionPreflightReport", ""];
+_display setVariable ["RACA_transactionPreflightSummary", [0, 0, 0]];
 
 private _presetOptions = (call RACA_fnc_getPresetLibrary) apply {[_x] call RACA_fnc_flattenPreset};
 {
