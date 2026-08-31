@@ -93,6 +93,10 @@ $requiredRelativeFiles = @(
     'addons\core\functions\presets\fn_formatSqfExport.sqf',
     'addons\core\functions\presets\fn_wouldCreateCycle.sqf',
     'addons\core\functions\ui\fn_refreshCategoryCombo.sqf',
+    'addons\core\functions\ui\fn_clearDraftRecovery.sqf',
+    'addons\core\functions\ui\fn_offerDraftRecovery.sqf',
+    'addons\core\functions\ui\fn_queueDraftRecovery.sqf',
+    'addons\core\functions\ui\fn_saveDraftRecovery.sqf',
     'addons\core\functions\ui\fn_switchCreatorTab.sqf',
     'addons\eden\ui\PresetAttribute.hpp',
     'addons\eden\ui\EdenConfigDialog.hpp',
@@ -100,6 +104,8 @@ $requiredRelativeFiles = @(
     'addons\eden\functions\fn_edenEditorApply.sqf',
     'addons\eden\functions\fn_edenEditorSelectSlot.sqf',
     'addons\eden\functions\fn_edenDashboardBulk.sqf',
+    'addons\eden\functions\fn_edenDashboardCopy.sqf',
+    'addons\eden\functions\fn_edenDashboardRefresh.sqf',
     'docs\PORTABLE_PRESET_FORMAT.md',
     'tests\multiplayer\RACA_Rehearsal.VR\mission.sqm',
     'tests\multiplayer\RACA_Rehearsal.VR\description.ext',
@@ -188,7 +194,7 @@ if (Test-Path -LiteralPath $edenCfgPath -PathType Leaf) {
 $edenDialogPath = Join-Path $addonsDirectory 'eden\ui\EdenConfigDialog.hpp'
 if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
     $edenDialog = Get-Content -Raw -LiteralPath $edenDialogPath
-    foreach ($requiredText in @('SLOTS ON THIS OBJECT', 'ACCESS RULES', 'MISSION-WIDE DASHBOARD', 'APPLY CONFIGURATION', 'ASSIGN TO SELECTED', 'CLEAR SELECTED')) {
+    foreach ($requiredText in @('SLOTS ON THIS OBJECT', 'ACCESS RULES', 'MISSION-WIDE DASHBOARD', 'APPLY CONFIGURATION', 'ASSIGN TO SELECTED', 'CLEAR SELECTED', 'COPY REPORT')) {
         if ($edenDialog -notmatch [regex]::Escape($requiredText)) {
             $failures.Add("The Eden configuration editor is missing '$requiredText'.")
         }
@@ -221,6 +227,23 @@ if (Test-Path -LiteralPath $edenBulkPath -PathType Leaf) {
     foreach ($requiredPattern in @('get3DENSelected', 'BIS_fnc_guiMessage', 'collect3DENHistory', 'set3DENAttribute')) {
         if ($edenBulk -notmatch $requiredPattern) {
             $failures.Add("Mission-wide Eden updates are missing '$requiredPattern'.")
+        }
+    }
+}
+
+$edenDashboardRefreshPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardRefresh.sqf'
+$edenDashboardCopyPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardCopy.sqf'
+if (-not (Test-Path -LiteralPath $edenDashboardRefreshPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $edenDashboardCopyPath -PathType Leaf)) {
+    $failures.Add('The Eden mission dashboard must provide mission-wide preflight and report-copy functions.')
+}
+else {
+    $edenDashboard = (Get-Content -Raw -LiteralPath $edenDashboardRefreshPath) +
+        [Environment]::NewLine +
+        (Get-Content -Raw -LiteralPath $edenDashboardCopyPath)
+    foreach ($requiredPattern in @('RACA_fnc_preflightObjectConfig', 'lbSetColor', 'BLOCKED', 'WARN', 'READY', 'RACA_dashboardMissionReport', 'copyToClipboard')) {
+        if ($edenDashboard -notmatch $requiredPattern) {
+            $failures.Add("The Eden mission preflight dashboard is missing '$requiredPattern'.")
         }
     }
 }
@@ -264,6 +287,9 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     }
     if ($creatorUi -notmatch 'spawn\s+RACA_fnc_importPreset') {
         $failures.Add('Import Auto must run in a scheduled environment so duplicate-preset confirmation can suspend safely.')
+    }
+    if ($creatorUi -notmatch 'onKeyUp\s*=\s*"[^"\r\n]*RACA_fnc_queueDraftRecovery') {
+        $failures.Add('Preset-name edits must mark and checkpoint the creator draft.')
     }
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_BASE_PRESET' -or
         $creatorUi -notmatch 'text\s*=\s*"ADOPT / REFRESH"' -or
@@ -336,8 +362,11 @@ if (Test-Path -LiteralPath $portableImportPath -PathType Leaf) {
     if ($portableImport -match '(?i)\bcompile(?:Final)?\s+(?:_text|copyFromClipboard)\b') {
         $failures.Add("Portable preset import must never compile clipboard or imported text.")
     }
-    if ($portableImport -match '1000000|1 MB' -or $portableImport -notmatch 'RACA_PORTABLE_PRESET') {
-        $failures.Add("Portable preset import must retain its versioned signature check without a fixed 1 MB ceiling.")
+    if ($portableImport -notmatch '2000000' -or
+        $portableImport -notmatch '20000' -or
+        $portableImport -notmatch '256' -or
+        $portableImport -notmatch 'RACA_PORTABLE_PRESET') {
+        $failures.Add("Portable preset import must enforce the documented character, reference, and metadata limits alongside its versioned signature.")
     }
 }
 
@@ -368,8 +397,11 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     if ($sqfImport -match '(?i)\b(?:compile|compileFinal|execVM|preprocessFile|loadFile)\b') {
         $failures.Add("Legacy SQF import must scan text only and must never load or execute it.")
     }
-    if ($sqfImport -match '1000000|1 MB' -or $sqfImport -notmatch '\bRACA_fnc_classifyClass\b') {
-        $failures.Add("Legacy SQF import must use current-config classification without a fixed 1 MB ceiling.")
+    if ($sqfImport -notmatch '2000000' -or
+        $sqfImport -notmatch '50000' -or
+        $sqfImport -notmatch '20000' -or
+        $sqfImport -notmatch '\bRACA_fnc_classifyClass\b') {
+        $failures.Add("Legacy SQF import must use current-config classification and enforce the documented character, token, and class limits.")
     }
     if ($sqfImport -notmatch '_isSqfIdentifier' -or $sqfImport -notmatch '\(_candidate find "_fnc_"\)') {
         $failures.Add("Legacy SQF import must ignore quoted local variables and function identifiers.")
@@ -425,10 +457,38 @@ else {
     }
 }
 
+$draftRecoveryPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_saveDraftRecovery.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_clearDraftRecovery.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_queueDraftRecovery.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_offerDraftRecovery.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_creatorOnUnload.sqf')
+)
+if ($draftRecoveryPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add('Creator draft recovery is incomplete.')
+}
+else {
+    $draftRecovery = ($draftRecoveryPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    foreach ($requiredPattern in @(
+        'RACA_creatorDraftRecovery_v1',
+        'RACA_DRAFT_RECOVERY',
+        'saveProfileNamespace',
+        'RACA_fnc_validatePreset',
+        'BIS_fnc_guiMessage',
+        'RACA_creatorDiscarding',
+        'RACA_fnc_saveDraftRecovery'
+    )) {
+        if ($draftRecovery -notmatch $requiredPattern) {
+            $failures.Add("Creator draft recovery is missing '$requiredPattern'.")
+        }
+    }
+}
+
 $modalWorkflowPaths = @(
     'core\functions\presets\fn_deletePreset.sqf',
     'core\functions\presets\fn_importPreset.sqf',
     'core\functions\ui\fn_requestCreatorClose.sqf',
+    'core\functions\ui\fn_offerDraftRecovery.sqf',
     'core\functions\ui\fn_restorePresetRevision.sqf',
     'core\functions\runtime\fn_adminExecute.sqf',
     'eden\functions\fn_edenDashboardBulk.sqf'

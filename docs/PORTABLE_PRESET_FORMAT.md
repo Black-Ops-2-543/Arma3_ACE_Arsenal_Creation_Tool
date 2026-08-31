@@ -61,12 +61,16 @@ JSON preserves adoption metadata so another RACA profile can continue editing th
 
 - JSON is decoded with `fromJSON`. Import text is never passed to `compile`, `compileFinal`, `call`, or `spawn` as code.
 - The root signature and format version must be recognized.
-- RACA has no fixed import-size ceiling. Very large imports are limited only by available Arma memory and the operating-system clipboard.
+- Clipboard input is limited to 2,000,000 characters before format decoding.
+- A preset may reference at most 20,000 cargo, adoption, removal, and quantity-limit records in total. The preset array may carry at most 64 metadata records, and the portable envelope may carry at most 256 transport-metadata records.
+- SQF migration is limited to 50,000 quoted values; an unquoted class list is limited to 50,000 tokens.
 - Preset names must contain 1–128 printable characters.
 - Class names must use the identifier shape accepted by Arma config classes: ASCII letters, numbers, and underscore, with a maximum length of 256.
 - Unavailable classes are listed as warnings and removed from the imported copy; the remaining valid classes are preserved.
 - An import containing no currently available classes is rejected.
 - If the profile already contains the name, the creator prompts to overwrite it or create a uniquely named imported copy.
+
+Every limit is fail-closed and atomic: exceeding one rejects the complete clipboard document before the profile library is written. The limits are intentionally much larger than a normal all-items arsenal while bounding hostile or accidentally repeated input.
 
 For migration compatibility, the importer also accepts current raw `RACA_PRESET` arrays and the legacy portable format 0 shape `["RACA_PORTABLE_PRESET", 0, name, buckets]`. Both are converted to the current in-profile schema before saving. Unsupported future format versions are rejected without modifying the profile library.
 

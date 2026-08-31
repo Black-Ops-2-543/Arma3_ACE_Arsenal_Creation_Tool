@@ -96,6 +96,7 @@ The controls include:
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
 - **Delete** — removes the selected preset from the active profile after confirmation while keeping the current items as an unsaved recovery copy;
+- **Draft recovery** — continuously checkpoints unsaved names, items, source adoption, and limits to the active profile, then offers to restore or discard that draft after an unexpected close or restart;
 - **Quick Start** — creates an unsaved blank or role-based draft, optionally constrained to one loaded source mod, and leads directly to review;
 - **Revision History** — compares automatically archived versions and restores one as a new revision;
 - **Compare Draft** — copies the exact added/removed class and quantity-policy difference against the selected saved preset;
@@ -109,7 +110,7 @@ The controls include:
 - **Include Visible**, **Exclude Visible**, and **Clear All** — manages selections in bulk; and
 - **Ctrl-click / Shift-click** — selects separate rows or a continuous range; press **Space**, **Favorite**, or **Limit Item** to change the complete set in one operation. Inclusion and limits remain undoable.
 
-The Preset Management tab also provides **Role starter**, **Apply Starter**, **Packs**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows a compact summary; **Details** opens the full class/source/config/compatibility report and can include, exclude, favorite, or copy that item without leaving the inspector.
+The Preset Management tab also provides **Role starter**, **Apply Starter**, **Packs**, **Run Preflight**, **View Details**, and **Copy Report**. The detailed preflight view filters colored Error, Warning, and Information rows; double-clicking an available affected class opens it in Assignment. Assignment includes quantity-limit controls for either the selected class or the active equipment category. **Icons** toggles catalogue item pictures, while **Included**, **Inherited**, and **Favorites** provide focused views. Hovering a row shows a compact summary; **Details** opens the full class/source/config/compatibility report and can include, exclude, favorite, or copy that item without leaving the inspector. The footer always labels the current contents **SAVED** or **UNSAVED DRAFT**.
 
 ### 3. Build the selection
 
@@ -176,6 +177,8 @@ Duplicate preset names prompt for overwrite or a uniquely named imported copy. J
 
 Clipboard import is available in the single-player creator only. Arma disables `copyFromClipboard` in multiplayer for security reasons. For format details, compatibility notes, and examples, see [Preset interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 
+Imports are atomic and resource-bounded: RACA rejects clipboard text above 2,000,000 characters, presets above 20,000 referenced records, JSON envelopes above 64 preset-metadata or 256 transport-metadata records, and SQF/class-list scans above 50,000 quoted values or tokens. Rejection never changes the profile library.
+
 ### 7. Configure it in Eden
 
 Close the creator and open Eden. Place or select the object that should provide the arsenal and open its attributes.
@@ -190,7 +193,7 @@ In **Restricted Arsenals**:
 6. Choose **Save slot changes**, then **Apply configuration**. Closing with **Cancel** discards the transaction.
 7. Confirm the object's normal Attributes window and save the scenario.
 
-The configuration editor's mission-wide dashboard lists every currently configured Eden object. Double-click an entry to select the object, or use **Assign to selected** / **Clear selected** to update only the objects currently selected in Eden. A confirmation preview names the operation and object count, and the entire bulk update becomes one Eden Undo step.
+The configuration editor's mission-wide dashboard preflights every currently configured Eden object and labels it **READY**, **WARN**, or **BLOCKED** with enabled-slot and issue counts. Double-click an entry to select the object, choose **Copy Report** for a detailed mission-wide compatibility record, or use **Assign to selected** / **Clear selected** to update only the objects currently selected in Eden. A confirmation preview names the operation and object count, and the entire bulk update becomes one Eden Undo step. The dashboard reads applied Eden attributes; press **Apply configuration** before refreshing when the current editor transaction has changed.
 
 Use **Refresh presets** in the object attribute to deliberately replace each slot's embedded preset with the matching current profile copy while preserving its interaction name, enabled state, access rules, icon, visibility, and slot order.
 
@@ -252,9 +255,9 @@ The **Restricted Arsenals** Zeus category includes modules to assign/replace a p
 
 Presets are stored in the profile variable `RACA_presetLibrary_v1`. They are authoring data, not a runtime dependency of a saved mission. Eden embeds the selected preset in the scenario.
 
-Before overwrite, rollback, standalone conversion, import replacement, or deletion, RACA archives the outgoing profile preset. Revision history retains the newest 20 snapshots for each preset and restores an old snapshot as a new monotonically increasing revision, so rollback never silently erases the version it replaced.
+Before overwrite, rollback, standalone conversion, import replacement, or deletion, RACA archives the outgoing profile preset. Revision history retains the newest 20 snapshots for each preset and restores an old snapshot as a new monotonically increasing revision, so rollback never silently erases the version it replaced. Unsaved creator changes are separately checkpointed in `RACA_creatorDraftRecovery_v1`; a successful save or load clears that recovery record, while an unexpected close offers it on the next creator launch.
 
-Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, and unsupported versions are rejected. RACA imposes no fixed byte ceiling; the practical limit is the memory available to Arma and the operating-system clipboard. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
+Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, unsupported versions, and inputs above the documented resource limits are rejected atomically. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 
 Adopted presets remain authoring conveniences. Their stored final buckets are always complete. JSON preserves safe adoption metadata for profile-to-profile editing, while class-list and SQF exports are intentionally standalone. Eden also strips adoption metadata before writing the object attribute.
 

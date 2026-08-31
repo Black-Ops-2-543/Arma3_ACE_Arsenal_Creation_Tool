@@ -20,10 +20,13 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Authenticated multiplayer rehearsal with server, listen-host, initial-client, and JIP probes, explicit synchronization gates, and copyable evidence.
 - Reproducible dedicated-server smoke mission and isolated staging tool for initial-client, reconnect, and distinct-JIP evidence.
 - Profile-wide catalogue tags with multi-row assignment, search/filter integration, item-detail context, and backward-compatible saved views.
+- Debounced, profile-persistent unsaved-draft recovery for creator names, selections, adoption state, and quantity limits.
+- Mission-wide Eden compatibility states and a copyable per-object preflight report.
 
 ### Changed
 
 - JSON is the authoritative round-trip format; SQF and class-list imports are conservative data-only migration paths.
+- Import decoding now enforces documented character, reference, metadata, quoted-value, and token limits atomically.
 - Eden embeds complete standalone preset snapshots so deployed missions do not depend on an author's profile or adoption chain.
 - Runtime policy and open-session state remain server-local; clients receive only action metadata required to render interactions.
 

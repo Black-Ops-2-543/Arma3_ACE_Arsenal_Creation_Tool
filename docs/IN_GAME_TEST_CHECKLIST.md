@@ -70,6 +70,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Clear All** removes every selection, including currently hidden rows.
 - [ ] Undo/redo buttons and `Ctrl+Z` / `Ctrl+Y` correctly reverse row, bulk, starter, adoption, and limit changes without changing a saved preset.
 - [ ] Closing a dirty draft asks before discarding it; closing immediately after save or load does not show a false warning.
+- [ ] Changing only the preset name marks the footer **UNSAVED DRAFT**; item, adoption, and limit changes do the same.
+- [ ] End the creator mission without choosing **Discard and close**, reopen it, and confirm the recovery prompt restores the exact name, available items, adoption snapshot, and limits.
+- [ ] Choosing **Discard draft**, or successfully saving/loading, removes the recovery prompt on the next creator launch.
 
 ## 4. Preset persistence
 
@@ -87,6 +90,8 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] JSON export is valid UTF-8 JSON and round-trips without losing the name or any bucket.
 - [ ] Required-mod manifest export groups every selected class by source mod and owning add-on.
 - [ ] Support-bundle export contains environment metadata, compatibility analysis, manifest, and the portable preset; Import Auto rejects it as non-preset data.
+- [ ] A valid document between 1 MB and 2,000,000 characters imports; input above 2,000,000 characters, above 20,000 references, above 64 preset metadata records, or above 256 transport metadata records is rejected without changing the library.
+- [ ] SQF/class-list input above 50,000 quoted values or tokens is rejected without partial import; the RPT contains no compile, out-of-memory, or recursion error.
 - [ ] **View Details** shows color-coded Error/Warning/Information rows, severity filters preserve the full report, copy matches the underlying analysis, and double-clicking an available class selects it in Assignment.
 - [ ] Preflight reports ACE3, CBA_A3, and RACA Eden health plus active catalogue class/mod/add-on/author/category counts; the support bundle contains the same environment evidence.
 - [ ] A saved category quantity limit reloads with a canonical `category:<name>` rule and is shown as the effective row limit.
@@ -102,7 +107,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Selecting a descendant as a source is rejected as circular adoption.
 - [ ] **Make Standalone** preserves the current item result and removes the source relationship.
 - [ ] JSON export/import preserves safe adoption metadata.
-- [ ] An otherwise-valid JSON document larger than 1 MB imports without RACA rejecting it for size.
+- [ ] An otherwise-valid JSON document larger than 1 MB but within the documented resource limits imports.
 - [ ] SQF, class-list, Eden, and runtime data contain the complete standalone item result and no required source reference.
 
 ## 6. Eden integration
@@ -119,7 +124,9 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Refresh presets** updates matching embedded preset copies while preserving all slot-specific settings.
 - [ ] A legacy single-preset mission value opens as one compatible slot and saves as a standalone object configuration.
 - [ ] Every embedded slot contains a complete standalone preset with no required adoption/source reference.
-- [ ] The mission dashboard lists every configured object with its slot count and names.
+- [ ] The mission dashboard lists every configured object with READY/WARN/BLOCKED state, enabled-slot count, and issue totals.
+- [ ] **Copy Report** produces a mission-wide record containing every configured object's type, entity ID, slot count, and full preflight findings.
+- [ ] A malformed or missing-content object appears as BLOCKED or WARN instead of disappearing from the dashboard.
 - [ ] Double-clicking a dashboard row selects only its corresponding Eden object.
 - [ ] Bulk assign changes every selected object and no unselected object after confirmation.
 - [ ] Bulk clear removes RACA configuration only from selected objects, and one Eden Undo reverses the full bulk operation.
