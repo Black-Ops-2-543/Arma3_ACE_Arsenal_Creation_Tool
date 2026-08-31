@@ -154,6 +154,7 @@ class RACA_RscDisplayCreator {
             y = "safeZoneY + 0.283 * safeZoneH";
             w = "0.39 * safeZoneW";
             h = "0.037 * safeZoneH";
+            onKeyUp = "ctrlParent (_this select 0) call RACA_fnc_queueDraftRecovery";
         };
 
         class SavedPresetLabel: PresetNameLabel {

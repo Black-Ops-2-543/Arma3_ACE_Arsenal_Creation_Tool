@@ -9,6 +9,9 @@ if (isMultiplayer) exitWith {
 
 forceUnicode 1;
 private _text = copyFromClipboard;
+if ((count _text) > 2000000) exitWith {
+    [_display, "Import rejected: the clipboard exceeds RACA's 2,000,000-character safety limit. No presets were changed."] call RACA_fnc_setStatus;
+};
 ([_text] call RACA_fnc_decodePortablePreset) params ["_preset", "_metadata", "_warnings"];
 private _sourceFormat = "JSON";
 
@@ -83,6 +86,7 @@ private _warningText = if (_missingCount > 0) then {
     if (_warnings isEqualTo []) then {""} else {format [" %1 migration/validation notice(s).", count _warnings]}
 };
 uiNamespace setVariable ["RACA_creatorDirty", false];
+call RACA_fnc_clearDraftRecovery;
 
 [_normalizedName, _sourceFormat, _name, _itemCount, _warningText] spawn {
     disableSerialization;

@@ -9,3 +9,4 @@ private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
 private _name = if (_selection > 0) then {(_library param [_selection - 1, []]) param [2, ""]} else {""};
 (_display displayCtrl RACA_IDC_COMPARE_DRAFT) ctrlEnable (_name isNotEqualTo "");
 (_display displayCtrl RACA_IDC_HISTORY) ctrlEnable (_name isNotEqualTo "" && {(count ([_name] call RACA_fnc_getPresetHistory)) > 0});
+[_display] call RACA_fnc_updateSummary;

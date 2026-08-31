@@ -29,4 +29,6 @@ if ((count _sourceItems) > 0) then {
     ];
 };
 
+_summary = _summary + ([" | SAVED", " | UNSAVED DRAFT"] select (uiNamespace getVariable ["RACA_creatorDirty", false]));
+
 (_display displayCtrl RACA_IDC_SUMMARY) ctrlSetText _summary;

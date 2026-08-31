@@ -6,6 +6,9 @@ params [["_text", "", [""]]];
 
 private _warnings = [];
 if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
+if ((count _text) > 2000000) exitWith {
+    [[], [], ["The JSON exceeds the 2,000,000-character import safety limit."]]
+};
 
 private _decoded = fromJSON _text;
 if (isNil "_decoded") exitWith {[[], [], ["The clipboard does not contain valid JSON."]]};
@@ -14,6 +17,9 @@ if !(_decoded isEqualType []) exitWith {[[], [], ["The JSON root must be an arra
 private _rawPreset = [];
 private _metadata = [];
 private _signature = _decoded param [0, "", [""]];
+if (_signature isEqualTo "RACA_PORTABLE_PRESET" && {(count _decoded) > 4}) exitWith {
+    [[], [], ["The portable envelope contains too many top-level fields."]]
+};
 
 if (_signature isEqualTo "RACA_PORTABLE_PRESET") then {
     private _formatVersion = _decoded param [1, -1, [0]];
@@ -49,6 +55,39 @@ if (_signature isEqualTo "RACA_PORTABLE_PRESET") then {
 
 if (_rawPreset isEqualTo []) exitWith {[[], [], _warnings]};
 if ((count _rawPreset) < 4) exitWith {[[], [], _warnings + ["Preset data is incomplete."]]};
+if ((count _rawPreset) > 68) exitWith {
+    [[], [], _warnings + ["Preset data exceeds the 64-record metadata safety limit."]]
+};
+if ((count _metadata) > 256) exitWith {
+    [[], [], _warnings + ["Portable metadata exceeds the 256-record safety limit."]]
+};
+
+private _rawBuckets = _rawPreset param [3, [], [[]]];
+if ((count _rawBuckets) isNotEqualTo 4) exitWith {
+    [[], [], _warnings + ["Preset cargo buckets are malformed."]]
+};
+private _referenceCount = 0;
+{
+    if (_x isEqualType []) then {_referenceCount = _referenceCount + count _x};
+} forEach _rawBuckets;
+for "_metadataIndex" from 4 to ((count _rawPreset) - 1) do {
+    private _candidate = _rawPreset param [_metadataIndex, [], [[]]];
+    private _tag = _candidate param [0, "", [""]];
+    if (_tag in ["RACA_ADOPTION", "RACA_COMPOSITION"]) then {
+        private _additions = _candidate param [4, [], [[]]];
+        {
+            if (_x isEqualType []) then {_referenceCount = _referenceCount + count _x};
+        } forEach _additions;
+        private _removals = _candidate param [5, [], [[]]];
+        _referenceCount = _referenceCount + count _removals;
+    };
+    if (_tag isEqualTo "RACA_RUNTIME") then {
+        _referenceCount = _referenceCount + count (_candidate param [2, [], [[]]]);
+    };
+};
+if (_referenceCount > 20000) exitWith {
+    [[], [], _warnings + ["Preset data exceeds the 20,000-reference safety limit."]]
+};
 
 private _rawName = _rawPreset select 2;
 if !(_rawName isEqualType "") exitWith {[[], [], _warnings + ["Preset name must be text."]]};

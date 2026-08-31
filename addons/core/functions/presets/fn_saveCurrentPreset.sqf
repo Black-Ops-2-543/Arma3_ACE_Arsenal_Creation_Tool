@@ -101,6 +101,7 @@ private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 _combo lbSetCurSel (_savedIndex + 1);
 uiNamespace setVariable ["RACA_creatorDirty", false];
+call RACA_fnc_clearDraftRecovery;
 [_display] call RACA_fnc_refreshHistoryButtons;
 private _composition = [_preset] call RACA_fnc_getComposition;
 private _compositionSuffix = if (_composition isEqualTo []) then {""} else {

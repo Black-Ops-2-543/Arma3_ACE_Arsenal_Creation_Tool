@@ -65,6 +65,7 @@ class CfgFunctions {
             class catalogTagsRefresh {};
             class catalogTagsSelect {};
             class clearSelection {};
+            class clearDraftRecovery {};
             class copyCreatorDiagnostics {};
             class creatorKeyDown {};
             class compareSelectedPreset {};
@@ -86,6 +87,7 @@ class CfgFunctions {
             class openItemDetails {};
             class openRolePacks {};
             class openSavedCatalogViews {};
+            class offerDraftRecovery {};
             class preflightCopy {};
             class preflightOnLoad {};
             class preflightRefresh {};
@@ -95,6 +97,7 @@ class CfgFunctions {
             class pushCreatorHistory {};
             class quickStartApply {};
             class quickStartOnLoad {};
+            class queueDraftRecovery {};
             class queueRefresh {};
             class refreshHistoryButtons {};
             class refreshCatalogTagIndex {};
@@ -102,6 +105,7 @@ class CfgFunctions {
             class refreshCategoryCombo {};
             class refreshItemList {};
             class runCreatorDiagnostics {};
+            class saveDraftRecovery {};
             class restoreCreatorHistory {};
             class restorePresetRevision {};
             class rolePackApply {};

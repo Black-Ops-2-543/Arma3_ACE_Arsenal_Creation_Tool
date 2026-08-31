@@ -51,6 +51,7 @@ uiNamespace setVariable ["RACA_builderLimits", _limitsMap];
 [_display] call RACA_fnc_updateSummary;
 [_display] call RACA_fnc_runCreatorDiagnostics;
 uiNamespace setVariable ["RACA_creatorDirty", false];
+call RACA_fnc_clearDraftRecovery;
 [_display] call RACA_fnc_refreshHistoryButtons;
 
 private _notices = [];

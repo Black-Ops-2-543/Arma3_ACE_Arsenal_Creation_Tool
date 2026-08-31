@@ -20,6 +20,11 @@ uiNamespace setVariable ["RACA_visibleClasses", []];
 uiNamespace setVariable ["RACA_creatorUndo", []];
 uiNamespace setVariable ["RACA_creatorRedo", []];
 uiNamespace setVariable ["RACA_creatorDirty", false];
+uiNamespace setVariable ["RACA_creatorDiscarding", false];
+uiNamespace setVariable [
+    "RACA_draftRecoveryRevision",
+    (uiNamespace getVariable ["RACA_draftRecoveryRevision", 0]) + 1
+];
 private _favoriteClasses = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
 if !(_favoriteClasses isEqualType []) then {_favoriteClasses = []};
 private _favorites = createHashMap;
@@ -76,7 +81,10 @@ _list ctrlEnable false;
     [_display] call RACA_fnc_refreshSourceCombo;
     [_display] call RACA_fnc_refreshItemList;
     [_display, format ["Ready. %1 loaded arsenal items are searchable.", count _catalog]] call RACA_fnc_setStatus;
-    if ((call RACA_fnc_getPresetLibrary) isEqualTo [] && {!(profileNamespace getVariable ["RACA_onboardingSeen_v1", false])}) then {
+    private _recoveryHandled = [_display] call RACA_fnc_offerDraftRecovery;
+    if (!_recoveryHandled &&
+        {(call RACA_fnc_getPresetLibrary) isEqualTo []} &&
+        {!(profileNamespace getVariable ["RACA_onboardingSeen_v1", false])}) then {
         uiSleep 0.1;
         if (!isNull _display) then {[_display] call RACA_fnc_openQuickStart};
     };

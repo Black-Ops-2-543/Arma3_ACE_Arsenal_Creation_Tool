@@ -41,6 +41,7 @@ private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _name
 (_display displayCtrl RACA_IDC_PRESET_LIST) lbSetCurSel (_savedIndex + 1);
 (_display displayCtrl RACA_IDC_BASE_PRESET) lbSetCurSel 0;
 uiNamespace setVariable ["RACA_creatorDirty", false];
+call RACA_fnc_clearDraftRecovery;
 [_display] call RACA_fnc_refreshItemList;
 [_display] call RACA_fnc_updateSummary;
 [_display, format ["Saved '%1' as a standalone %2-item preset. Its former source link was removed.", _name, _itemCount]] call RACA_fnc_setStatus;

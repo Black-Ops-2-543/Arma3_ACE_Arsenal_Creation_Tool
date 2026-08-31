@@ -35,7 +35,7 @@ uiNamespace setVariable ["RACA_builderSelected", _selectedMap];
 uiNamespace setVariable ["RACA_builderLimits", _nextLimits];
 uiNamespace setVariable ["RACA_builderComposition", +(_state select 2)];
 uiNamespace setVariable ["RACA_builderInherited", _inheritedMap];
-uiNamespace setVariable ["RACA_creatorDirty", true];
+[_display] call RACA_fnc_queueDraftRecovery;
 [_display] call RACA_fnc_refreshBaseCombo;
 [_display] call RACA_fnc_refreshCategoryCombo;
 [_display] call RACA_fnc_refreshItemList;

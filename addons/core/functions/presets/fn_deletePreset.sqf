@@ -81,8 +81,10 @@ uiNamespace setVariable ["RACA_creatorDirty", true];
     uiSleep 0.2;
     private _display = findDisplay RACA_IDD_CREATOR;
     if (isNull _display) exitWith {};
-    (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText "";
+    private _recoveryName = (_name select [0, 116]) + " (Recovered)";
+    (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText _recoveryName;
     [_display] call RACA_fnc_refreshPresetCombo;
+    [_display] call RACA_fnc_queueDraftRecovery;
     [_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
 };
 true

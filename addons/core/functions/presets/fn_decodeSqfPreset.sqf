@@ -9,9 +9,13 @@ params [
 ];
 
 if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
+if ((count _text) > 2000000) exitWith {
+    [[], [], ["The SQF or class list exceeds the 2,000,000-character import safety limit."]]
+};
 
 private _characters = toArray _text;
 private _quotedValues = [];
+private _quotedOverflow = false;
 private _quote = 0;
 private _buffer = [];
 
@@ -24,13 +28,20 @@ for "_index" from 0 to ((count _characters) - 1) do {
         };
     } else {
         if (_character isEqualTo _quote) then {
-            _quotedValues pushBack (toString _buffer);
+            if ((count _quotedValues) >= 50000) then {
+                _quotedOverflow = true;
+            } else {
+                _quotedValues pushBack (toString _buffer);
+            };
             _quote = 0;
             _buffer = [];
         } else {
             _buffer pushBack _character;
         };
     };
+};
+if (_quotedOverflow) exitWith {
+    [[], [], ["The SQF contains more than 50,000 quoted values and was rejected."]]
 };
 
 private _buckets = [[], [], [], []];
@@ -53,23 +64,35 @@ private _warnings = [];
 private _itemCount = 0;
 {_itemCount = _itemCount + count _x} forEach _buckets;
 
+private _tokenOverflow = false;
 if (_itemCount isEqualTo 0) then {
     // Also accept the simple comma-separated export, which has no quotes.
     private _delimiters = toString [9, 10, 13, 32, 34, 39, 40, 41, 43, 44, 59, 60, 61, 62, 91, 93, 123, 125];
-    {
-        private _candidate = _x;
-        if ([_candidate] call RACA_fnc_isSafeClassName) then {
-            ([_candidate] call RACA_fnc_classifyClass) params ["_bucket"];
-            if (_bucket >= 0) then {
-                (_buckets select _bucket) pushBackUnique _candidate;
+    private _tokens = _text splitString _delimiters;
+    if ((count _tokens) > 50000) then {
+        _tokenOverflow = true;
+    } else {
+        {
+            private _candidate = _x;
+            if ([_candidate] call RACA_fnc_isSafeClassName) then {
+                ([_candidate] call RACA_fnc_classifyClass) params ["_bucket"];
+                if (_bucket >= 0) then {
+                    (_buckets select _bucket) pushBackUnique _candidate;
+                };
             };
-        };
-    } forEach (_text splitString _delimiters);
+        } forEach _tokens;
+    };
+};
+if (_tokenOverflow) exitWith {
+    [[], [], ["The class list contains more than 50,000 tokens and was rejected."]]
 };
 
 {_x sort true} forEach _buckets;
 _itemCount = 0;
 {_itemCount = _itemCount + count _x} forEach _buckets;
+if (_itemCount > 20000) exitWith {
+    [[], [], _warnings + ["The import contains more than 20,000 unique available class names and was rejected."]]
+};
 if (_itemCount isEqualTo 0) exitWith {
     [[], [], _warnings + ["No currently available arsenal class names were found in the SQF or class list."]]
 };
