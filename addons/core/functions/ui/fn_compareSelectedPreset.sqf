@@ -8,13 +8,13 @@ if (isNull _display) exitWith {false};
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
 
 if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
-    [_display, "Preset comparison currently uses the Preset Analysis selector. Select a saved preset there first."] call RACA_fnc_setStatus;
+    [_display, "Use the Preset Analysis selector to choose a saved preset before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
 private _combo = _display displayCtrl _comboIdc;
 private _selection = lbCurSel _combo;
 if (_selection <= 0) exitWith {
-    [_display, "Choose a preset in Preset Analysis before comparing with the current draft."] call RACA_fnc_setStatus;
+    [_display, "Select a saved preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
 private _selectedName = _combo lbData _selection;
@@ -22,7 +22,7 @@ private _selectedName = _combo lbData _selection;
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _selectedName};
 private _saved = if (_savedIndex >= 0) then {_library select _savedIndex} else {[]};
 if (_saved isEqualTo []) exitWith {
-    [_display, "Choose a saved preset to compare with the current draft."] call RACA_fnc_setStatus;
+    [_display, "Choose a valid saved preset first. The selected entry has no matching profile data."] call RACA_fnc_setStatus;
     false
 };
 

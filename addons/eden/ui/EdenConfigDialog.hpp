@@ -17,6 +17,7 @@ class RACA_RscDisplayEdenConfig {
             idc = -1;
             text = "Restricted Arsenal Configuration";
             style = 2;
+            font = "PuristaSemibold";
             x = "safeZoneX + 0.04 * safeZoneW";
             y = "safeZoneY + 0.04 * safeZoneH";
             w = "0.92 * safeZoneW";
@@ -49,6 +50,7 @@ class RACA_RscDisplayEdenConfig {
             y = "safeZoneY + 0.115 * safeZoneH";
             w = "0.26 * safeZoneW";
             h = "0.035 * safeZoneH";
+            font = "PuristaSemibold";
             colorBackground[] = {0.19, 0.42, 0.19, 0.7};
         };
         class SlotList: ctrlListbox {
@@ -87,6 +89,7 @@ class RACA_RscDisplayEdenConfig {
             idc = -1;
             text = "Each enabled slot creates a separate ACE interaction. Use Apply Configuration to save all changes.";
             style = 16;
+            font = "RobotoCondensed";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.70 * safeZoneH";
             w = "0.26 * safeZoneW";
@@ -105,6 +108,7 @@ class RACA_RscDisplayEdenConfig {
             y = "safeZoneY + 0.16 * safeZoneH";
             w = "0.11 * safeZoneW";
             h = "0.03 * safeZoneH";
+            font = "PuristaMedium";
         };
         class SlotName: ctrlEdit {
             idc = RACA_EDEN_IDC_SLOT_NAME;
@@ -155,6 +159,8 @@ class RACA_RscDisplayEdenConfig {
             y = "safeZoneY + 0.435 * safeZoneH";
             w = "0.33 * safeZoneW";
             h = "0.12 * safeZoneH";
+            colorText[] = {1, 1, 1, 1};
+            canDrag = 1;
         };
         class ConditionKind: SlotPreset {
             idc = RACA_EDEN_IDC_CONDITION_KIND;
@@ -198,7 +204,7 @@ class RACA_RscDisplayEdenConfig {
         };
 
         class DashboardHeading: SlotsHeading {
-            text = "Mission-wide dashboard";
+            text = "Mission-Wide Dashboard";
             x = "safeZoneX + 0.71 * safeZoneW";
             w = "0.24 * safeZoneW";
         };
@@ -257,6 +263,7 @@ class RACA_RscDisplayEdenConfig {
             idc = -1;
             text = "Rows show READY, WARN, or BLOCKED. Apply editor changes before refreshing.";
             style = 16;
+            font = "RobotoCondensed";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.24 * safeZoneW";

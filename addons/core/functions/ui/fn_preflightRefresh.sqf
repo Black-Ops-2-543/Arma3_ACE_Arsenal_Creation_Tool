@@ -27,7 +27,7 @@ lnbClear _list;
     private _metadata = [format ["Code: %1", _code]];
     if (_modName isNotEqualTo "") then {_metadata pushBack format ["Source mod: %1", _modName];};
     if (_sourceAddon isNotEqualTo "" && {_sourceAddon isNotEqualTo _modName}) then {_metadata pushBack format ["Owning add-on: %1", _sourceAddon];};
-    if (_modName isEqualTo "" && {_sourceAddon isEqualTo ""}) then {_metadata pushBack "No source metadata available."};
+    if (_modName isEqualTo "" && {_sourceAddon isEqualTo ""}) then {_metadata pushBack "Source metadata not available."};
     private _nl = toString [10];
     if (_className isNotEqualTo "") then {_metadata pushBack format ["Class: %1", _className]};
     private _row = _list lnbAddRow [_severity, _code, _message, _className, _source];

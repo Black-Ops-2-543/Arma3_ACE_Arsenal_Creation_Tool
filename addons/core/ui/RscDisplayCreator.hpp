@@ -280,7 +280,7 @@ class RACA_RscDisplayCreator {
         class SeeHistory: SavePreset {
             idc = RACA_IDC_HISTORY;
             text = "See History";
-            tooltip = "Open the selected saved preset's archived revisions";
+            tooltip = "Open revision history for the selected saved preset";
             y = "safeZoneY + 0.745 * safeZoneH";
             w = "0.19 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), RACA_IDC_PRESET_TOOL] call RACA_fnc_openPresetHistory";
@@ -289,7 +289,7 @@ class RACA_RscDisplayCreator {
         class CompareAnalysis: SeeHistory {
             idc = RACA_IDC_COMPARE_DRAFT;
             text = "Compare With Draft";
-            tooltip = "Copy a diff between the selected saved preset and current draft to clipboard";
+            tooltip = "Copy a class-by-class and policy diff to the clipboard";
             x = "safeZoneX + 0.27 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), RACA_IDC_PRESET_TOOL] call RACA_fnc_compareSelectedPreset";
         };
@@ -1215,7 +1215,8 @@ class RACA_RscDisplayPreflight {
         };
         class ListHeading: RscText {
             idc = -1;
-            text = "Severity | Code | Message | Class | Source";
+            font = "PuristaMedium";
+            text = "Severity | Code | Message | Class | Source (Mod / Add-on)";
             x = "safeZoneX + 0.09 * safeZoneW";
             y = "safeZoneY + 0.30 * safeZoneH";
             w = "0.82 * safeZoneW";
@@ -1228,7 +1229,7 @@ class RACA_RscDisplayPreflight {
             y = "safeZoneY + 0.34 * safeZoneH";
             w = "0.82 * safeZoneW";
             h = "0.43 * safeZoneH";
-            columns[] = {0.01, 0.11, 0.19, 0.55, 0.80};
+            columns[] = {0.01, 0.09, 0.20, 0.53, 0.80};
             colorBackground[] = {0, 0, 0, 0.45};
             onLBDblClick = "ctrlParent (_this select 0) call RACA_fnc_preflightSelect";
         };
