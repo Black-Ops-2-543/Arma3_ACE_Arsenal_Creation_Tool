@@ -6,7 +6,6 @@ params [
 if (isNull _display) exitWith {};
 
 if (uiNamespace getVariable ["RACA_quickStartPulseSeen_v2", false]) exitWith {};
-if ((profileNamespace getVariable ["RACA_quickStartPulseSeen_v1", false])) exitWith {};
 
 private _button = _display displayCtrl RACA_IDC_QUICK_START;
 if (isNull _button) exitWith {};
@@ -17,14 +16,12 @@ private _accent = [
     ((profileNamespace getVariable ['GUI_BCG_RGB_B', 0.19]) max 0.24),
     0.95
 ];
-private _dimFactor = 0.86;
-private _dimFloor = 0.28;
+private _dimFactor = 0.75;
+private _dimFloor = 0.40;
 private _dim = (_accent select [0, 3]) apply {(_x * _dimFactor) max _dimFloor};
 private _base = [(_dim # 0), (_dim # 1), (_dim # 2), 0.92];
 
-profileNamespace setVariable ["RACA_quickStartPulseSeen_v1", true];
 uiNamespace setVariable ["RACA_quickStartPulseSeen_v2", true];
-saveProfileNamespace;
 
 for "_i" from 1 to 3 do {
     _button ctrlSetBackgroundColor _accent;
