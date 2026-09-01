@@ -11,10 +11,14 @@ private _lines = [
 ];
 {
     _x params ["_severity", "_code", "_message", ["_className", ""], ["_modName", ""], ["_sourceAddon", ""]];
-    private _source = if (_className isEqualTo "") then {""} else {
-        format [" [class=%1; mod=%2; addon=%3]", _className, _modName, _sourceAddon]
-    };
-    _lines pushBack format ["[%1] %2: %3%4", _severity, _code, _message, _source];
+    _lines pushBack format [
+        "%1 | %2 | %3 | %4 | %5",
+        _severity,
+        _code,
+        _message,
+        _className,
+        format ["%1%2", _modName, if (_sourceAddon isEqualTo "") then {""} else {": " + _sourceAddon}]
+    ];
 } forEach _entries;
 
 _lines joinString toString [13, 10]

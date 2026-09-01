@@ -104,8 +104,8 @@ class RACA_RscDisplayCreator {
             colorBackgroundDisabled[] = {0.16, 0.17, 0.19, 0.98};
             colorFocused[] = {"((profileNamespace getVariable ['GUI_BCG_RGB_R',0.19]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_G',0.42]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_B',0.19]) max 0.24)", 0.95};
             colorDisabled[] = {0.7, 0.7, 0.7, 0.9};
-            periodFocus = 1;
-            periodOver = 1;
+            periodFocus = 0;
+            periodOver = 0;
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openQuickStart";
         };
 
