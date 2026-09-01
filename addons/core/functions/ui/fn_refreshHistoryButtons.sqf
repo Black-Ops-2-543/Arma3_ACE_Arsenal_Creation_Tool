@@ -6,7 +6,9 @@ private _redo = _display displayCtrl RACA_IDC_REDO;
 private _history = _display displayCtrl RACA_IDC_HISTORY;
 private _compare = _display displayCtrl RACA_IDC_COMPARE_DRAFT;
 private _analysisCombo = _display displayCtrl RACA_IDC_PRESET_TOOL;
+private _savedCombo = _display displayCtrl RACA_IDC_PRESET_LIST;
 private _selectedPresetIndex = lbCurSel _analysisCombo;
+if (_selectedPresetIndex <= 0) then {_selectedPresetIndex = lbCurSel _savedCombo;};
 private _selectedPreset = if (_selectedPresetIndex > 0) then {_analysisCombo lbData _selectedPresetIndex} else {""};
 private _hasPreset = _selectedPreset isNotEqualTo "";
 

@@ -16,8 +16,8 @@ private _accent = [
     ((profileNamespace getVariable ['GUI_BCG_RGB_B', 0.19]) max 0.24),
     0.95
 ];
-private _dimFactor = 0.98;
-private _dimFloor = 0.86;
+private _dimFactor = 0.94;
+private _dimFloor = 0.40;
 private _dim = (_accent select [0, 3]) apply {(_x * _dimFactor) max _dimFloor};
 private _base = [(_dim # 0), (_dim # 1), (_dim # 2), 0.95];
 

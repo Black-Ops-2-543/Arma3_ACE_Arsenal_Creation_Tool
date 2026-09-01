@@ -46,15 +46,16 @@ private _compatibility = [];
 private _magazines = getArray (_config >> "magazines");
 private _magazineWells = getArray (_config >> "magazineWell");
 if (_magazines isNotEqualTo [] || {_magazineWells isNotEqualTo []}) then {
-    _compatibility pushBack format ["Direct magazines: %1 | Magazine wells: %2", count _magazines, count _magazineWells];
+    _compatibility pushBack format ["  - Direct magazines: %1", count _magazines];
+    _compatibility pushBack format ["  - Magazine wells: %1", count _magazineWells];
 };
 private _ammo = getText (_config >> "ammo");
-if (_ammo isNotEqualTo "") then {_compatibility pushBack format ["Ammunition class: %1", _ammo]};
+if (_ammo isNotEqualTo "") then {_compatibility pushBack format ["  - Ammunition class: %1", _ammo]};
 private _capacity = getNumber (_config >> "maximumLoad");
-if (_capacity > 0) then {_compatibility pushBack format ["Container capacity: %1", _capacity]};
+if (_capacity > 0) then {_compatibility pushBack format ["  - Container capacity: %1", _capacity]};
 private _itemInfoType = getNumber (_config >> "ItemInfo" >> "type");
-if (_itemInfoType > 0) then {_compatibility pushBack format ["ItemInfo type: %1", _itemInfoType]};
-if (_compatibility isEqualTo []) then {_compatibility pushBack "No additional compatibility metadata is declared on this config class."};
+if (_itemInfoType > 0) then {_compatibility pushBack format ["  - ItemInfo type: %1", _itemInfoType]};
+if (_compatibility isEqualTo []) then {_compatibility pushBack "  - No additional compatibility metadata is declared on this config class."};
 
 private _selectedMap = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _inheritedMap = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
@@ -94,7 +95,8 @@ private _lines = [
     format ["Draft state: %1 | Favorite: %2", _selectionState, ["No", "Yes"] select _favorite],
     format ["Catalogue tags: %1", if (_tags isEqualTo []) then {"None"} else {_tags joinString ", "}],
     format ["Effective quantity policy: %1", _limitText],
-    format ["Compatibility: %1", _compatibility joinString " | "]
+    "Compatibility details:",
+    _compatibility joinString (toString [10])
 ];
 private _report = _lines joinString (toString [10]);
 _display setVariable ["RACA_itemDetailsReport", _report];

@@ -11,13 +11,18 @@ if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
     [_display, "Use the Preset Analysis selector to choose a saved preset before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
-private _combo = _display displayCtrl _comboIdc;
-private _selection = lbCurSel _combo;
+private _analysisCombo = _display displayCtrl RACA_IDC_PRESET_TOOL;
+private _savedCombo = _display displayCtrl RACA_IDC_PRESET_LIST;
+private _selection = lbCurSel _analysisCombo;
+if (_selection <= 0) then {
+    _selection = lbCurSel _savedCombo;
+    if (_selection > 0) then {_analysisCombo lbSetCurSel _selection};
+};
 if (_selection <= 0) exitWith {
     [_display, "Select a preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
-private _selectedName = _combo lbData _selection;
+private _selectedName = _analysisCombo lbData _selection;
 
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _selectedName};
 private _saved = if (_savedIndex >= 0) then {_library select _savedIndex} else {[]};
