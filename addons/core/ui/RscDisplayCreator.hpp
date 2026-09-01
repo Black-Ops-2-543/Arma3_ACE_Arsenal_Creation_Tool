@@ -99,6 +99,13 @@ class RACA_RscDisplayCreator {
             canFocus = 0;
             x = "safeZoneX + 0.135 * safeZoneW";
             w = "0.115 * safeZoneW";
+            colorBackground[] = {0.16, 0.17, 0.19, 0.98};
+            colorBackgroundActive[] = {0.16, 0.17, 0.19, 0.98};
+            colorBackgroundDisabled[] = {0.16, 0.17, 0.19, 0.98};
+            colorFocused[] = {0.16, 0.17, 0.19, 0.98};
+            colorDisabled[] = {0.7, 0.7, 0.7, 0.9};
+            periodFocus = 0;
+            periodOver = 0;
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openQuickStart";
         };
 
@@ -1208,7 +1215,7 @@ class RACA_RscDisplayPreflight {
         };
         class ListHeading: RscText {
             idc = -1;
-            text = "Severity                     Code                       Message                                                                  Class                                    Source";
+            text = "Severity     Code       Message                                                           Class                                  Source";
             x = "safeZoneX + 0.09 * safeZoneW";
             y = "safeZoneY + 0.30 * safeZoneH";
             w = "0.82 * safeZoneW";
