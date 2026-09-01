@@ -73,7 +73,7 @@ private _referenceCount = 0;
 for "_metadataIndex" from 4 to ((count _rawPreset) - 1) do {
     private _candidate = _rawPreset param [_metadataIndex, [], [[]]];
     private _tag = _candidate param [0, "", [""]];
-    if (_tag in ["RACA_ADOPTION", "RACA_COMPOSITION"]) then {
+    if (_tag in ["RACA_INHERITANCE", "RACA_ADOPTION", "RACA_COMPOSITION"]) then {
         private _additions = _candidate param [4, [], [[]]];
         {
             if (_x isEqualType []) then {_referenceCount = _referenceCount + count _x};

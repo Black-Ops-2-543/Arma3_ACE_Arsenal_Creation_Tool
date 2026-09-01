@@ -20,18 +20,25 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Authenticated multiplayer rehearsal with server, listen-host, initial-client, and JIP probes, explicit synchronization gates, and copyable evidence.
 - Reproducible dedicated-server smoke mission and isolated staging tool for initial-client, reconnect, and distinct-JIP evidence.
 - Profile-wide catalogue tags with multi-row assignment, search/filter integration, item-detail context, and backward-compatible saved views.
-- Debounced, profile-persistent unsaved-draft recovery for creator names, selections, adoption state, and quantity limits.
+- Debounced, profile-persistent unsaved-draft recovery for creator names, selections, inheritance state, and quantity limits.
 - Mission-wide Eden compatibility states and a copyable per-object preflight report.
 
 ### Changed
 
+- Creator authoring now uses profile-menu accents, higher-contrast surfaces, Title Case typography, aligned item columns, grouped arsenal/item/limit actions, and a simplified Quick Start with optional settings.
+- Arsenal Contents now offers persistent Basic and Advanced search modes; Saved Filters and tag editing appear only in that workspace, and preset history/comparison live beside the related save/import/export workflow.
+- Preset adoption terminology is now preset inheritance throughout the Creator, portable metadata, documentation, and diagnostics; legacy adoption metadata remains import-compatible.
+- Custom Unit Role Packs now match the current Creator visual system and return directly to Quick Start.
 - JSON is the authoritative round-trip format; SQF and class-list imports are conservative data-only migration paths.
 - Import decoding now enforces documented character, reference, metadata, quoted-value, and token limits atomically.
-- Eden embeds complete standalone preset snapshots so deployed missions do not depend on an author's profile or adoption chain.
+- Eden embeds complete standalone preset snapshots so deployed missions do not depend on an author's profile or inheritance chain.
 - Runtime policy and open-session state remain server-local; clients receive only action metadata required to render interactions.
 
 ### Fixed
 
+- Preset deletion now prompts immediately, normal item-row clicks no longer change inclusion, icons remain enabled, and catalogue mod labels use each class's actual source-mod metadata.
+- Active Creator tabs retain a profile-color indicator while focused, source-mod attribution resolves through declaring `CfgPatches`, and dropdown hover-help text no longer lingers.
+- Preset Management now provides a saved-preset analysis selector with direct history and draft-comparison actions, without the obsolete export explanation block.
 - Creator mission packaging and Eden custom-attribute registration.
 - Filtered row selection, duplicate import, deletion, revision restore, administration, and Eden confirmation-dialog behavior.
 - Eden slot access-mode selection, configuration persistence, and string-valued access-rule matching.

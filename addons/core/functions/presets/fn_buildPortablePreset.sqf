@@ -42,8 +42,8 @@ _metadata pushBack ["notes", _runtime select 3];
 
 private _composition = [_preset] call RACA_fnc_getComposition;
 if (_composition isNotEqualTo []) then {
-    _metadata pushBack ["adoptedPreset", _composition select 2];
-    _metadata pushBack ["adoptedFingerprint", _composition select 3];
+    _metadata pushBack ["inheritedPreset", _composition select 2];
+    _metadata pushBack ["inheritedFingerprint", _composition select 3];
 };
 
 ["RACA_PORTABLE_PRESET", 2, _preset, _metadata]

@@ -18,10 +18,13 @@ uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 private _roleCombo = _display displayCtrl RACA_IDC_QUICK_ROLE;
-private _templateId = _roleCombo lbData (lbCurSel _roleCombo);
+private _settingsOpen = _display getVariable ["RACA_quickSettingsOpen", false];
+private _templateSetting = _roleCombo lbData (lbCurSel _roleCombo);
+private _templateId = if (_settingsOpen) then {_templateSetting} else {""};
 private _warnings = [];
 private _sourceCombo = _display displayCtrl RACA_IDC_QUICK_SOURCE;
-private _source = _sourceCombo lbData (lbCurSel _sourceCombo);
+private _sourceSetting = _sourceCombo lbData (lbCurSel _sourceCombo);
+private _source = if (_settingsOpen) then {_sourceSetting} else {""};
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 if (_source isNotEqualTo "") then {_catalog = _catalog select {(_x select 4) isEqualTo _source}};
 if (_templateId isNotEqualTo "") then {
@@ -37,6 +40,13 @@ private _opticPolicy = [_display displayCtrl RACA_IDC_QUICK_OPTICS] call _readPo
 private _suppressorPolicy = [_display displayCtrl RACA_IDC_QUICK_SUPPRESSORS] call _readPolicy;
 private _nvgPolicy = [_display displayCtrl RACA_IDC_QUICK_NVG] call _readPolicy;
 private _medicalPolicy = [_display displayCtrl RACA_IDC_QUICK_MEDICAL] call _readPolicy;
+private _savedPolicies = [_opticPolicy, _suppressorPolicy, _nvgPolicy, _medicalPolicy];
+if (!_settingsOpen) then {
+    _opticPolicy = "DEFAULT";
+    _suppressorPolicy = "DEFAULT";
+    _nvgPolicy = "DEFAULT";
+    _medicalPolicy = "DEFAULT";
+};
 private _parameterResult = [
     _catalog,
     uiNamespace getVariable ["RACA_builderSelected", createHashMap],
@@ -50,7 +60,7 @@ _warnings append (_parameterResult select 1);
 private _parameterActions = _parameterResult select 2;
 profileNamespace setVariable [
     "RACA_generatorParameters_v1",
-    ["RACA_GENERATOR", 1, _templateId, _source, _opticPolicy, _suppressorPolicy, _nvgPolicy, _medicalPolicy]
+    ["RACA_GENERATOR", 1, _templateSetting, _sourceSetting, _savedPolicies select 0, _savedPolicies select 1, _savedPolicies select 2, _savedPolicies select 3]
 ];
 saveProfileNamespace;
 (_parent displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText _name;
@@ -59,7 +69,7 @@ _display closeDisplay 1;
 [_parent] call RACA_fnc_refreshCategoryCombo;
 [_parent] call RACA_fnc_refreshItemList;
 [_parent, format [
-    "Quick Start generated the unsaved '%1' draft with %2 item(s), %3 active policy adjustment(s), and %4 notice(s). Review the list, run preflight, then save.",
+    "Quick Start generated the unsaved '%1' draft with %2 item(s), %3 active policy adjustment(s), and %4 notice(s). Review Arsenal Contents, check compatibility, then save.",
     _name,
     count (uiNamespace getVariable ["RACA_builderSelected", createHashMap]),
     count _parameterActions,

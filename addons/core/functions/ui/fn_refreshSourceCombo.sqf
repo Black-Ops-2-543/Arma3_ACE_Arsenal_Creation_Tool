@@ -22,7 +22,6 @@ private _populate = {
     {
         private _index = _combo lbAdd format ["%1 (%2)", _x, _counts get _x];
         _combo lbSetData [_index, _x];
-        _combo lbSetTooltip [_index, _x];
         if (_x isEqualTo _previous) then {_selected = _index};
     } forEach _keys;
     _combo lbSetCurSel _selected;

@@ -52,7 +52,11 @@ private _existing = _packs findIf {toLowerANSI (_x select 2) isEqualTo toLowerAN
     profileNamespace setVariable ["RACA_rolePacks_v1", _packs];
     saveProfileNamespace;
     [_display] call RACA_fnc_rolePackRefresh;
-    [_parent] call RACA_fnc_refreshRoleTemplateCombo;
+    private _return = _display getVariable ["RACA_rolePacksReturnDisplay", displayNull];
+    if (!isNull _return) then {
+        [_return] call RACA_fnc_refreshQuickRoleCombo;
+        (_return displayCtrl RACA_IDC_QUICK_HELP) ctrlSetText format ["Saved custom role pack '%1'. It is now available under Optional Settings.", _record select 2];
+    };
     [_parent, format ["Captured custom role pack '%1' with %2 class(es).", _record select 2, count (_record select 4)]] call RACA_fnc_setStatus;
 };
 true

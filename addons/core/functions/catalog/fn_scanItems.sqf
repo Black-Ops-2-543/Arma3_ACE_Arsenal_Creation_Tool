@@ -39,20 +39,41 @@ private _total = count _classNames;
 
         private _picture = getText (_config >> "picture");
         private _author = getText (_config >> "author");
-        private _sourceAddon = (configSourceAddonList _config) param [0, ""];
+        private _sourceAddons = configSourceAddonList _config;
         private _addon = _config call ace_common_fnc_getAddon;
+        private _sourceAddon = _addon;
+
+        /*
+         * configSourceMod on the item class can still be "A3" for a class
+         * introduced by an official DLC patch. Resolve the owning CfgPatches
+         * entry first. Prefer the patch that explicitly declares this class so
+         * later compatibility patches (for example ACE) cannot claim it.
+         */
+        private _declaringAddon = "";
+        {
+            private _patchName = _x;
+            private _patch = configFile >> "CfgPatches" >> _patchName;
+            if (isClass _patch) then {
+                private _declared = [];
+                {_declared append getArray (_patch >> _x)} forEach ["weapons", "units", "magazines"];
+                if (_className in _declared) exitWith {_declaringAddon = _patchName};
+            };
+        } forEach _sourceAddons;
+        if (_declaringAddon isNotEqualTo "") then {_sourceAddon = _declaringAddon};
+        if (_sourceAddon isEqualTo "") then {_sourceAddon = _sourceAddons param [0, ""]};
+
+        private _sourcePatch = configFile >> "CfgPatches" >> _sourceAddon;
+        private _sourceMod = if (isClass _sourcePatch) then {configSourceMod _sourcePatch} else {""};
         private _modName = "Arma 3";
 
-        if (_addon isNotEqualTo "") then {
-            private _cachedMod = _modCache getOrDefault [_addon, []];
+        if (_sourceMod isNotEqualTo "" && {_sourceMod isNotEqualTo "A3"}) then {
+            private _cachedMod = _modCache getOrDefault [_sourceMod, []];
             if (_cachedMod isEqualTo []) then {
-                // "author" is not a supported modParams option and produces an
-                // engine error for every add-on encountered during a scan.
-                private _params = modParams [_addon, ["name"]];
-                _modName = _params param [0, _addon];
-                if (_modName isEqualTo "") then {_modName = _addon};
+                private _params = modParams [_sourceMod, ["name"]];
+                _modName = _params param [0, _sourceMod];
+                if (_modName isEqualTo "") then {_modName = _sourceMod};
                 _cachedMod = [_modName];
-                _modCache set [_addon, _cachedMod];
+                _modCache set [_sourceMod, _cachedMod];
             } else {
                 _cachedMod params ["_modName"];
             };
@@ -73,6 +94,7 @@ private _total = count _classNames;
             _category,
             _modName,
             _author,
+            _sourceMod,
             _addon,
             _sourceAddon,
             _itemType joinString " "

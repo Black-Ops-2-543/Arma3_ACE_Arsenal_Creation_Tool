@@ -47,22 +47,22 @@ private _cleanBuckets = [[], [], [], []];
 
 {_x sort true} forEach _cleanBuckets;
 private _validatedPreset = ["RACA_PRESET", 1, _name, _cleanBuckets];
-private _hasAdoption = false;
+private _hasInheritance = false;
 private _hasRuntime = false;
 
 for "_metadataIndex" from 4 to ((count _preset) - 1) do {
     private _candidate = _preset param [_metadataIndex, [], [[]]];
     private _tag = _candidate param [0, "", [""]];
 
-    if (_tag in ["RACA_ADOPTION", "RACA_COMPOSITION"]) then {
+    if (_tag in ["RACA_INHERITANCE", "RACA_ADOPTION", "RACA_COMPOSITION"]) then {
         private _rawComposition = _candidate;
         private _validComposition =
-            !_hasAdoption &&
+            !_hasInheritance &&
             {(count _rawComposition) >= 6} &&
             {(_rawComposition param [1, -1, [0]]) isEqualTo 1};
 
         if (!_validComposition) then {
-            _warnings pushBack "Malformed or duplicate adoption metadata was ignored.";
+            _warnings pushBack "Malformed or duplicate inheritance metadata was ignored.";
         } else {
         private _parentName = _rawComposition param [2, "", [""]];
         private _parentFingerprint = _rawComposition param [3, "", [""]];
@@ -74,33 +74,33 @@ for "_metadataIndex" from 4 to ((count _preset) - 1) do {
             {({_x < 32 || {_x isEqualTo 127}} count toArray _parentName) isEqualTo 0};
 
         if (!_parentNameValid || {!(_rawRemovals isEqualType [])}) then {
-            _warnings pushBack "Unsafe adoption metadata was ignored.";
+            _warnings pushBack "Unsafe inheritance metadata was ignored.";
         } else {
             ([["RACA_PRESET", 1, "Composition additions", _rawAdditions]] call RACA_fnc_validatePreset) params ["_additionPreset", "_additionWarnings"];
             _warnings append _additionWarnings;
 
             if (_additionPreset isEqualTo []) then {
-                _warnings pushBack "Malformed adoption additions were ignored with the source link.";
+                _warnings pushBack "Malformed inheritance additions were ignored with the source link.";
             } else {
                 private _cleanRemovals = [];
                 {
                     if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {
                         _cleanRemovals pushBackUnique _x;
                     } else {
-                        _warnings pushBackUnique "An unsafe adoption removal was rejected.";
+                        _warnings pushBackUnique "An unsafe inheritance removal was rejected.";
                     };
                 } forEach _rawRemovals;
                 _cleanRemovals sort true;
 
                 _validatedPreset pushBack [
-                    "RACA_ADOPTION",
+                    "RACA_INHERITANCE",
                     1,
                     _parentName,
                     _parentFingerprint,
                     _additionPreset select 3,
                     _cleanRemovals
                 ];
-                _hasAdoption = true;
+                _hasInheritance = true;
             };
         };
         };

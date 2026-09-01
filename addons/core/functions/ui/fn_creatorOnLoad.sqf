@@ -10,6 +10,9 @@ uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_catalogShowIcons", true];
 uiNamespace setVariable ["RACA_catalogDensity", "comfortable"];
+private _searchMode = toUpperANSI (profileNamespace getVariable ["RACA_catalogSearchMode_v1", "BASIC"]);
+if !(_searchMode in ["BASIC", "ADVANCED"]) then {_searchMode = "BASIC"};
+uiNamespace setVariable ["RACA_catalogSearchMode", _searchMode];
 private _sortMode = profileNamespace getVariable ["RACA_catalogSort_v1", ["item", true]];
 if !(_sortMode isEqualType [] && {(count _sortMode) >= 2}) then {_sortMode = ["item", true]};
 private _sortField = toLowerANSI (_sortMode param [0, "item", [""]]);
@@ -80,7 +83,9 @@ _scopeCombo lbSetCurSel 4;
 [_display] call RACA_fnc_refreshHistoryButtons;
 
 private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
-_list ctrlEnable false;
+lnbClear _list;
+private _loadingRow = _list lnbAddRow ["", "Loading the item catalogue...", "", "", ""];
+_list lnbSetTooltip [[_loadingRow, 1], "You can continue using Preset Management while the item catalogue loads."];
 
 [_display, _list] spawn {
     params ["_display", "_list"];
@@ -93,7 +98,6 @@ _list ctrlEnable false;
     };
 
     if (isNull _display) exitWith {};
-    _list ctrlEnable true;
     [_display] call RACA_fnc_refreshSourceCombo;
     [_display] call RACA_fnc_refreshItemList;
     [_display, format ["Ready. %1 loaded arsenal items are searchable.", count _catalog]] call RACA_fnc_setStatus;

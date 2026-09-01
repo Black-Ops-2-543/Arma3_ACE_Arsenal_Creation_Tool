@@ -15,7 +15,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class Header: ctrlStatic {
             idc = -1;
-            text = "RACA EDEN ARSENAL CONFIGURATION";
+            text = "RACA Eden Arsenal Configuration";
             style = 2;
             x = "safeZoneX + 0.04 * safeZoneW";
             y = "safeZoneY + 0.04 * safeZoneH";
@@ -44,7 +44,7 @@ class RACA_RscDisplayEdenConfig {
     class controls {
         class SlotsHeading: ctrlStatic {
             idc = -1;
-            text = "SLOTS ON THIS OBJECT";
+            text = "Slots";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.115 * safeZoneH";
             w = "0.26 * safeZoneW";
@@ -85,7 +85,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SlotHelp: ctrlStatic {
             idc = -1;
-            text = "Each enabled slot becomes a separate ACE interaction. Changes are transactional until APPLY CONFIGURATION is pressed.";
+            text = "Each enabled slot creates a separate ACE interaction. Save your changes with Apply Configuration.";
             style = 16;
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.70 * safeZoneH";
@@ -94,7 +94,7 @@ class RACA_RscDisplayEdenConfig {
         };
 
         class SettingsHeading: SlotsHeading {
-            text = "SELECTED SLOT";
+            text = "Selected Slot";
             x = "safeZoneX + 0.34 * safeZoneW";
             w = "0.34 * safeZoneW";
         };
@@ -187,7 +187,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SaveSlot: ctrlButton {
             idc = -1;
-            text = "SAVE SLOT CHANGES";
+            text = "Save slot changes";
             x = "safeZoneX + 0.45 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.22 * safeZoneW";
@@ -196,7 +196,7 @@ class RACA_RscDisplayEdenConfig {
         };
 
         class DashboardHeading: SlotsHeading {
-            text = "MISSION-WIDE DASHBOARD";
+            text = "Mission-wide dashboard";
             x = "safeZoneX + 0.71 * safeZoneW";
             w = "0.24 * safeZoneW";
         };
@@ -222,21 +222,21 @@ class RACA_RscDisplayEdenConfig {
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardSelect";
         };
         class CopyDashboardReport: RefreshDashboard {
-            text = "COPY REPORT";
+            text = "Copy report";
             tooltip = "Copy a detailed compatibility report for every configured arsenal object";
             x = "safeZoneX + 0.855 * safeZoneW";
             w = "0.085 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardCopy";
         };
         class BulkAssign: RefreshDashboard {
-            text = "ASSIGN TO SELECTED";
+            text = "Assign to selected";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.615 * safeZoneH";
             w = "0.115 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), 'ASSIGN'] spawn RACA_fnc_edenDashboardBulk";
         };
         class BulkClear: BulkAssign {
-            text = "CLEAR SELECTED";
+            text = "Clear selected";
             x = "safeZoneX + 0.835 * safeZoneW";
             w = "0.105 * safeZoneW";
             colorBackground[] = {0.45, 0.12, 0.12, 0.9};
@@ -244,7 +244,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SimulateAccess: RefreshDashboard {
             idc = RACA_EDEN_IDC_SIMULATE_ACCESS;
-            text = "SIMULATE ACCESS";
+            text = "Simulate access";
             tooltip = "Open the access-rule simulator and choose any unit in the Eden mission";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.665 * safeZoneH";
@@ -272,7 +272,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class Apply: ctrlButton {
             idc = -1;
-            text = "APPLY CONFIGURATION";
+            text = "Apply configuration";
             x = "safeZoneX + 0.73 * safeZoneW";
             y = "safeZoneY + 0.81 * safeZoneH";
             w = "0.14 * safeZoneW";
@@ -282,7 +282,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class Cancel: Apply {
             idc = 2;
-            text = "CANCEL";
+            text = "Cancel";
             x = "safeZoneX + 0.88 * safeZoneW";
             w = "0.08 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
@@ -376,7 +376,7 @@ class RACA_RscDisplayAccessSimulator {
         };
         class Copy: Refresh {
             idc = RACA_EDEN_IDC_SIMULATOR_COPY;
-            text = "COPY REPORT";
+            text = "Copy report";
             tooltip = "Copy the complete access-rule simulation report to the clipboard";
             x = "safeZoneX + 0.37 * safeZoneW";
             w = "0.14 * safeZoneW";

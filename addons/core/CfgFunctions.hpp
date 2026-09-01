@@ -98,6 +98,7 @@ class CfgFunctions {
             class pushCreatorHistory {};
             class quickStartApply {};
             class quickStartOnLoad {};
+            class refreshQuickRoleCombo {};
             class readQuantityPolicy {};
             class queueDraftRecovery {};
             class queueRefresh {};
@@ -126,6 +127,7 @@ class CfgFunctions {
             class requestCreatorClose {};
             class setCategoryLimit {};
             class setCatalogView {};
+            class setSearchMode {};
             class setSortMode {};
             class setItemLimit {};
             class setStatus {};
@@ -134,6 +136,7 @@ class CfgFunctions {
             class syncLimitPolicy {};
             class toggleFavorite {};
             class toggleRow {};
+            class toggleQuickSettings {};
             class updateSummary {};
         };
 

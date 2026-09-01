@@ -28,33 +28,20 @@ if (_preset isEqualTo []) exitWith {
 private _name = _preset select 2;
 private _lineBreak = toString [10];
 private _paragraphBreak = _lineBreak + _lineBreak;
-private _dependentNames = [];
-{
-    private _adoption = [_x] call RACA_fnc_getComposition;
-    if (_adoption isNotEqualTo [] && {toLowerANSI (_adoption select 2) isEqualTo toLowerANSI _name}) then {
-        _dependentNames pushBack (_x select 2);
-    };
-} forEach _library;
-
-private _dependencyNotice = if (_dependentNames isEqualTo []) then {""} else {
-    format [
-        "%1%2 adopted preset(s) use this source: %3. Their complete saved item snapshots will remain usable, but their source link will show as missing.",
-        _paragraphBreak,
-        count _dependentNames,
-        _dependentNames joinString ", "
-    ]
-};
-
+/*
+ * Ask immediately. The previous implementation walked and decomposed the
+ * entire preset library before opening this dialog, which could make the
+ * button appear unresponsive for minutes on a large profile library.
+ */
 private _confirmed = [
     format [
-        "Delete profile preset '%1'?%2%3Already saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
+        "Delete profile preset '%1'?%2Preset(s) that inherit from it will keep their saved item snapshots, but their source link will be marked missing.%2Already saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
         _name,
-        _dependencyNotice,
         _paragraphBreak
     ],
     "Delete RACA Preset",
-    "DELETE",
-    "CANCEL",
+    true,
+    true,
     _display
 ] call BIS_fnc_guiMessage;
 

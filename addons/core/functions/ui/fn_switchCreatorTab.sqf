@@ -8,7 +8,7 @@ if (isNull _display) exitWith {};
 
 private _presetControls = [
     RACA_IDC_PRESET_PANEL,
-    RACA_IDC_ADOPTION_PANEL,
+    RACA_IDC_INHERITANCE_PANEL,
     RACA_IDC_PRESET_FILES_HEADING,
     RACA_IDC_PRESET_NAME_LABEL,
     RACA_IDC_PRESET_NAME,
@@ -21,24 +21,26 @@ private _presetControls = [
     RACA_IDC_EXPORT_FORMAT,
     RACA_IDC_EXPORT_PRESET,
     RACA_IDC_IMPORT_PRESET,
-    RACA_IDC_PRESET_HELP,
-    RACA_IDC_ADOPTION_HEADING,
+    RACA_IDC_PRESET_ANALYSIS_HEADING,
+    RACA_IDC_PRESET_TOOL,
+    RACA_IDC_HISTORY,
+    RACA_IDC_COMPARE_DRAFT,
+    RACA_IDC_INHERITANCE_HEADING,
     RACA_IDC_BASE_PRESET_LABEL,
     RACA_IDC_BASE_PRESET,
     RACA_IDC_APPLY_BASE,
     RACA_IDC_FLATTEN_PRESET,
-    RACA_IDC_ADOPTION_HELP,
+    RACA_IDC_INHERITANCE_HELP,
     RACA_IDC_DIAGNOSTICS_HEADING,
     RACA_IDC_DIAGNOSTICS,
     RACA_IDC_RUN_DIAGNOSTICS,
     RACA_IDC_OPEN_DIAGNOSTICS,
-    RACA_IDC_COPY_DIAGNOSTICS,
-    RACA_IDC_ROLE_TEMPLATE_LABEL,
-    RACA_IDC_ROLE_TEMPLATE,
-    RACA_IDC_APPLY_TEMPLATE,
-    RACA_IDC_ROLE_PACKS_BUTTON
+    RACA_IDC_COPY_DIAGNOSTICS
 ];
 private _assignmentControls = [
+    RACA_IDC_SAVED_VIEWS,
+    RACA_IDC_CATALOG_TAGS_BUTTON,
+    RACA_IDC_SEARCH_MODE,
     RACA_IDC_SEARCH_LABEL,
     RACA_IDC_SEARCH,
     RACA_IDC_CATEGORY_LABEL,
@@ -51,7 +53,6 @@ private _assignmentControls = [
     RACA_IDC_AUTHOR_FILTER,
     RACA_IDC_TAG_FILTER_LABEL,
     RACA_IDC_TAG_FILTER,
-    RACA_IDC_CATALOG_TAGS_BUTTON,
     RACA_IDC_COLUMN_BACKGROUND,
     RACA_IDC_INCLUDED_HEADER,
     RACA_IDC_ITEM_HEADER,
@@ -62,6 +63,12 @@ private _assignmentControls = [
     RACA_IDC_INCLUDE_VISIBLE,
     RACA_IDC_EXCLUDE_VISIBLE,
     RACA_IDC_CLEAR_ALL,
+    RACA_IDC_SELECTION_GROUP,
+    RACA_IDC_SELECTION_HEADING,
+    RACA_IDC_ITEM_ACTION_GROUP,
+    RACA_IDC_ITEM_ACTION_HEADING,
+    RACA_IDC_LIMIT_GROUP,
+    RACA_IDC_LIMIT_HEADING,
     RACA_IDC_QUANTITY_LABEL,
     RACA_IDC_LIMIT_SCOPE,
     RACA_IDC_LIMIT_RESET_LABEL,
@@ -72,7 +79,6 @@ private _assignmentControls = [
     RACA_IDC_SET_LIMIT,
     RACA_IDC_SET_CATEGORY_LIMIT,
     RACA_IDC_FAVORITE,
-    RACA_IDC_VIEW_MODE,
     RACA_IDC_ITEM_DETAILS_BUTTON,
     RACA_IDC_SUMMARY
 ];
@@ -81,13 +87,27 @@ private _showPresets = (toUpperANSI _tab) isEqualTo "PRESETS";
 {(_display displayCtrl _x) ctrlShow _showPresets} forEach _presetControls;
 {(_display displayCtrl _x) ctrlShow !_showPresets} forEach _assignmentControls;
 
-private _activeColor = [0.19, 0.42, 0.19, 0.95];
-private _inactiveColor = [0.08, 0.09, 0.10, 0.95];
+private _activeColor = [
+    profileNamespace getVariable ["GUI_BCG_RGB_R", 0.19],
+    profileNamespace getVariable ["GUI_BCG_RGB_G", 0.42],
+    profileNamespace getVariable ["GUI_BCG_RGB_B", 0.19],
+    0.95
+];
+private _inactiveColor = [0.16, 0.17, 0.19, 0.98];
 (_display displayCtrl RACA_IDC_TAB_PRESETS) ctrlSetBackgroundColor ([_inactiveColor, _activeColor] select _showPresets);
 (_display displayCtrl RACA_IDC_TAB_ASSIGNMENT) ctrlSetBackgroundColor ([_activeColor, _inactiveColor] select _showPresets);
+(_display displayCtrl RACA_IDC_TAB_PRESETS) ctrlEnable !_showPresets;
+(_display displayCtrl RACA_IDC_TAB_ASSIGNMENT) ctrlEnable _showPresets;
+(_display displayCtrl RACA_IDC_TAB_PRESETS_INDICATOR) ctrlShow _showPresets;
+(_display displayCtrl RACA_IDC_TAB_ASSIGNMENT_INDICATOR) ctrlShow !_showPresets;
+(_display displayCtrl RACA_IDC_TAB_PRESETS) ctrlCommit 0;
+(_display displayCtrl RACA_IDC_TAB_ASSIGNMENT) ctrlCommit 0;
+(_display displayCtrl RACA_IDC_TAB_PRESETS_INDICATOR) ctrlCommit 0;
+(_display displayCtrl RACA_IDC_TAB_ASSIGNMENT_INDICATOR) ctrlCommit 0;
 
 uiNamespace setVariable ["RACA_creatorTab", ["ASSIGNMENT", "PRESETS"] select _showPresets];
 if (!_showPresets) then {
+    [_display, uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]] call RACA_fnc_setSearchMode;
     [_display] call RACA_fnc_refreshCategoryCombo;
     [_display] call RACA_fnc_refreshItemList;
 };

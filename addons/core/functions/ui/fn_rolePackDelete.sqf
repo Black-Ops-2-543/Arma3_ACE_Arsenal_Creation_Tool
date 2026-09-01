@@ -18,8 +18,12 @@ private _name = _list lnbData [_row, 0];
     profileNamespace setVariable ["RACA_rolePacks_v1", _packs];
     saveProfileNamespace;
     [_display] call RACA_fnc_rolePackRefresh;
+    private _return = _display getVariable ["RACA_rolePacksReturnDisplay", displayNull];
+    if (!isNull _return) then {
+        [_return] call RACA_fnc_refreshQuickRoleCombo;
+        (_return displayCtrl RACA_IDC_QUICK_HELP) ctrlSetText format ["Deleted custom role pack '%1'. Your current Quick Start choices are otherwise unchanged.", _name];
+    };
     if (!isNull _parent) then {
-        [_parent] call RACA_fnc_refreshRoleTemplateCombo;
         [_parent, format ["Deleted custom role pack '%1'; presets and the draft were unchanged.", _name]] call RACA_fnc_setStatus;
     };
 };

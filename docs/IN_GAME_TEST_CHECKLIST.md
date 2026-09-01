@@ -46,7 +46,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 
 - [ ] The catalogue finishes loading and reports a non-zero item count.
 - [ ] The centered title reads **ARSENAL CREATION ASSISTANT** and no **PRESET LIBRARY** heading remains.
-- [ ] **Preset Management** contains preset files and adoption tools; **Assignment** contains the table, search, filters, and bulk selection tools.
+- [ ] **Preset Management** contains preset files and inheritance tools; **Arsenal Contents** contains the table, search, filters, and bulk selection tools.
 - [ ] Included, Item, Class Name, Mod, and Author headers align with their columns at the active UI scale.
 - [ ] Weapons, Attachments, Magazines, Uniforms, Vests, Backpacks, Headgear, NVGs, Facewear, Equipment, and Included filters show plausible content.
 - [ ] **Magazines** includes ammunition magazines, rockets, 40 mm rounds, grenades, mines, and placed explosives.
@@ -76,10 +76,10 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Exclude one item, change category or search so it disappears, then return: it remains excluded.
 - [ ] **Include Visible** and **Exclude Visible** affect only the filtered rows.
 - [ ] **Clear All** removes every selection, including currently hidden rows.
-- [ ] Undo/redo buttons and `Ctrl+Z` / `Ctrl+Y` correctly reverse row, bulk, starter, adoption, and limit changes without changing a saved preset.
+- [ ] Undo/redo buttons and `Ctrl+Z` / `Ctrl+Y` correctly reverse row, bulk, starter, inheritance, and limit changes without changing a saved preset.
 - [ ] Closing a dirty draft asks before discarding it; closing immediately after save or load does not show a false warning.
-- [ ] Changing only the preset name marks the footer **UNSAVED DRAFT**; item, adoption, and limit changes do the same.
-- [ ] End the creator mission without choosing **Discard and close**, reopen it, and confirm the recovery prompt restores the exact name, available items, adoption snapshot, and limits.
+- [ ] Changing only the preset name marks the footer **UNSAVED DRAFT**; item, inheritance, and limit changes do the same.
+- [ ] End the creator mission without choosing **Discard and close**, reopen it, and confirm the recovery prompt restores the exact name, available items, inheritance snapshot, and limits.
 - [ ] Choosing **Discard draft**, or successfully saving/loading, removes the recovery prompt on the next creator launch.
 
 ## 4. Preset persistence
@@ -93,7 +93,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Compare Draft copies complete added/removed class lists and both quantity policies.
 - [ ] **Delete** requires confirmation, removes only the selected profile preset, and keeps the current item selection as an unsaved recovery copy.
 - [ ] Delete and duplicate-import confirmations show real paragraph breaks, and duplicate Import Auto produces no `Suspending not allowed in this context` RPT error.
-- [ ] Deleting a source preset does not corrupt adopted children or standalone copies already embedded in missions.
+- [ ] Deleting a source preset does not corrupt inheriting children or standalone copies already embedded in missions.
 - [ ] Restarting Arma with the same profile preserves the preset.
 - [ ] JSON export is valid UTF-8 JSON and round-trips without losing the name or any bucket.
 - [ ] Required-mod manifest export groups every selected class by source mod and owning add-on.
@@ -106,17 +106,17 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] Item and category limits save and reload each reset choice (Never, Every interaction, Player respawn, Admin: new round, and Admin: new phase), and JSON round-trip preserves the same four-field policy records.
 - [ ] The Max field accepts only whole numbers at or above `-1`; blank, decimal, alphabetic, and values below `-1` are rejected without changing the draft or Undo history.
 
-## 5. Preset adoption
+## 5. Preset inheritance
 
-- [ ] A child can select an adopted source, apply it, then save child-only additions and source-item removals.
-- [ ] Every item in the adopted source snapshot is light blue, whether currently included or excluded.
-- [ ] **Inherited** appears only while an adoption exists and shows the complete source snapshot; **Included** shows the current result.
+- [ ] A child can select an inherited source, apply it, then save child-only additions and source-item removals.
+- [ ] Every item in the inherited source snapshot is light blue, whether currently included or excluded.
+- [ ] **Inherited** appears only while inheritance exists and shows the complete source snapshot; **Included** shows the current result.
 - [ ] The summary reports total, source-included, added, and removed counts accurately.
 - [ ] Loading a child after its source changes warns without changing the child's stored selection.
-- [ ] **Adopt / Refresh** deliberately reapplies the changed source and the saved overrides.
-- [ ] Selecting a descendant as a source is rejected as circular adoption.
+- [ ] **Inherit / Refresh** deliberately reapplies the changed source and the saved overrides.
+- [ ] Selecting a descendant as a source is rejected as circular inheritance.
 - [ ] **Make Standalone** preserves the current item result and removes the source relationship.
-- [ ] JSON export/import preserves safe adoption metadata.
+- [ ] JSON export/import preserves safe inheritance metadata while accepting legacy inheritance tags.
 - [ ] An otherwise-valid JSON document larger than 1 MB but within the documented resource limits imports.
 - [ ] SQF, class-list, Eden, and runtime data contain the complete standalone item result and no required source reference.
 
@@ -134,7 +134,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] **Cancel** discards the complete editor transaction; **Apply configuration** updates the parent Attributes control.
 - [ ] **Refresh presets** updates matching embedded preset copies while preserving all slot-specific settings.
 - [ ] A legacy single-preset mission value opens as one compatible slot and saves as a standalone object configuration.
-- [ ] Every embedded slot contains a complete standalone preset with no required adoption/source reference.
+- [ ] Every embedded slot contains a complete standalone preset with no required inheritance/source reference.
 - [ ] The mission dashboard lists every configured object with READY/WARN/BLOCKED state, enabled-slot count, and issue totals.
 - [ ] **Copy Report** produces a mission-wide record containing every configured object's type, entity ID, slot count, and full preflight findings.
 - [ ] A malformed or missing-content object appears as BLOCKED or WARN instead of disappearing from the dashboard.

@@ -24,10 +24,10 @@ For an internal development package, keep the `-dev` suffix and use `tools/relea
 ## Migration rules
 
 - Never reinterpret or execute imported SQF. Migration parsers may extract only safe class-name string literals.
-- Preserve complete last-known-good preset buckets when an adopted source is missing or stale.
+- Preserve complete last-known-good preset buckets when an inherited source is missing or stale.
 - Reject future schema versions without modifying the profile or mission value.
 - Archive the outgoing preset before any overwrite, deletion, rollback, import replacement, or standalone conversion.
-- Eden and runtime data must contain complete standalone presets; author-profile adoption links are not runtime dependencies.
+- Eden and runtime data must contain complete standalone presets; author-profile inheritance links are not runtime dependencies.
 - Document each new schema and its migration path before raising its version.
 
 ## Release evidence

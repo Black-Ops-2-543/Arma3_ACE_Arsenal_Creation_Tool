@@ -7,11 +7,11 @@ if (isNull _parent) exitWith {false};
 private _name = ctrlText (_display displayCtrl RACA_IDC_SAVED_VIEW_NAME);
 private _nameParts = _name splitString (toString [9, 10, 13, 32]);
 if (_nameParts isEqualTo []) exitWith {
-    (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "Enter a name before capturing the current catalogue view.";
+    (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "Enter a name before saving the current filters.";
     false
 };
 if ((count _name) > 64) exitWith {
-    (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "Saved-view names are limited to 64 characters.";
+    (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "Saved-filter names are limited to 64 characters.";
     false
 };
 private _readCombo = {
@@ -39,11 +39,11 @@ private _existing = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerAN
     params ["_display", "_parent", "_views", "_record", "_existing"];
     private _canSave = true;
     if (_existing >= 0) then {
-        private _confirmed = [format ["Replace saved catalogue view '%1'?", _record select 2], "RACA Saved Views", true, true, _display] call BIS_fnc_guiMessage;
+        private _confirmed = [format ["Replace saved filters '%1'?", _record select 2], "RACA Saved Filters", true, true, _display] call BIS_fnc_guiMessage;
         if (_confirmed) then {_views set [_existing, _record]} else {_canSave = false};
     } else {
         if ((count _views) >= 50) then {
-            (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "The 50-view limit has been reached. Delete an older saved view first.";
+            (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText "The 50-filter limit has been reached. Delete an older saved filter first.";
             _canSave = false;
         } else {
             _views pushBack _record;
@@ -53,6 +53,6 @@ private _existing = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerAN
     profileNamespace setVariable ["RACA_savedCatalogViews_v1", _views];
     saveProfileNamespace;
     [_display] call RACA_fnc_savedCatalogViewRefresh;
-    [_parent, format ["Saved catalogue view '%1'.", _record select 2]] call RACA_fnc_setStatus;
+    [_parent, format ["Saved filters '%1'. Arsenal contents were not changed.", _record select 2]] call RACA_fnc_setStatus;
 };
 true

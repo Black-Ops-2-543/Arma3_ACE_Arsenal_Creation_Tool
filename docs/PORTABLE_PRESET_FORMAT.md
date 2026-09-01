@@ -38,13 +38,13 @@ The JSON root is an array:
 
 The four cargo arrays preserve ACE/BIS virtual-arsenal ordering: inventory items, weapons, magazines, and backpacks. Metadata is descriptive and does not control runtime behavior.
 
-### Optional adoption metadata
+### Optional inheritance metadata
 
-An adopted preset may append one authoring-only element to `RACA_PRESET`:
+An inherited preset may append one authoring-only element to `RACA_PRESET`:
 
 ```json
 [
-  "RACA_ADOPTION",
+  "RACA_INHERITANCE",
   1,
   "Standard Infantry",
   "[[],[\"arifle_MX_F\"],[\"30Rnd_65x39_caseless_mag\"],[]]",
@@ -53,16 +53,16 @@ An adopted preset may append one authoring-only element to `RACA_PRESET`:
 ]
 ```
 
-The fields are signature, version, adopted source name, source-bucket fingerprint, four additive-override buckets, and a flat list of subtractive overrides. The preset's normal cargo buckets remain the complete resolved result. This means importing, exporting, or losing the source never makes the child unusable.
+The fields are signature, version, inherited source name, source-bucket fingerprint, four additive-override buckets, and a flat list of subtractive overrides. The preset's normal cargo buckets remain the complete resolved result. This means importing, exporting, or losing the source never makes the child unusable.
 
-JSON preserves adoption metadata so another RACA profile can continue editing the relationship. Reusable SQF, class-list exports, and Eden mission attributes are standalone and contain no source reference. Circular adoption metadata is rejected during import or save. The importer also accepts the older `RACA_COMPOSITION` signature and migrates it to `RACA_ADOPTION` when saved or exported.
+JSON preserves inheritance metadata so another RACA profile can continue editing the relationship. Reusable SQF, class-list exports, and Eden mission attributes are standalone and contain no source reference. Circular inheritance metadata is rejected during import or save. The importer accepts the legacy `RACA_ADOPTION` and `RACA_COMPOSITION` signatures and normalizes them to `RACA_INHERITANCE` when saved or exported.
 
 ### Import behavior and safety
 
 - JSON is decoded with `fromJSON`. Import text is never passed to `compile`, `compileFinal`, `call`, or `spawn` as code.
 - The root signature and format version must be recognized.
 - Clipboard input is limited to 2,000,000 characters before format decoding.
-- A preset may reference at most 20,000 cargo, adoption, removal, and quantity-limit records in total. The preset array may carry at most 64 metadata records, and the portable envelope may carry at most 256 transport-metadata records.
+- A preset may reference at most 20,000 cargo, inheritance, removal, and quantity-limit records in total. The preset array may carry at most 64 metadata records, and the portable envelope may carry at most 256 transport-metadata records.
 - SQF migration is limited to 50,000 quoted values; an unquoted class list is limited to 50,000 tokens.
 - Preset names must contain 1–128 printable characters.
 - Class names must use the identifier shape accepted by Arma config classes: ASCII letters, numbers, and underscore, with a maximum length of 256.

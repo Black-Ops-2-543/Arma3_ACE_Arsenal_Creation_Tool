@@ -10,7 +10,7 @@ private _parentName = if (_composition isEqualTo []) then {""} else {_compositio
 private _selectedIndex = 0;
 
 lbClear _combo;
-private _noneIndex = _combo lbAdd "<No adopted source>";
+private _noneIndex = _combo lbAdd "<No inherited source>";
 _combo lbSetData [_noneIndex, ""];
 
 {

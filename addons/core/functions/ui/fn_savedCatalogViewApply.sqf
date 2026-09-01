@@ -30,7 +30,8 @@ uiNamespace setVariable ["RACA_catalogSort", [_sortField, _ascending]];
 profileNamespace setVariable ["RACA_catalogSort_v1", [_sortField, _ascending]];
 saveProfileNamespace;
 [_parent, "ASSIGNMENT"] call RACA_fnc_switchCreatorTab;
+[_parent, "ADVANCED"] call RACA_fnc_setSearchMode;
 [_parent] call RACA_fnc_refreshItemList;
 _display closeDisplay 1;
-[_parent, format ["Applied saved catalogue view '%1' without changing the draft selection.", _name]] call RACA_fnc_setStatus;
+[_parent, format ["Applied saved filters '%1'. Arsenal contents were not changed.", _name]] call RACA_fnc_setStatus;
 true

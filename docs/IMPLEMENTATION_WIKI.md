@@ -50,7 +50,7 @@ flowchart LR
     F --> G[Player opens a permitted ACE Arsenal]
 ```
 
-An adopted profile preset is useful while authoring, but is never a runtime dependency. Eden and runtime configurations contain a flattened, standalone preset snapshot.
+An inherited profile preset is useful while authoring, but is never a runtime dependency. Eden and runtime configurations contain a flattened, standalone preset snapshot.
 
 ## Requirements, installation, and terminology
 
@@ -81,7 +81,7 @@ Use a release package or build `@RestrictedArsenalCreationAssistant`, then enabl
 | **Preset** | A named, profile-local selection of permitted classes, grouped into ACE/BIS virtual-cargo buckets. |
 | **Slot** | One named player-facing ACE interaction on an object. A single object can have several slots. |
 | **Object configuration** | The mission-embedded collection of slots and their individual access, limits, icon, and visibility settings. |
-| **Source/adopted preset** | A profile-level parent relationship used to derive a child preset with additions and removals. |
+| **Source/inherited preset** | A profile-level parent relationship used to derive a child preset with additions and removals. |
 | **Flattened preset** | A complete result with no required source reference. This is what Eden and runtime use. |
 | **Quantity policy** | A per-class or per-category allowance with a scope and reset rule. `-1` means unlimited. |
 | **Preflight** | Structured validation that reports errors, warnings, and informational evidence before configuration reaches runtime. |
@@ -133,7 +133,7 @@ This categorisation is a browsing aid; runtime always receives the correct under
 
 The Creator has two principal tabs:
 
-- **Preset Management**: name, saved presets, save/load/delete, adoption, Quick Start, role packs, revision history, comparison, import/export, preflight, and diagnostics.
+- **Preset Management**: name, saved presets, save/load/delete, inheritance, Quick Start, role packs, revision history, comparison, import/export, compatibility checks, and diagnostics.
 - **Assignment**: the full item table, search, filters, tags, sorting, details, included/inherited/favourite views, quantity policies, and bulk operations.
 
 The footer distinguishes **SAVED** from **UNSAVED DRAFT**. Draft changes are checkpointed to the active profile and, after an unexpected close or restart, RACA offers to restore or discard the recovery draft. Successful save/load and deliberate discard remove that recovery copy.
@@ -159,7 +159,7 @@ Clicking a row toggles that class immediately. Space toggles the selected row, e
 
 - **Include Visible** and **Exclude Visible** affect only currently filtered rows.
 - **Clear All** removes all selected classes, including hidden ones.
-- **Undo/Redo** buttons and `Ctrl+Z` / `Ctrl+Y` reverse row, batch, starter, adoption, and limit changes in creator history.
+- **Undo/Redo** buttons and `Ctrl+Z` / `Ctrl+Y` reverse row, batch, starter, inheritance, and limit changes in creator history.
 - Item pictures may be toggled, and hover text summarizes class, category, source, author, favourite status, and effective limit.
 
 ### Quick Start, role starters, and role packs
@@ -178,18 +178,18 @@ Before destructive library changes—overwrite, deletion, imported replacement, 
 
 Delete requires confirmation and removes only the selected profile record. It leaves the selected classes as an unsaved recovery copy, protecting the work currently shown in the Creator. A saved mission or standalone preset already produced from that profile record remains intact.
 
-### Adopt a source preset
+### Inherit from a source preset
 
-Adoption is a profile-authoring feature for common base inventories. A child stores:
+Inheritance is a profile-authoring feature for common base inventories. A child stores:
 
 - the source preset name and source fingerprint;
 - a complete last-known source snapshot;
 - additions grouped by cargo bucket; and
 - removals by class name.
 
-When a source is adopted or deliberately refreshed, the source snapshot becomes the base result, child additions are included, and child removals are excluded. Source items are shown light blue, even if the child currently excludes one. **Inherited** shows the complete source snapshot, while **Included** shows the effective child result.
+When inheritance is applied or deliberately refreshed, the source snapshot becomes the base result, child additions are included, and child removals are excluded. Source items are shown light blue, even if the child currently excludes one. **Inherited** shows the complete source snapshot, while **Included** shows the effective child result.
 
-RACA rejects circular source graphs. It never silently replaces a child with a modified parent: on load, a stale or missing source produces a warning while the child's stored complete selection remains usable. **Adopt / Refresh** is the explicit operation that reapplies a changed parent and saved overrides. **Make Standalone** preserves the current final selection while removing the source link. Eden, runtime, generated SQF, and class-list outputs always use the effective standalone result.
+RACA rejects circular source graphs. It never silently replaces a child with a modified parent: on load, a stale or missing source produces a warning while the child's stored complete selection remains usable. **Inherit / Refresh** is the explicit operation that reapplies a changed parent and saved overrides. **Make Standalone** preserves the current final selection while removing the source link. Eden, runtime, generated SQF, and class-list outputs always use the effective standalone result.
 
 ### Quantity policies
 
@@ -218,10 +218,12 @@ They are diagnostics, not preset data; Import Auto deliberately rejects them.
 
 | Format | Use | Re-import guarantee |
 | --- | --- | --- |
-| JSON preset | Versioned authoritative RACA interchange. Preserves name, cargo buckets, validated metadata, runtime limits, and safe adoption details. | Yes, between compatible RACA versions. |
+| JSON preset | Versioned authoritative RACA interchange. Preserves name, cargo buckets, validated metadata, runtime limits, and safe inheritance details. | Yes, between compatible RACA versions. |
 | Reusable SQF | Standalone ACE setup script for use in a mission folder. It validates `[this]`, runs server-side, removes an earlier virtual arsenal, and initializes ACE Arsenal globally. | No; it is a reusable deployment artifact. |
 | Class list | Alphabetical, de-duplicated comma-separated class names for documentation or other tooling. | Yes, as a conservative class-list import while classes remain available. |
 | Required-mod manifest / support bundle | Diagnostics and handoff artifacts. | No; intentionally rejected by Import Auto. |
+
+Export uses a saved preset when one is selected in **Saved presets**. Its first entry, **`<Select a saved preset>`**, means no library preset is selected; Export then builds and exports the active draft instead.
 
 To use a reusable SQF output, save it as `raca_arsenal.sqf` in the mission folder and put this in each relevant object's Init field:
 
@@ -344,7 +346,7 @@ The canonical preset begins with:
  optional metadata...]
 ```
 
-Classes are sorted, de-duplicated, and reclassified into correct cargo buckets while validating. The validator rejects unsafe class names and non-text entries; unavailable but syntactically safe classes are retained in their original bucket with a warning so they can reappear when the content mod returns. It understands and validates one adoption/composition metadata record and one runtime metadata record, preserves safe unknown `RACA_*` metadata without interpreting it, and rejects unsafe unknown metadata.
+Classes are sorted, de-duplicated, and reclassified into correct cargo buckets while validating. The validator rejects unsafe class names and non-text entries; unavailable but syntactically safe classes are retained in their original bucket with a warning so they can reappear when the content mod returns. It understands and validates one inheritance metadata record and one runtime metadata record, preserves safe unknown `RACA_*` metadata without interpreting it, and rejects unsafe unknown metadata.
 
 Runtime metadata is versioned as `RACA_RUNTIME` and holds normalized limits plus reserved notes/revision/author/time fields. A portable JSON envelope is:
 
@@ -352,7 +354,7 @@ Runtime metadata is versioned as `RACA_RUNTIME` and holds normalized limits plus
 ["RACA_PORTABLE_PRESET", 2, preset, metadata]
 ```
 
-Its metadata includes name, profile author, creation time, preset schema version, source mods, source add-ons, revision, modified-by/time, notes, and optional adopted-source fingerprint. Portable decoding is resource-bounded and rejects unknown future versions without rewriting user data.
+Its metadata includes name, profile author, creation time, preset schema version, source mods, source add-ons, revision, modified-by/time, notes, and optional inherited-source fingerprint. Portable decoding is resource-bounded and rejects unknown future versions without rewriting user data.
 
 ### Object schema
 
@@ -369,7 +371,7 @@ Options default to `auditLevel = standard` and `persistence = mission`. For back
 | Location | Contents | Why it matters |
 | --- | --- | --- |
 | Active Arma profile | Preset library, revisions, draft recovery, tags, favorites, role packs, saved catalogue views, Quick Start choices. | Personal authoring conveniences never need to be distributed to players. |
-| Mission/Eden attribute | Complete flattened slot configuration and embedded presets. | A deployed mission does not depend on the author's profile or source adoption chain. |
+| Mission/Eden attribute | Complete flattened slot configuration and embedded presets. | A deployed mission does not depend on the author's profile or source inheritance chain. |
 | Server mission namespace/object variables | Normalized registry, sessions, quotas, audit history, runtime policy. | Prevents clients from owning policy decisions. |
 | Client UI/action state | Sanitized action manifest and display state. | Enough to render/use interactions without exposing or trusting server state. |
 | JSON/clipboard | Explicit import/export only. | Gives shareable archival interchange without hidden code execution. |
@@ -392,7 +394,7 @@ RACA is intentionally defensive at every data boundary.
 
 The repository contains an isolated automated Creator/Eden/runtime mission and a separate multiplayer rehearsal mission. The current development acceptance record reports a passing `61/61` automated assertion run and successful static validation/PBO build for a prior clean development-package evidence run. It also records dedicated-server and initial remote-client rehearsal as passing, while distinct-identity JIP and visual ACE inspection on a second machine remain unknown. See [Development acceptance evidence](DEVELOPMENT_ACCEPTANCE.md) for the exact evidence and [In-game release checklist](IN_GAME_TEST_CHECKLIST.md) for the full human test protocol.
 
-The checklist is deliberately broader than a code test: it covers start-up, Creator UI, catalogue semantics, selection regressions, persistence, adoption, imports, Eden data integrity, object preflight, ACE interaction behavior, access/quotas/loadouts, administrator paths, Zeus, host/client synchronization, dedicated server, and real JIP.
+The checklist is deliberately broader than a code test: it covers start-up, Creator UI, catalogue semantics, selection regressions, persistence, inheritance, imports, Eden data integrity, object compatibility checks, ACE interaction behavior, access/quotas/loadouts, administrator paths, Zeus, host/client synchronization, dedicated server, and real JIP.
 
 ### RPT diagnostics
 
@@ -434,7 +436,7 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | --- | --- |
 | `functions/catalog` | `classifyClass` maps an Arma class to category/bucket/config; `scanItems` queries ACE virtual items and builds searchable metadata. |
 | `functions/diagnostics` | Environment/preset analysis, human-readable diagnostic formatting, and object-configuration preflight. |
-| `functions/presets` | Build, validate, migrate, flatten, fingerprint, archive, save/load/delete, adoption/cycle management, library/composition/history access, runtime-policy extraction, JSON/SQF decoding/formatting, export/import, manifests, and support bundles. |
+| `functions/presets` | Build, validate, migrate, flatten, fingerprint, archive, save/load/delete, inheritance/cycle management, library/composition/history access, runtime-policy extraction, JSON/SQF decoding/formatting, export/import, manifests, and support bundles. |
 | `functions/templates` | Built-in role templates, profile role-pack retrieval, starter application, and parameterized Quick Start policy application. |
 | `functions/ui` | Creator startup/shutdown, keyboard input, tab/view/filter/sort/table refresh, selection, status/summary, history, draft recovery, limits, favorites, tags, saved views, role packs, Quick Start, item details, preflight, and revision-history dialogs. |
 | `functions/runtime` | Pre/post initialization, config/access/limit normalization, registry/object lifecycle, ACE action manifests, server open/session flows, access/quotas/loadout validation, saved loadouts, audit logs, admin dashboard, runtime rehearsal, request/response handlers, and cleanup/reset operations. |
@@ -458,7 +460,7 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | Area | Functions |
 | --- | --- |
 | Preset construction and persistence | `buildPreset`, `validatePreset`, `migratePreset`, `saveCurrentPreset`, `loadSelectedPreset`, `deletePreset`, `getPresetLibrary`, `removePresetFromLibrary`, `refreshPresetCombo`, `setPresetRevision`, `archivePreset`, `getPresetHistory`. |
-| Adoption and flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `getRuntimePolicy`. |
+| Inheritance and flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `getRuntimePolicy`. |
 | Interchange | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `exportPreset`, `importPreset`, `decodeSqfPreset`, `formatSqfExport`, `isSafeClassName`, `buildModManifest`, `buildSupportBundle`. |
 | Creator UX | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `refreshItemList`, `refreshCategoryCombo`, `refreshSourceCombo`, `toggleRow`, `setVisibleSelection`, `clearSelection`, `setSortMode`, `setCatalogView`, `setStatus`, `updateSummary`, `switchCreatorTab`, `pushCreatorHistory`, `restoreCreatorHistory`, `refreshHistoryButtons`, `requestCreatorClose`. |
 | Creator enhancements | `openQuickStart`, `quickStartOnLoad`, `quickStartApply`, `applySelectedRoleTemplate`, `refreshRoleTemplateCombo`, `openRolePacks`, role-pack CRUD/refresh/select functions, `toggleFavorite`, item-detail functions, tag functions, saved-view functions, draft recovery functions, limit functions, preflight/diagnostic functions, comparison/history restore functions. |
@@ -486,7 +488,7 @@ The tables above explain the responsibilities. This index supplies the exact reg
 | Templates | `applyRoleTemplate`, `applyTemplateParameters`, `getRolePacks`, `getRoleTemplates` |
 | Preset build/validation | `buildPreset`, `validatePreset`, `migratePreset`, `isSafeClassName`, `getRuntimePolicy` |
 | Preset library/history | `getPresetLibrary`, `refreshPresetCombo`, `loadSelectedPreset`, `saveCurrentPreset`, `deletePreset`, `removePresetFromLibrary`, `setPresetRevision`, `archivePreset`, `getPresetHistory` |
-| Adoption/flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `refreshBaseCombo` |
+| Inheritance/flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `refreshBaseCombo` |
 | Interchange and support | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `formatSqfExport`, `decodeSqfPreset`, `exportPreset`, `importPreset`, `buildModManifest`, `buildSupportBundle` |
 
 </details>

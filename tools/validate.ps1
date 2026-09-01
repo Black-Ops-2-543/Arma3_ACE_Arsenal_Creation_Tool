@@ -282,9 +282,17 @@ if (Test-Path -LiteralPath $edenCfgPath -PathType Leaf) {
 $edenDialogPath = Join-Path $addonsDirectory 'eden\ui\EdenConfigDialog.hpp'
 if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
     $edenDialog = Get-Content -Raw -LiteralPath $edenDialogPath
-    foreach ($requiredText in @('SLOTS ON THIS OBJECT', 'ACCESS RULES', 'MISSION-WIDE DASHBOARD', 'APPLY CONFIGURATION', 'ASSIGN TO SELECTED', 'CLEAR SELECTED', 'COPY REPORT')) {
-        if ($edenDialog -notmatch [regex]::Escape($requiredText)) {
-            $failures.Add("The Eden configuration editor is missing '$requiredText'.")
+    foreach ($requiredPattern in @(
+        '(?i)SLOTS(\s+ON THIS\s+OBJECT)?',
+        '(?i)ACCESS RULES',
+        '(?i)MISSION[-\s]*WIDE\s+DASHBOARD',
+        '(?i)(APPLY CONFIGURATION|Apply configuration)',
+        '(?i)(ASSIGN TO SELECTED|Assign to selected)',
+        '(?i)(CLEAR SELECTED|Clear selected)',
+        '(?i)(COPY REPORT|Copy report)'
+    )) {
+        if ($edenDialog -notmatch $requiredPattern) {
+            $failures.Add("The Eden configuration editor is missing required pattern '$requiredPattern'.")
         }
     }
     if ($edenDialog -notmatch 'spawn\s+RACA_fnc_edenDashboardBulk') {
@@ -439,7 +447,7 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $failures.Add("The item list must defer its mouse-up toggle until ListNBox commits the clicked row.")
     }
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_EXPORT_FORMAT' -or
-        $creatorUi -notmatch 'text\s*=\s*"IMPORT AUTO"') {
+        $creatorUi -notmatch 'text\s*=\s*"Import Automatically"') {
         $failures.Add("The creator must expose the export-format selector and automatic importer.")
     }
     if ($creatorUi -notmatch 'spawn\s+RACA_fnc_importPreset') {
@@ -449,15 +457,38 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $failures.Add('Preset-name edits must mark and checkpoint the creator draft.')
     }
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_BASE_PRESET' -or
-        $creatorUi -notmatch 'text\s*=\s*"ADOPT / REFRESH"' -or
-        $creatorUi -notmatch 'text\s*=\s*"MAKE STANDALONE"') {
-        $failures.Add("The creator must expose source-preset selection, explicit adoption, and standalone conversion.")
+        $creatorUi -notmatch 'text\s*=\s*"Inherit / Refresh"' -or
+        $creatorUi -notmatch 'text\s*=\s*"Make Standalone"') {
+        $failures.Add("The creator must expose source-preset selection, explicit inheritance, and standalone conversion.")
     }
-    if ($creatorUi -notmatch 'text\s*=\s*"ARSENAL CREATION ASSISTANT"' -or
-        $creatorUi -notmatch 'text\s*=\s*"PRESET MANAGEMENT"' -or
-        $creatorUi -notmatch 'text\s*=\s*"ASSIGNMENT"' -or
+    if ($creatorUi -notmatch 'text\s*=\s*"Arsenal Creation Assistant"' -or
+        $creatorUi -notmatch 'text\s*=\s*"Preset Management"' -or
+        $creatorUi -notmatch 'text\s*=\s*"Arsenal Contents"' -or
         $creatorUi -match 'PRESET LIBRARY') {
-        $failures.Add("The creator must use the centered title and two-tab Preset Management/Assignment layout.")
+        $failures.Add("The creator must use the centered title and two-tab Preset Management/Arsenal Contents layout.")
+    }
+    if ($creatorUi -notmatch 'RACA_IDC_SEARCH_MODE' -or
+        $creatorUi -notmatch 'RACA_IDC_PRESET_TOOL' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_SETTINGS' -or
+        $creatorUi -match 'idc\s*=\s*RACA_IDC_VIEW_MODE') {
+        $failures.Add("The creator must expose persistent Basic/Advanced search and consolidated preset tools, move role starters into Quick Start settings, and keep item icons always visible.")
+    }
+    if ($creatorUi -notmatch 'GUI_BCG_RGB_R' -or
+        $creatorUi -notmatch 'GUI_BCG_RGB_G' -or
+        $creatorUi -notmatch 'GUI_BCG_RGB_B') {
+        $failures.Add("Creator accent surfaces must use the player's Menu Background profile color.")
+    }
+    if ($creatorUi -notmatch 'RACA_IDC_TAB_PRESETS_INDICATOR' -or
+        $creatorUi -notmatch 'RACA_IDC_TAB_ASSIGNMENT_INDICATOR' -or
+        $creatorUi -notmatch 'colorBackgroundDisabled\[\].*GUI_BCG_RGB_R' -or
+        $creatorUi -notmatch 'periodFocus\s*=\s*0') {
+        $failures.Add("The active Creator tab must retain an unfaded profile-color indicator without focus pulsing.")
+    }
+    if ($creatorUi -notmatch 'text\s*=\s*"Preset Analysis"' -or
+        $creatorUi -notmatch 'text\s*=\s*"See History"' -or
+        $creatorUi -notmatch 'text\s*=\s*"Compare With Draft"' -or
+        $creatorUi -match 'JSON is the lossless backup format') {
+        $failures.Add("Preset Management must provide the dedicated Preset Analysis selector and direct actions without the former export explanation block.")
     }
 }
 
@@ -470,7 +501,7 @@ if (Test-Path -LiteralPath $categoryUiPath -PathType Leaf) {
         }
     }
     if ($categoryUi -notmatch 'count\s+_inherited') {
-        $failures.Add("The Inherited category must only appear when an adopted source snapshot exists.")
+        $failures.Add("The Inherited category must only appear when an inherited source snapshot exists.")
     }
 }
 
@@ -479,7 +510,7 @@ if (Test-Path -LiteralPath $itemRefreshPath -PathType Leaf) {
     $itemRefresh = Get-Content -Raw -LiteralPath $itemRefreshPath
     if ($itemRefresh -notmatch '"Included"' -or $itemRefresh -notmatch '"Inherited"' -or
         $itemRefresh -notmatch '0\.55,\s*0\.82,\s*1') {
-        $failures.Add("Assignment filtering must support Included/Inherited and mark adopted-source rows light blue.")
+        $failures.Add("Arsenal Contents filtering must support Included/Inherited and mark inherited-source rows light blue.")
     }
 }
 
@@ -502,11 +533,14 @@ if (Test-Path -LiteralPath $classificationPath -PathType Leaf) {
 $catalogPath = Join-Path $addonsDirectory 'core\functions\catalog\fn_scanItems.sqf'
 if (Test-Path -LiteralPath $catalogPath -PathType Leaf) {
     $catalogSource = Get-Content -Raw -LiteralPath $catalogPath
-    if ($catalogSource -match 'configSourceAddonList\s+_config\s*;') {
-        $failures.Add("Catalogue search must not index every compatibility patch in configSourceAddonList.")
-    }
     if ($catalogSource -match 'modParams\s*\[[^\]]*"author"') {
         $failures.Add("Catalogue scanning must not request the unsupported modParams 'author' option.")
+    }
+    if ($catalogSource -notmatch 'configFile\s*>>\s*"CfgPatches"' -or
+        $catalogSource -notmatch 'getArray\s*\(_patch\s*>>\s*_x\)' -or
+        $catalogSource -notmatch 'configSourceMod\s+_sourcePatch' -or
+        $catalogSource -notmatch 'modParams\s*\[\s*_sourceMod') {
+        $failures.Add("Catalogue mod labels must resolve the declaring CfgPatches add-on and its source mod before reading the display name.")
     }
 }
 
@@ -586,10 +620,11 @@ if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
 $presetValidationPath = Join-Path $addonsDirectory 'core\functions\presets\fn_validatePreset.sqf'
 if (Test-Path -LiteralPath $presetValidationPath -PathType Leaf) {
     $presetValidation = Get-Content -Raw -LiteralPath $presetValidationPath
-    if ($presetValidation -notmatch 'RACA_ADOPTION' -or
+    if ($presetValidation -notmatch 'RACA_INHERITANCE' -or
+        $presetValidation -notmatch 'RACA_ADOPTION' -or
         $presetValidation -notmatch 'RACA_COMPOSITION' -or
-        $presetValidation -notmatch 'An unsafe adoption removal was rejected') {
-        $failures.Add("Preset validation must emit safe versioned adoption metadata and accept the legacy composition signature.")
+        $presetValidation -notmatch 'An unsafe inheritance removal was rejected') {
+        $failures.Add("Preset validation must emit safe versioned inheritance metadata and accept both legacy signatures.")
     }
 }
 
@@ -597,7 +632,7 @@ $cyclePath = Join-Path $addonsDirectory 'core\functions\presets\fn_wouldCreateCy
 if (Test-Path -LiteralPath $cyclePath -PathType Leaf) {
     $cycleSource = Get-Content -Raw -LiteralPath $cyclePath
     if ($cycleSource -notmatch 'createHashMap' -or $cycleSource -notmatch 'RACA_fnc_getComposition') {
-        $failures.Add("Adoption ancestry must track visited presets and inspect source metadata.")
+        $failures.Add("Inheritance ancestry must track visited presets and inspect source metadata.")
     }
 }
 
@@ -732,7 +767,7 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUiSource -notmatch 'RACA_IDC_DELETE_PRESET' -or $creatorUiSource -notmatch 'RACA_fnc_deletePreset') {
         $failures.Add("The creator must expose preset deletion from Preset Management.")
     }
-    foreach ($creatorFeature in @('QUICK START', 'REVISION HISTORY', 'COMPARE DRAFT', 'LIMIT CATEGORY', 'FAVORITE', 'RACA_IDC_SOURCE_FILTER', 'RACA_IDC_TAG_FILTER', 'RACA_RscDisplayCatalogTags', 'RACA_fnc_requestCreatorClose')) {
+    foreach ($creatorFeature in @('Quick Start', 'Preset Analysis', 'See History', 'Compare With Draft', 'RACA_IDC_PRESET_TOOL', 'Limit Category', 'Favorite', 'RACA_IDC_SOURCE_FILTER', 'RACA_IDC_TAG_FILTER', 'RACA_RscDisplayCatalogTags', 'RACA_fnc_requestCreatorClose')) {
         if ($creatorUiSource -notmatch [regex]::Escape($creatorFeature)) {
             $failures.Add("The creator excellence workflow is missing '$creatorFeature'.")
         }
@@ -1252,6 +1287,7 @@ $rolePackPaths = @(
     (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackApply.sqf'),
     (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackDelete.sqf'),
     (Join-Path $addonsDirectory 'core\functions\ui\fn_rolePackRefresh.sqf')
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshQuickRoleCombo.sqf')
 )
 if ($rolePackPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
     $failures.Add("The creator must provide profile-wide custom role packs.")
@@ -1265,9 +1301,28 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $rolePacks -notmatch 'RACA_ROLE_PACK' -or
         $rolePacks -notmatch 'pack:' -or
         $rolePacks -notmatch 'RACA_fnc_pushCreatorHistory' -or
+        $rolePacks -notmatch 'RACA_rolePacksReturn' -or
+        $rolePacks -notmatch 'RACA_fnc_refreshQuickRoleCombo' -or
         $rolePacks -notmatch 'BIS_fnc_guiMessage' -or
-        $rolePacks -notmatch 'saveProfileNamespace') {
-        $failures.Add("Custom role packs must persist explicit class sets, support merge/replace and Quick Start, and guard replacement/deletion independently of presets.")
+        $rolePacks -notmatch 'saveProfileNamespace' -or
+        $creatorUi -notmatch 'text\s*=\s*"Custom Unit Role Packs"' -or
+        $creatorUi -notmatch 'text\s*=\s*"Return to Quick Start"') {
+        $failures.Add("Custom role packs must use the current visual style, persist explicit class sets, support merge/replace, return to Quick Start, and guard replacement/deletion independently of presets.")
+    }
+}
+
+$dropdownHelperPaths = @(
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshSourceCombo.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshRoleTemplateCombo.sqf'),
+    (Join-Path $addonsDirectory 'core\functions\ui\fn_refreshQuickRoleCombo.sqf')
+)
+if ($dropdownHelperPaths.Where({-not (Test-Path -LiteralPath $_ -PathType Leaf)}).Count -gt 0) {
+    $failures.Add("Creator dropdown helpers must be present for hover-help validation.")
+}
+else {
+    $dropdownHelpers = ($dropdownHelperPaths | ForEach-Object {Get-Content -Raw -LiteralPath $_}) -join [Environment]::NewLine
+    if ($dropdownHelpers -match '\blbSetTooltip\b') {
+        $failures.Add("Creator dropdown rows must not add hover-help tooltips.")
     }
 }
 
@@ -1284,7 +1339,8 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     $quickStartOnLoad = Get-Content -Raw -LiteralPath $quickStartOnLoadPath
     $quickStartApply = Get-Content -Raw -LiteralPath $quickStartApplyPath
     $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
-    if ($creatorUi -notmatch 'RACA PARAMETERIZED QUICK START' -or
+    if ($creatorUi -notmatch 'text\s*=\s*"Quick Start"' -or
+        $creatorUi -notmatch 'RACA_IDC_QUICK_SETTINGS' -or
         $creatorUi -notmatch 'RACA_IDC_QUICK_OPTICS' -or
         $creatorUi -notmatch 'RACA_IDC_QUICK_SUPPRESSORS' -or
         $creatorUi -notmatch 'RACA_IDC_QUICK_NVG' -or

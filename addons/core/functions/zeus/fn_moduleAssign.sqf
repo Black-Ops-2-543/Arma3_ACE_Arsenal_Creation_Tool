@@ -18,7 +18,7 @@ if (_rawPreset isEqualTo []) then {
 if (_rawPreset isEqualTo []) exitWith {diag_log format ["[RACA] Zeus assignment rejected: preset '%1' was not found in the server profile or an embedded mission slot.", _presetName]; false};
 private _preset = [_rawPreset] call RACA_fnc_flattenPreset;
 private _config = ["RACA_OBJECT_CONFIG", 1, [["zeus", _slotName, _preset, true, ["RACA_ACCESS", 1, "AND", [], false, "Access denied.", []], ([_preset] call RACA_fnc_getRuntimePolicy) select 2, "", false]], [["persistence", "session"]]];
-private _targets = _units select {!isNull _x && {!(_x isKindOf "Man")}};
+private _targets = _units select {!isNull _x};
 private _changed = [_targets, "assign", _config, true] call RACA_fnc_bulkUpdateObjects;
 ["ZEUS_ASSIGN", objNull, _targets param [0, objNull], "zeus", [_presetName, _changed]] call RACA_fnc_logEvent;
 deleteVehicle _logic;

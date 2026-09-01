@@ -37,7 +37,7 @@ private _normalizedName = toLowerANSI _name;
 private _existingIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 private _composition = [_preset] call RACA_fnc_getComposition;
 if (_composition isNotEqualTo [] && {[_name, _composition select 2, _library] call RACA_fnc_wouldCreateCycle}) exitWith {
-    [_display, "Import rejected because its adoption metadata would create a circular source link."] call RACA_fnc_setStatus;
+    [_display, "Import rejected because its inheritance metadata would create a circular source link."] call RACA_fnc_setStatus;
 };
 
 if (_existingIndex >= 0) then {

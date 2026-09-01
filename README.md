@@ -22,7 +22,7 @@ flowchart LR
     A[Load Arma 3, CBA, ACE, and content mods] --> B[Open Restricted Arsenal Creator]
     B --> C[Choose a role starter or select permitted classes]
     C --> D[Set optional item limits and run preflight]
-    D --> E[Save or adopt a preset]
+    D --> E[Save or inherit from a preset]
     E --> F[Assign in Eden or through a Zeus module]
     F --> G[Server validates access and quota rules]
     G --> H[Players use controlled ACE Arsenal slots]
@@ -40,7 +40,7 @@ The current release:
 - supports row clicks, Space-bar toggling, Include Visible, Exclude Visible, and Clear All;
 - saves named presets in the active Arma profile and supports loading, case-insensitive overwriting, and guarded deletion;
 - archives up to 20 prior revisions per preset before destructive library changes, with comparison and rollback as a new revision;
-- adopts a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an adopted preset standalone;
+- inherits from a source preset with explicit additions/removals, detects circular links, warns about stale or missing sources, and can make an inherited preset standalone;
 - exports selections as round-trip JSON, reusable mission SQF, or a simple class list, and imports JSON, existing SQF arsenals, and class lists through the clipboard;
 - exports a machine-readable required-mod manifest and a self-contained diagnostic support bundle;
 - includes role starters for rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon, plus profile-wide custom unit role packs captured from any draft;
@@ -75,7 +75,7 @@ Start Arma 3 after confirming the dependencies load without errors.
 
 Open **Tutorials > Restricted Arsenal Creator**. RACA loads a catalogue from the current session.
 
-The creator is divided into two tabs. **Preset Management** contains naming, saving, loading, import/export, and adoption maintenance. **Assignment** contains the complete item table, search, category filters, current inclusion state, and bulk include/exclude tools.
+The creator is divided into two tabs. **Preset Management** contains naming, saving, loading, import/export, and inheritance maintenance. **Arsenal Contents** contains the complete item table, search, category filters, current inclusion state, and bulk include/exclude tools.
 
 **Quick Start** is also a concrete preset generator. Choose a built-in role or custom unit pack, optionally limit it to one loaded source mod, then set optic, suppressor, night-vision, and medical policies. RACA remembers those parameter choices and generates an unsaved draft for review; it never saves or assigns generated content automatically.
 
@@ -96,13 +96,13 @@ The controls include:
 - **Save / Overwrite** — stores the current selection under the entered name;
 - **Load** — loads the selected saved preset;
 - **Delete** — removes the selected preset from the active profile after confirmation while keeping the current items as an unsaved recovery copy;
-- **Draft recovery** — continuously checkpoints unsaved names, items, source adoption, and limits to the active profile, then offers to restore or discard that draft after an unexpected close or restart;
+- **Draft recovery** — continuously checkpoints unsaved names, items, source inheritance, and limits to the active profile, then offers to restore or discard that draft after an unexpected close or restart;
 - **Quick Start** — creates an unsaved blank or role-based draft, optionally constrained to one loaded source mod, and leads directly to review;
 - **Revision History** — compares automatically archived versions and restores one as a new revision;
 - **Compare Draft** — copies the exact added/removed class and quantity-policy difference against the selected saved preset;
 - **Undo / Redo** — reverses creator item and policy changes, also available with `Ctrl+Z` / `Ctrl+Y`;
-- **Adopted source preset** — selects an optional saved source for the current preset;
-- **Adopt / Refresh** — adopts that source or deliberately reapplies a changed source while preserving additions and removals;
+- **Inherited source preset** — selects an optional saved source for the current preset;
+- **Inherit / Refresh** — inherits from that source or deliberately reapplies a changed source while preserving additions and removals;
 - **Make Standalone** — saves the complete current result with no source link;
 - **Export format** — chooses round-trip JSON, reusable mission SQF, a simple class list, a required-mod manifest, or a support bundle;
 - **Export** — copies the selected preset in that format;
@@ -144,24 +144,24 @@ RACA rejects an empty name and an empty selection. Saving the same name again up
 
 Before saving a preset intended for another mod set, select **Run Preflight**. It verifies ACE3, CBA_A3, and RACA Eden availability; explains exactly how many classes, source mods, owning add-ons, authors, and categories make up the active session; then identifies blocking invalid data, unavailable required classes, duplicates, bucket corrections, and likely source mods/add-ons. Select **Copy Report** to place the full report on the clipboard for testing notes or bug reports.
 
-### 5. Adopt a source preset
+### 5. Inherit from a source preset
 
 To derive a role-specific preset from a common inventory:
 
-1. Load an existing adopted preset to refresh it, or load/craft the selection that should become a new child.
+1. Load an existing inherited preset to refresh it, or load/craft the selection that should become a new child.
 2. Enter a unique child name.
-3. Choose an **Adopted source preset** and press **Adopt / Refresh**.
-4. Open **Assignment**. Every item from the adopted source is light blue, including source items that you exclude. Use **Inherited** to view only that complete source snapshot and **Included** to view the current result.
+3. Choose an **Inherited source preset** and press **Inherit / Refresh**.
+4. Open **Arsenal Contents**. Every item from the inherited source is light blue, including source items that you exclude. Use **Inherited** to view only that complete source snapshot and **Included** to view the current result.
 5. Include child-only items and exclude source items that this role must not receive.
 6. Press **Save / Overwrite**.
 
-RACA stores complete final item buckets alongside the adopted source name, a source fingerprint, additive overrides, and subtractive overrides. Loading never applies a changed source silently. If the source changed, RACA warns and continues showing the child's last saved complete contents; press **Adopt / Refresh** to apply the updated source deliberately, then save. A missing source produces a similar warning without breaking the stored child.
+RACA stores complete final item buckets alongside the inherited source name, a source fingerprint, additive overrides, and subtractive overrides. Loading never applies a changed source silently. If the source changed, RACA warns and continues showing the child's last saved complete contents; press **Inherit / Refresh** to apply the updated source deliberately, then save. A missing source produces a similar warning without breaking the stored child.
 
-Circular adoption is rejected. **Make Standalone** immediately saves the current result without adoption metadata. Whether a preset remains adopted or becomes standalone, Eden embeds only a complete standalone copy in the mission, so a deployed mission never needs the author's profile or an unresolved source reference.
+Circular inheritance is rejected. **Make Standalone** immediately saves the current result without inheritance metadata. Whether a preset remains inherited or becomes standalone, Eden embeds only a complete standalone copy in the mission, so a deployed mission never needs the author's profile or an unresolved source reference.
 
 ### 6. Export or import the selection
 
-Select a saved preset, or leave **Saved presets** on **<Current selection>**, then choose an export format:
+Select a saved preset, or leave **Saved presets** on its first entry, **<Select a saved preset>**, to export the active draft; then choose an export format:
 
 - **JSON preset** is RACA's authoritative round-trip format. Choose **Export**, paste the clipboard into a UTF-8 `.json` file, and archive or share it. To restore it, copy the complete document and choose **Import Auto**. A JSON export preserves the preset name and all cargo buckets; the importer validates that exact versioned structure.
 - **Reusable SQF** creates a complete mission script. Save the clipboard text as `raca_arsenal.sqf` in the 3den mission folder. Put `[this] execVM "raca_arsenal.sqf";` in the Init field of every object that should use it. All of those objects share the same file and therefore stay linked to one maintained list. The script runs the ACE setup on the server and synchronizes the resulting arsenal.
@@ -199,7 +199,7 @@ Use **Refresh presets** in the object attribute to deliberately replace each slo
 
 RACA stores a complete copy of the selected preset in the scenario attribute. Changing or deleting the profile copy later does not silently change a mission that has already been configured.
 
-Deleting a profile preset also leaves any adopted children usable because they store complete item snapshots. Those children report their now-missing source until they are made standalone or assigned another source.
+Deleting a profile preset also leaves any inheriting children usable because they store complete item snapshots. Those children report their now-missing source until they are made standalone or assigned another source.
 
 Choose **Clear** to remove all RACA slots from the object.
 
@@ -261,7 +261,7 @@ Before overwrite, rollback, standalone conversion, import replacement, or deleti
 
 Portable presets use a documented JSON envelope. All imports are decoded or scanned as data and are never compiled or executed. Malformed data, unsafe class-name shapes, unsupported versions, and inputs above the documented resource limits are rejected atomically. See [the interchange formats](docs/PORTABLE_PRESET_FORMAT.md).
 
-Adopted presets remain authoring conveniences. Their stored final buckets are always complete. JSON preserves safe adoption metadata for profile-to-profile editing, while class-list and SQF exports are intentionally standalone. Eden also strips adoption metadata before writing the object attribute.
+Inherited presets remain authoring conveniences. Their stored final buckets are always complete. JSON preserves safe inheritance metadata for profile-to-profile editing, while class-list and SQF exports are intentionally standalone. Eden also strips inheritance metadata before writing the object attribute.
 
 ### Missing content mods
 

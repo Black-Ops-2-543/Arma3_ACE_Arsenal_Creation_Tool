@@ -17,7 +17,15 @@ private _replace = (toUpperANSI _mode) isEqualTo "REPLACE";
 private _result = ["pack:" + toLowerANSI _name, uiNamespace getVariable ["RACA_itemCatalog", []], _replace] call RACA_fnc_applyRoleTemplate;
 private _warnings = _result param [1, []];
 [_parent] call RACA_fnc_refreshItemList;
+private _return = _display getVariable ["RACA_rolePacksReturnDisplay", displayNull];
 _display closeDisplay 1;
+if (!isNull _return) then {
+    (_return displayCtrl RACA_IDC_QUICK_HELP) ctrlSetText format [
+        "%1 custom role pack '%2' in the current draft. Quick Start remains open; Generate Draft will apply the choices shown here.",
+        ["Merged", "Replaced the draft with"] select _replace,
+        _name
+    ];
+};
 [_parent, format [
     "%1 custom role pack '%2'; %3 class(es) are now included.%4",
     ["Merged", "Replaced the draft with"] select _replace,

@@ -9,7 +9,7 @@ private _name = _list lnbData [_row, 0];
 [_display, _name] spawn {
     disableSerialization;
     params ["_display", "_name"];
-    private _confirmed = [format ["Delete saved catalogue view '%1'?%2The draft and all presets are unaffected.", _name, toString [10]], "RACA Saved Views", true, true, _display] call BIS_fnc_guiMessage;
+    private _confirmed = [format ["Delete saved filters '%1'?%2Arsenal contents and presets are unaffected.", _name, toString [10]], "RACA Saved Filters", true, true, _display] call BIS_fnc_guiMessage;
     if (!_confirmed) exitWith {};
     private _views = call RACA_fnc_getSavedCatalogViews;
     _views = _views select {toLowerANSI (_x select 2) isNotEqualTo toLowerANSI _name};

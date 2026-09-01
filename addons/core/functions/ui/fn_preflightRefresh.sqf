@@ -5,7 +5,7 @@ params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {false};
 private _stored = uiNamespace getVariable ["RACA_creatorDiagnostics", []];
 if (_stored isEqualTo []) exitWith {
-    (_display displayCtrl RACA_IDC_PREFLIGHT_SUMMARY) ctrlSetText "No compatibility analysis is available. Close this report and run preflight again.";
+    (_display displayCtrl RACA_IDC_PREFLIGHT_SUMMARY) ctrlSetText "No compatibility analysis is available. Close this report and run the compatibility check again.";
     false
 };
 (_stored select 0) params ["_ok", "_entries", "_counts"];
@@ -23,6 +23,12 @@ lnbClear _list;
     } else {
         _modName + (if (_sourceAddon isEqualTo "") then {""} else {" / " + _sourceAddon})
     };
+    private _metadata = [];
+    private _nl = toString [10];
+    if (_className isNotEqualTo "") then {_metadata pushBack format ["Class: %1", _className]};
+    if (_modName isNotEqualTo "") then {_metadata pushBack format ["Source mod: %1", _modName]};
+    if (_sourceAddon isNotEqualTo "") then {_metadata pushBack format ["Owning add-on: %1", _sourceAddon]};
+    if (_metadata isEqualTo []) then {_metadata = ["No class source metadata available."]};
     private _row = _list lnbAddRow [_severity, _code, _message, _className, _source];
     private _color = switch (_severity) do {
         case "ERROR": {[1, 0.42, 0.38, 1]};
@@ -30,7 +36,7 @@ lnbClear _list;
         default {[0.55, 0.82, 1, 1]};
     };
     {_list lnbSetColor [[_row, _x], _color]} forEach [0, 1, 2, 3, 4];
-    private _tooltip = format ["[%1] %2%3Class: %4%3Source mod: %5%3Owning add-on: %6", _severity, _message, toString [10], _className, _modName, _sourceAddon];
+    private _tooltip = format ["[%1] %2%3%4", _severity, _message, _nl, _metadata joinString _nl];
     {_list lnbSetTooltip [[_row, _x], _tooltip]} forEach [0, 1, 2, 3, 4];
 } forEach _visible;
 _display setVariable ["RACA_preflightRows", _visible];
@@ -40,7 +46,7 @@ _counts params ["_errors", "_warnings", "_info"];
 private _summary = _display displayCtrl RACA_IDC_PREFLIGHT_SUMMARY;
 _summary ctrlSetBackgroundColor (if (_errors > 0) then {[0.45, 0.08, 0.08, 0.6]} else {if (_warnings > 0) then {[0.45, 0.30, 0.05, 0.6]} else {[0.08, 0.35, 0.12, 0.6]}});
 _summary ctrlSetText format [
-    "Preflight %1: %2 error(s), %3 warning(s), %4 information entry/entries.%5Showing %6 of %7 result(s). Double-click an available class to inspect it in Assignment.",
-    ["BLOCKED", "PASSED"] select _ok, _errors, _warnings, _info, toString [10], count _visible, count _entries
+    "Compatibility %1: %2 error(s), %3 warning(s), %4 information(s). Showing %5 of %6 result(s). Double-click an available class to inspect it in Assignment.",
+    ["BLOCKED", "PASSED"] select _ok, _errors, _warnings, _info, count _visible, count _entries
 ];
 true

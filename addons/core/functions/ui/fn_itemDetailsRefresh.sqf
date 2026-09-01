@@ -65,7 +65,7 @@ private _inherited = _inheritedMap getOrDefault [_className, false];
 private _favorite = _favoriteMap getOrDefault [_className, false];
 private _tags = (uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap]) getOrDefault [_className, []];
 private _selectionState = if (_inherited) then {
-    ["Inherited from the adopted source but explicitly removed", "Inherited from the adopted source and included"] select _selected
+    ["Inherited from the source preset but explicitly removed", "Inherited from the source preset and included"] select _selected
 } else {
     ["Excluded", "Explicitly included"] select _selected
 };

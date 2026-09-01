@@ -25,11 +25,11 @@ if (_baseSelection > 0) then {
     private _parent = _library param [_baseSelection - 1, []];
     ([_parent] call RACA_fnc_validatePreset) params ["_validatedParent"];
     if (_validatedParent isEqualTo []) then {
-            _compositionError = "The selected adopted source is invalid.";
+            _compositionError = "The selected inherited source is invalid.";
     } else {
         private _parentName = _validatedParent select 2;
         if ([_name, _parentName, _library] call RACA_fnc_wouldCreateCycle) then {
-            _compositionError = "Save rejected because this adoption would create a circular source link.";
+            _compositionError = "Save rejected because this inheritance would create a circular source link.";
         } else {
             private _parentClasses = createHashMap;
             {
@@ -62,7 +62,7 @@ if (_baseSelection > 0) then {
             _removals sort true;
 
             _preset pushBack [
-                "RACA_ADOPTION",
+                "RACA_INHERITANCE",
                 1,
                 _parentName,
                 [_validatedParent] call RACA_fnc_fingerprintPreset,
@@ -105,6 +105,6 @@ call RACA_fnc_clearDraftRecovery;
 [_display] call RACA_fnc_refreshHistoryButtons;
 private _composition = [_preset] call RACA_fnc_getComposition;
 private _compositionSuffix = if (_composition isEqualTo []) then {""} else {
-    format [" with adopted source '%1'", _composition select 2]
+    format [" with inherited source '%1'", _composition select 2]
 };
 [_display, format ["Saved '%1' with %2 included items%3.", _name, _itemCount, _compositionSuffix]] call RACA_fnc_setStatus;

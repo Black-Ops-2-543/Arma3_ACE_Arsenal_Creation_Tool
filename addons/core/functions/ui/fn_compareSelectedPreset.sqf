@@ -1,10 +1,20 @@
 #include "..\..\script_component.hpp"
-params [["_display", displayNull, [displayNull]]];
+params [
+    ["_display", displayNull, [displayNull]],
+    ["_comboIdc", RACA_IDC_PRESET_LIST, [0]]
+];
 if (isNull _display) exitWith {false};
-private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
+private _resolvedCombo = if (_comboIdc isEqualTo RACA_IDC_PRESET_TOOL) then {
+    RACA_IDC_PRESET_TOOL
+} else {
+    RACA_IDC_PRESET_LIST
+};
+private _combo = _display displayCtrl _resolvedCombo;
 private _selection = lbCurSel _combo;
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
-private _saved = if (_selection > 0) then {_library param [_selection - 1, []]} else {[]};
+private _selectedName = if (_selection > 0) then {_combo lbData _selection} else {""};
+private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _selectedName};
+private _saved = if (_savedIndex >= 0) then {_library select _savedIndex} else {[]};
 if (_saved isEqualTo []) exitWith {[_display, "Choose a saved preset to compare with the current draft."] call RACA_fnc_setStatus; false};
 private _draft = [_display] call RACA_fnc_buildPreset;
 private _savedSet = createHashMap;

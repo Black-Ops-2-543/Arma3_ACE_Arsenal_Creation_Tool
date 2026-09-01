@@ -8,7 +8,10 @@ private _undoing = toUpperANSI _direction isEqualTo "UNDO";
 private _sourceKey = ["RACA_creatorRedo", "RACA_creatorUndo"] select _undoing;
 private _targetKey = ["RACA_creatorUndo", "RACA_creatorRedo"] select _undoing;
 private _source = uiNamespace getVariable [_sourceKey, []];
-if (_source isEqualTo []) exitWith {false};
+if (_source isEqualTo []) exitWith {
+    [_display, ["Nothing is available to redo yet.", "Nothing is available to undo yet. Make a change in Arsenal Contents first."] select _undoing] call RACA_fnc_setStatus;
+    false
+};
 
 private _selected = keys (uiNamespace getVariable ["RACA_builderSelected", createHashMap]);
 private _inherited = keys (uiNamespace getVariable ["RACA_builderInherited", createHashMap]);

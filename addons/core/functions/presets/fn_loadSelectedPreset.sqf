@@ -24,18 +24,18 @@ private _selected = createHashMap;
 } forEach (_preset select 3);
 uiNamespace setVariable ["RACA_builderSelected", _selected];
 
-private _adoption = [_preset] call RACA_fnc_getComposition;
-uiNamespace setVariable ["RACA_builderComposition", _adoption];
+private _inheritance = [_preset] call RACA_fnc_getComposition;
+uiNamespace setVariable ["RACA_builderComposition", _inheritance];
 
 private _sourceItems = createHashMap;
-if (_adoption isNotEqualTo []) then {
+if (_inheritance isNotEqualTo []) then {
     {
         {_sourceItems set [_x, true]} forEach _x;
     } forEach (_preset select 3);
     {
         {_sourceItems deleteAt _x} forEach _x;
-    } forEach (_adoption select 4);
-    {_sourceItems set [_x, true]} forEach (_adoption select 5);
+    } forEach (_inheritance select 4);
+    {_sourceItems set [_x, true]} forEach (_inheritance select 5);
 };
 uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
 private _limitsMap = createHashMap;
@@ -59,18 +59,18 @@ if (_warnings isNotEqualTo []) then {
     _notices pushBack format ["%1 validation notice(s)", count _warnings];
 };
 
-if (_adoption isNotEqualTo []) then {
-    private _sourceName = _adoption select 2;
+if (_inheritance isNotEqualTo []) then {
+    private _sourceName = _inheritance select 2;
     if ([_preset select 2, _sourceName, _library] call RACA_fnc_wouldCreateCycle) then {
-        _notices pushBack "circular adoption metadata detected; the stored complete item snapshot remains usable";
+        _notices pushBack "circular inheritance metadata detected; the stored complete item snapshot remains usable";
     } else {
         private _sourceIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _sourceName};
         if (_sourceIndex < 0) then {
-            _notices pushBack format ["adopted source '%1' is missing; the stored complete item snapshot remains unchanged", _sourceName];
+            _notices pushBack format ["inherited source '%1' is missing; the stored complete item snapshot remains unchanged", _sourceName];
         } else {
             private _currentFingerprint = [(_library select _sourceIndex)] call RACA_fnc_fingerprintPreset;
-            if (_currentFingerprint isNotEqualTo (_adoption select 3)) then {
-                _notices pushBack format ["adopted source '%1' changed; use ADOPT / REFRESH when you want its changes", _sourceName];
+            if (_currentFingerprint isNotEqualTo (_inheritance select 3)) then {
+                _notices pushBack format ["inherited source '%1' changed; use Inherit / Refresh when you want its changes", _sourceName];
             };
         };
     };

@@ -22,7 +22,7 @@ if (_restore >= 0) then {_list lnbSetCurSelRow _restore};
 private _details = _display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS;
 if (_views isEqualTo []) then {
     (_display displayCtrl RACA_IDC_SAVED_VIEW_NAME) ctrlSetText "";
-    _details ctrlSetText "No saved catalogue views yet. Enter a name and capture the creator's current workspace.";
+    _details ctrlSetText "No saved filters yet. Set up Arsenal Contents, enter a name, then choose Save Current Filters.";
 } else {
     [_list] call RACA_fnc_savedCatalogViewSelect;
 };

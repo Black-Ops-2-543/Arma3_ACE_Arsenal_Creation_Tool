@@ -6,7 +6,7 @@ if (isNull _display) exitWith {};
 private _combo = _display displayCtrl RACA_IDC_BASE_PRESET;
 private _selection = lbCurSel _combo;
 if (_selection <= 0) exitWith {
-    [_display, "Choose a source preset before adopting."] call RACA_fnc_setStatus;
+    [_display, "Choose a source preset before applying inheritance."] call RACA_fnc_setStatus;
 };
 
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
@@ -19,7 +19,7 @@ if (_validatedSource isEqualTo []) exitWith {
 private _childName = ctrlText (_display displayCtrl RACA_IDC_PRESET_NAME);
 private _sourceName = _validatedSource select 2;
 if ([_childName, _sourceName, _library] call RACA_fnc_wouldCreateCycle) exitWith {
-    [_display, "Adoption rejected because it would create a circular source link."] call RACA_fnc_setStatus;
+    [_display, "Inheritance rejected because it would create a circular source link."] call RACA_fnc_setStatus;
 };
 
 [_display] call RACA_fnc_pushCreatorHistory;
@@ -66,7 +66,7 @@ uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
 uiNamespace setVariable [
     "RACA_builderComposition",
     [
-        "RACA_ADOPTION",
+        "RACA_INHERITANCE",
         1,
         _sourceName,
         [_validatedSource] call RACA_fnc_fingerprintPreset,
@@ -77,4 +77,4 @@ uiNamespace setVariable [
 
 [_display] call RACA_fnc_refreshCategoryCombo;
 [_display] call RACA_fnc_refreshItemList;
-[_display, format ["Adopted source preset '%1'. Its %2 source items are marked light blue on Assignment.", _sourceName, count _sourceItems]] call RACA_fnc_setStatus;
+[_display, format ["Inherited from source preset '%1'. Its %2 source items are marked light blue in Arsenal Contents.", _sourceName, count _sourceItems]] call RACA_fnc_setStatus;

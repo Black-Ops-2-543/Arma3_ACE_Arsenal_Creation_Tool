@@ -16,7 +16,7 @@ if (_index >= 0) then {
         if (_value isEqualTo "") then {"All"} else {_value}
     };
     (_display displayCtrl RACA_IDC_SAVED_VIEW_DETAILS) ctrlSetText format [
-        "Search: %1 | Category: %2 | Mod: %3 | Add-on: %4 | Author: %5 | Tag: %6 | Sort: %7 %8. Applying this view leaves the draft selection unchanged.",
+        "Search: %1 | Category: %2 | Mod: %3 | Add-on: %4 | Author: %5 | Tag: %6 | Sort: %7 %8. Applying these filters will not change arsenal contents.",
         [_search] call _show,
         [_category] call _show,
         [_source] call _show,

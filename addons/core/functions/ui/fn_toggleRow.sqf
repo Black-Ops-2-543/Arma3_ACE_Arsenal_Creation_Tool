@@ -5,7 +5,9 @@ params [
     ["_mouseX", 0, [0]],
     ["_mouseY", 0, [0]],
     ["_shift", false, [true]],
-    ["_ctrl", false, [true]]
+    ["_ctrl", false, [true]],
+    ["_alt", false, [true]],
+    ["_keyboard", false, [true]]
 ];
 
 if (isNull _list || {_button isNotEqualTo 0}) exitWith {};
@@ -23,6 +25,19 @@ if (_shift || _ctrl) exitWith {
 private _row = lnbCurSelRow _list;
 if (_row < 0 && {_rows isNotEqualTo []}) then {_row = _rows select 0};
 if (_row < 0) exitWith {};
+
+/*
+ * Mouse clicks select rows everywhere, but only the real checkbox hotspot
+ * changes inclusion. Space passes _keyboard=true and acts on the full current
+ * selection. Mouse coordinates are in screen space, as is ctrlPosition.
+ */
+if (!_keyboard && {_mouseX > ((ctrlPosition _list select 0) + ((ctrlPosition _list select 2) * 0.095))}) exitWith {
+        [
+            ctrlParent _list,
+            "Row selected. Press Space or click its checkbox to include or exclude it."
+        ] call RACA_fnc_setStatus;
+};
+
 if (_rows isEqualTo [] || {!(_row in _rows)}) then {_rows = [_row]};
 
 private _className = _list lnbData [_row, 0];

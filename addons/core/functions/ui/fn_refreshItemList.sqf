@@ -21,13 +21,18 @@ private _authorFilter = if (_authorIndex < 0) then {""} else {_authorControl lbD
 private _tagControl = _display displayCtrl RACA_IDC_TAG_FILTER;
 private _tagIndex = lbCurSel _tagControl;
 private _tagFilter = if (_tagIndex < 0) then {""} else {_tagControl lbData _tagIndex};
+if ((uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]) isEqualTo "BASIC") then {
+    _source = "";
+    _addon = "";
+    _authorFilter = "";
+    _tagFilter = "";
+};
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
 private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
 private _inherited = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
 private _favorites = uiNamespace getVariable ["RACA_catalogFavorites", createHashMap];
 private _tagsByClass = uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap];
 private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
-private _showIcons = uiNamespace getVariable ["RACA_catalogShowIcons", true];
 private _visibleClasses = [];
 private _previousRow = lnbCurSelRow _list;
 private _previousClass = if (_previousRow < 0) then {""} else {_list lnbData [_previousRow, 0]};
@@ -86,7 +91,7 @@ private _restoreRow = -1;
         [_row, 0],
         [RACA_TEXTURE_UNCHECKED, RACA_TEXTURE_CHECKED] select (_selected getOrDefault [_className, false])
     ];
-    if (_showIcons && {_picture isNotEqualTo ""}) then {
+    if (_picture isNotEqualTo "") then {
         _list lnbSetPicture [[_row, 1], _picture];
     };
     private _limit = _limits getOrDefault [_className, []];
@@ -124,18 +129,18 @@ private _restoreRow = -1;
 if (_restoreRow >= 0) then {_list lnbSetCurSelRow _restoreRow};
 
 private _headerLabels = [
-    [RACA_IDC_INCLUDED_HEADER, "INCLUDED", "included"],
-    [RACA_IDC_ITEM_HEADER, "ITEM", "item"],
-    [RACA_IDC_CLASS_HEADER, "CLASS NAME", "class"],
-    [RACA_IDC_MOD_HEADER, "MOD", "mod"],
-    [RACA_IDC_AUTHOR_HEADER, "AUTHOR", "author"]
+    [RACA_IDC_INCLUDED_HEADER, "Included", "included"],
+    [RACA_IDC_ITEM_HEADER, "Item", "item"],
+    [RACA_IDC_CLASS_HEADER, "Class Name", "class"],
+    [RACA_IDC_MOD_HEADER, "Mod", "mod"],
+    [RACA_IDC_AUTHOR_HEADER, "Author", "author"]
 ];
 {
     _x params ["_idc", "_label", "_field"];
     private _suffix = "";
     if (_field isEqualTo _sortField) then {
         _suffix = if (_field isEqualTo "included") then {
-            [" — EXCLUDED FIRST", " — INCLUDED FIRST"] select _ascending
+            [" — excluded first", " — included first"] select _ascending
         } else {
             [" — Z-A", " — A-Z"] select _ascending
         };
