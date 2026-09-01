@@ -11,7 +11,8 @@ if (_stored isEqualTo []) exitWith {
 (_stored select 0) params ["_ok", "_entries", "_counts"];
 private _filterControl = _display displayCtrl RACA_IDC_PREFLIGHT_FILTER;
 private _selection = lbCurSel _filterControl;
-private _filter = if (_selection < 0) then {"ALL"} else {_filterControl lbData _selection};
+private _filter = toUpperANSI (if (_selection < 0) then {"ALL"} else {_filterControl lbData _selection});
+if (_filter isEqualTo "") then {_filter = "ALL";};
 private _visible = if (_filter isEqualTo "ALL") then {+_entries} else {_entries select {(_x select 0) isEqualTo _filter}};
 private _list = _display displayCtrl RACA_IDC_PREFLIGHT_LIST;
 lnbClear _list;
@@ -23,12 +24,12 @@ lnbClear _list;
     } else {
         _modName + (if (_sourceAddon isEqualTo "") then {""} else {" / " + _sourceAddon})
     };
-    private _metadata = [];
+    private _metadata = [format ["Code: %1", _code]];
+    if (_modName isNotEqualTo "") then {_metadata pushBack format ["Source mod: %1", _modName];};
+    if (_sourceAddon isNotEqualTo "" && {_sourceAddon isNotEqualTo _modName}) then {_metadata pushBack format ["Owning add-on: %1", _sourceAddon];};
+    if (_modName isEqualTo "" && {_sourceAddon isEqualTo ""}) then {_metadata pushBack "No source metadata available."};
     private _nl = toString [10];
     if (_className isNotEqualTo "") then {_metadata pushBack format ["Class: %1", _className]};
-    if (_modName isNotEqualTo "") then {_metadata pushBack format ["Source mod: %1", _modName]};
-    if (_sourceAddon isNotEqualTo "") then {_metadata pushBack format ["Owning add-on: %1", _sourceAddon]};
-    if (_metadata isEqualTo []) then {_metadata = ["No class source metadata available."]};
     private _row = _list lnbAddRow [_severity, _code, _message, _className, _source];
     private _color = switch (_severity) do {
         case "ERROR": {[1, 0.42, 0.38, 1]};

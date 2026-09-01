@@ -100,12 +100,12 @@ class RACA_RscDisplayCreator {
             x = "safeZoneX + 0.135 * safeZoneW";
             w = "0.115 * safeZoneW";
             colorBackground[] = {0.16, 0.17, 0.19, 0.98};
-            colorBackgroundActive[] = {0.16, 0.17, 0.19, 0.98};
+            colorBackgroundActive[] = {"((profileNamespace getVariable ['GUI_BCG_RGB_R',0.19]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_G',0.42]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_B',0.19]) max 0.24)", 0.95};
             colorBackgroundDisabled[] = {0.16, 0.17, 0.19, 0.98};
-            colorFocused[] = {0.16, 0.17, 0.19, 0.98};
+            colorFocused[] = {"((profileNamespace getVariable ['GUI_BCG_RGB_R',0.19]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_G',0.42]) max 0.24)", "((profileNamespace getVariable ['GUI_BCG_RGB_B',0.19]) max 0.24)", 0.95};
             colorDisabled[] = {0.7, 0.7, 0.7, 0.9};
-            periodFocus = 0;
-            periodOver = 0;
+            periodFocus = 1;
+            periodOver = 1;
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_openQuickStart";
         };
 
@@ -1215,7 +1215,7 @@ class RACA_RscDisplayPreflight {
         };
         class ListHeading: RscText {
             idc = -1;
-            text = "Severity     Code       Message                                                           Class                                  Source";
+            text = "Severity | Code | Message | Class | Source";
             x = "safeZoneX + 0.09 * safeZoneW";
             y = "safeZoneY + 0.30 * safeZoneH";
             w = "0.82 * safeZoneW";
@@ -1228,7 +1228,7 @@ class RACA_RscDisplayPreflight {
             y = "safeZoneY + 0.34 * safeZoneH";
             w = "0.82 * safeZoneW";
             h = "0.43 * safeZoneH";
-            columns[] = {0.01, 0.12, 0.26, 0.65, 0.79};
+            columns[] = {0.01, 0.11, 0.19, 0.55, 0.80};
             colorBackground[] = {0, 0, 0, 0.45};
             onLBDblClick = "ctrlParent (_this select 0) call RACA_fnc_preflightSelect";
         };

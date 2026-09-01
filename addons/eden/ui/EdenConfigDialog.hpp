@@ -61,7 +61,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class AddSlot: ctrlButton {
             idc = -1;
-            text = "ADD";
+            text = "Add";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.645 * safeZoneH";
             w = "0.06 * safeZoneW";
@@ -69,7 +69,7 @@ class RACA_RscDisplayEdenConfig {
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorAddSlot";
         };
         class RemoveSlot: AddSlot {
-            text = "REMOVE";
+            text = "Remove";
             x = "safeZoneX + 0.115 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorRemoveSlot";
         };
@@ -140,7 +140,7 @@ class RACA_RscDisplayEdenConfig {
             y = "safeZoneY + 0.295 * safeZoneH";
             tooltip = "Optional texture path; leave blank for the default rearm icon";
         };
-        class AccessHeading: SettingsHeading {text = "ACCESS RULES"; y = "safeZoneY + 0.345 * safeZoneH";};
+        class AccessHeading: SettingsHeading {text = "Access Rules"; y = "safeZoneY + 0.345 * safeZoneH";};
         class MatchLabel: NameLabel {text = "Condition matching"; y = "safeZoneY + 0.39 * safeZoneH";};
         class AccessMode: SlotPreset {
             idc = RACA_EDEN_IDC_ACCESS_MODE;
@@ -168,14 +168,14 @@ class RACA_RscDisplayEdenConfig {
             tooltip = "Use the exact side, faction, group, rank, unit class, UID, vehicle role, item class, or permission key";
         };
         class AddCondition: AddSlot {
-            text = "ADD RULE";
+            text = "Add Rule";
             x = "safeZoneX + 0.585 * safeZoneW";
             y = "safeZoneY + 0.565 * safeZoneH";
             w = "0.08 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorAddCondition";
         };
         class RemoveCondition: AddCondition {
-            text = "REMOVE RULE";
+            text = "Remove Rule";
             x = "safeZoneX + 0.585 * safeZoneW";
             y = "safeZoneY + 0.61 * safeZoneH";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorRemoveCondition";

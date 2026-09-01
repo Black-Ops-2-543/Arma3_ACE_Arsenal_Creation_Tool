@@ -22,7 +22,7 @@ class RACA_PresetAttribute: ctrlControlsGroupNoScrollbars {
 
         class Configure: ctrlButton {
             idc = -1;
-            text = "Configure slots";
+            text = "Configure Slots";
             tooltip = "Open the transactional multi-slot arsenal editor and mission dashboard";
             x = 0;
             y = 23 * RACA_EDEN_GRID_H;
@@ -33,7 +33,7 @@ class RACA_PresetAttribute: ctrlControlsGroupNoScrollbars {
 
         class Refresh: Configure {
             idc = -1;
-            text = "Refresh presets";
+            text = "Refresh Presets";
             tooltip = "Update every configured slot from matching profile presets while preserving slot settings";
             x = 61 * RACA_EDEN_GRID_W;
             w = 42 * RACA_EDEN_GRID_W;
