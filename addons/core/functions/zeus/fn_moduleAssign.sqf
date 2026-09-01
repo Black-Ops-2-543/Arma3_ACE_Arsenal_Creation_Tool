@@ -1,5 +1,8 @@
 params ["_logic", "_units", "_activated"];
-if (!_activated || {!isServer} || {!(missionNamespace getVariable ["RACA_allowZeusModules", true])}) exitWith {false};
+if (!_activated || {!isServer} || {!(missionNamespace getVariable ["RACA_allowZeusModules", true])}) exitWith {
+    if (!isNull _logic) then {deleteVehicle _logic};
+    false
+};
 private _presetName = _logic getVariable ["RACA_presetName", ""];
 private _slotName = _logic getVariable ["RACA_slotName", "Restricted Arsenal"];
 private _library = call RACA_fnc_getPresetLibrary;
@@ -22,7 +25,11 @@ if (_rawPreset isEqualTo []) then {
         if (_rawPreset isNotEqualTo []) exitWith {};
     } forEach call RACA_fnc_getMissionRegistry;
 };
-if (_rawPreset isEqualTo []) exitWith {diag_log format ["[RACA] Zeus assignment rejected: preset '%1' was not found in the server profile or an embedded mission slot.", _presetName]; false};
+if (_rawPreset isEqualTo []) exitWith {
+    diag_log format ["[RACA] Zeus assignment rejected: preset '%1' was not found in the server profile or an embedded mission slot.", _presetName];
+    deleteVehicle _logic;
+    false
+};
 private _preset = [_rawPreset] call RACA_fnc_flattenPreset;
 private _config = ["RACA_OBJECT_CONFIG", 1, [["zeus", _slotName, _preset, true, ["RACA_ACCESS", 1, "AND", [], false, "Access denied.", []], ([_preset] call RACA_fnc_getRuntimePolicy) select 2, "", false]], [["persistence", "session"]]];
 private _targets = _units select {!isNull _x};

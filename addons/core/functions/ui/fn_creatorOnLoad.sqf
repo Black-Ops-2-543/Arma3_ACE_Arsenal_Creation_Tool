@@ -78,12 +78,10 @@ _scopeCombo lbSetCurSel 4;
 [_display] call RACA_fnc_refreshRoleTemplateCombo;
 private _quickStartPulseSeen = profileNamespace getVariable ["RACA_quickStartPulseSeen_v2", false];
 if (!(_quickStartPulseSeen isEqualType true)) then {_quickStartPulseSeen = false;};
-private _quickStartPulseSession = uiNamespace getVariable ["RACA_quickStartPulseSeenSession", false];
+private _quickStartPulseSession = missionNamespace getVariable ["RACA_quickStartPulseSeenSession", false];
 if (!(_quickStartPulseSession isEqualType true)) then {_quickStartPulseSession = false;};
 if (!(_quickStartPulseSeen || _quickStartPulseSession)) then {
-    uiNamespace setVariable ["RACA_quickStartPulseSeenSession", true];
-    profileNamespace setVariable ["RACA_quickStartPulseSeen_v2", true];
-    saveProfileNamespace;
+    missionNamespace setVariable ["RACA_quickStartPulseSeenSession", true];
     [_display] spawn RACA_fnc_pulseQuickStartButton;
 };
 

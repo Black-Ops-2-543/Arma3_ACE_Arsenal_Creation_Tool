@@ -17,7 +17,7 @@ class RACA_RscDisplayEdenConfig {
             idc = -1;
             text = "Restricted Arsenal Configuration";
             style = 2;
-            font = "PuristaSemibold";
+            font = "PuristaMedium";
             x = "safeZoneX + 0.04 * safeZoneW";
             y = "safeZoneY + 0.04 * safeZoneH";
             w = "0.92 * safeZoneW";
@@ -45,7 +45,7 @@ class RACA_RscDisplayEdenConfig {
     class controls {
         class SlotsHeading: ctrlStatic {
             idc = -1;
-            text = "Slots";
+            text = "Arsenal slots";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.115 * safeZoneH";
             w = "0.26 * safeZoneW";
@@ -87,9 +87,9 @@ class RACA_RscDisplayEdenConfig {
         };
         class SlotHelp: ctrlStatic {
             idc = -1;
-            text = "Each enabled slot creates a separate ACE interaction. Use Apply Configuration to save all changes.";
+            text = "Each slot creates one ACE interaction. Click Apply configuration when you are done.";
             style = 16;
-            font = "RobotoCondensed";
+            font = "PuristaMedium";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.70 * safeZoneH";
             w = "0.26 * safeZoneW";
@@ -263,7 +263,7 @@ class RACA_RscDisplayEdenConfig {
             idc = -1;
             text = "Rows show READY, WARN, or BLOCKED. Apply editor changes before refreshing.";
             style = 16;
-            font = "RobotoCondensed";
+            font = "PuristaMedium";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.24 * safeZoneW";
@@ -320,6 +320,7 @@ class RACA_RscDisplayAccessSimulator {
             idc = -1;
             text = "RACA Access-Rule Simulator";
             style = 2;
+            font = "PuristaMedium";
             x = "safeZoneX + 0.17 * safeZoneW";
             y = "safeZoneY + 0.14 * safeZoneH";
             w = "0.66 * safeZoneW";
@@ -357,12 +358,13 @@ class RACA_RscDisplayAccessSimulator {
         };
         class RuleHeading: ctrlStatic {
             idc = -1;
-            text = "RESULT                RULE                         EXPECTED                                  ACTUAL";
+            text = "Result | Rule | Expected | Actual";
             x = "safeZoneX + 0.17 * safeZoneW";
             y = "safeZoneY + 0.33 * safeZoneH";
             w = "0.66 * safeZoneW";
             h = "0.035 * safeZoneH";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
+            font = "PuristaMedium";
         };
         class Rules: ctrlListNBox {
             idc = RACA_EDEN_IDC_SIMULATOR_RULES;
@@ -370,8 +372,9 @@ class RACA_RscDisplayAccessSimulator {
             y = "safeZoneY + 0.37 * safeZoneH";
             w = "0.66 * safeZoneW";
             h = "0.34 * safeZoneH";
-            columns[] = {0.01, 0.15, 0.36, 0.67};
+            columns[] = {0.01, 0.20, 0.50, 0.74};
             colorBackground[] = {0, 0, 0, 0.45};
+            font = "PuristaMedium";
         };
         class Refresh: ctrlButton {
             idc = RACA_EDEN_IDC_SIMULATOR_REFRESH;

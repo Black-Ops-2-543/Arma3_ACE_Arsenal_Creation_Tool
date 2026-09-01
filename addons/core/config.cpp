@@ -88,6 +88,14 @@ class CfgVehicles {
                 expression = "_this setVariable ['RACA_slotName', _value, true]";
                 defaultValue = "'Restricted Arsenal'";
             };
+            class ModuleEnabled {
+                displayName = "Enable action";
+                tooltip = "Apply this module as enabled (unchecked means disable)";
+                property = "RACA_ModuleEnabled";
+                control = "Checkbox";
+                expression = "_this setVariable ['RACA_enable', _value, true]";
+                defaultValue = "true";
+            };
             class ModuleDescription: ModuleDescription {};
         };
     };
