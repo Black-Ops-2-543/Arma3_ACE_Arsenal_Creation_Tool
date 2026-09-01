@@ -63,7 +63,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class AddSlot: ctrlButton {
             idc = -1;
-            text = "Add";
+            text = "Add slot";
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.645 * safeZoneH";
             w = "0.06 * safeZoneW";
@@ -76,12 +76,12 @@ class RACA_RscDisplayEdenConfig {
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorRemoveSlot";
         };
         class MoveUp: AddSlot {
-            text = "UP";
+            text = "Move up";
             x = "safeZoneX + 0.18 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), -1] call RACA_fnc_edenEditorMoveSlot";
         };
         class MoveDown: AddSlot {
-            text = "DOWN";
+            text = "Move down";
             x = "safeZoneX + 0.245 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), 1] call RACA_fnc_edenEditorMoveSlot";
         };
@@ -97,7 +97,7 @@ class RACA_RscDisplayEdenConfig {
         };
 
         class SettingsHeading: SlotsHeading {
-            text = "Selected Slot";
+            text = "Selected slot";
             x = "safeZoneX + 0.34 * safeZoneW";
             w = "0.34 * safeZoneW";
         };
@@ -195,7 +195,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SaveSlot: ctrlButton {
             idc = -1;
-            text = "SAVE SLOT";
+            text = "Save slot";
             x = "safeZoneX + 0.45 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.22 * safeZoneW";
@@ -204,7 +204,7 @@ class RACA_RscDisplayEdenConfig {
         };
 
         class DashboardHeading: SlotsHeading {
-            text = "Mission-Wide Dashboard";
+            text = "Mission-wide Dashboard";
             x = "safeZoneX + 0.71 * safeZoneW";
             w = "0.24 * safeZoneW";
         };
@@ -230,7 +230,7 @@ class RACA_RscDisplayEdenConfig {
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardSelect";
         };
         class CopyDashboardReport: RefreshDashboard {
-            text = "Copy";
+            text = "Copy report";
             tooltip = "Copy a detailed compatibility report for every configured arsenal object";
             x = "safeZoneX + 0.855 * safeZoneW";
             w = "0.085 * safeZoneW";
@@ -318,7 +318,7 @@ class RACA_RscDisplayAccessSimulator {
         };
         class Header: ctrlStatic {
             idc = -1;
-            text = "RACA ACCESS-RULE SIMULATOR";
+            text = "RACA Access-Rule Simulator";
             style = 2;
             x = "safeZoneX + 0.17 * safeZoneW";
             y = "safeZoneY + 0.14 * safeZoneH";
@@ -375,7 +375,7 @@ class RACA_RscDisplayAccessSimulator {
         };
         class Refresh: ctrlButton {
             idc = RACA_EDEN_IDC_SIMULATOR_REFRESH;
-            text = "SIMULATE ACCESS";
+            text = "Simulate access";
             tooltip = "Evaluate the current slot's access rules against the chosen Eden unit";
             x = "safeZoneX + 0.17 * safeZoneW";
             y = "safeZoneY + 0.74 * safeZoneH";
@@ -393,7 +393,7 @@ class RACA_RscDisplayAccessSimulator {
         };
         class Close: Refresh {
             idc = 2;
-            text = "CLOSE";
+            text = "Close";
             tooltip = "Close the access-rule simulator";
             x = "safeZoneX + 0.69 * safeZoneW";
             w = "0.14 * safeZoneW";

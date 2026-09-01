@@ -274,13 +274,14 @@ class RACA_RscDisplayCreator {
             idc = RACA_IDC_PRESET_TOOL;
             y = "safeZoneY + 0.69 * safeZoneH";
             w = "0.39 * safeZoneW";
-            tooltip = "Choose the preset for analysis actions below";
+            tooltip = "Choose a saved preset to inspect its history or compare with the draft";
+            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_refreshHistoryButtons";
         };
 
         class SeeHistory: SavePreset {
             idc = RACA_IDC_HISTORY;
             text = "See History";
-            tooltip = "Open revision history for the selected saved preset";
+            tooltip = "Open revision history for the selected preset";
             y = "safeZoneY + 0.745 * safeZoneH";
             w = "0.19 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), RACA_IDC_PRESET_TOOL] call RACA_fnc_openPresetHistory";

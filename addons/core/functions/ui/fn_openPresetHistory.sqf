@@ -5,7 +5,7 @@ private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
 private _combo = _display displayCtrl RACA_IDC_PRESET_TOOL;
 private _selection = lbCurSel _combo;
 if (_selection <= 0) exitWith {
-    [_display, "Select a preset in 'Preset Analysis' before opening its history."] call RACA_fnc_setStatus;
+    [_display, "Select a preset in Preset Analysis before opening its history."] call RACA_fnc_setStatus;
     displayNull
 };
 private _selectedName = _combo lbData _selection;
@@ -14,7 +14,7 @@ private _savedPreset = if (_selectedName isEqualTo "") then {[]} else {
 };
 private _preset = if (_savedPreset >= 0) then {_library select _savedPreset} else {[]};
 if (_preset isEqualTo []) exitWith {
-    [_display, "Choose a saved preset before opening revision history."] call RACA_fnc_setStatus;
+    [_display, "Choose a valid saved preset first."] call RACA_fnc_setStatus;
     displayNull
 };
 private _name = _preset select 2;

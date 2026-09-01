@@ -24,6 +24,7 @@ lnbClear _list;
     } else {
         _modName + (if (_sourceAddon isEqualTo "") then {""} else {" / " + _sourceAddon})
     };
+    if (_source isEqualTo "") then {_source = "Unknown"};
     private _metadata = [format ["Code: %1", _code]];
     if (_modName isNotEqualTo "") then {_metadata pushBack format ["Source mod: %1", _modName];};
     if (_sourceAddon isNotEqualTo "" && {_sourceAddon isNotEqualTo _modName}) then {_metadata pushBack format ["Owning add-on: %1", _sourceAddon];};

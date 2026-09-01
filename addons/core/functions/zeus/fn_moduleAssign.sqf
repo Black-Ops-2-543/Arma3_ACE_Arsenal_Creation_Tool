@@ -8,10 +8,17 @@ private _rawPreset = if (_index >= 0) then {_library select _index} else {[]};
 if (_rawPreset isEqualTo []) then {
     {
         private _config = _x select 1;
+        private _slots = _config param [2, [], [[]]];
         {
-            private _candidate = _x select 2;
-            if (toLowerANSI (_candidate param [2, ""]) isEqualTo toLowerANSI _presetName) exitWith {_rawPreset = _candidate};
-        } forEach (_config select 2);
+            private _candidate = _x param [2, []];
+            private _candidateName = _candidate param [2, ""];
+            if (
+                (_candidate isEqualType []) &&
+                {_candidateName isEqualType ""} &&
+                {_candidateName isNotEqualTo ""} &&
+                {toLowerANSI _candidateName isEqualTo toLowerANSI _presetName}
+            ) exitWith {_rawPreset = _candidate};
+        } forEach _slots;
         if (_rawPreset isNotEqualTo []) exitWith {};
     } forEach call RACA_fnc_getMissionRegistry;
 };

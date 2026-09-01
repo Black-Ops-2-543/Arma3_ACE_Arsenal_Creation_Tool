@@ -14,7 +14,7 @@ if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
 private _combo = _display displayCtrl _comboIdc;
 private _selection = lbCurSel _combo;
 if (_selection <= 0) exitWith {
-    [_display, "Select a saved preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
+    [_display, "Select a preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
 private _selectedName = _combo lbData _selection;
