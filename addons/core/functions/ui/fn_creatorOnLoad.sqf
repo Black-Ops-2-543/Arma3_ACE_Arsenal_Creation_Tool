@@ -76,7 +76,9 @@ _scopeCombo lbSetCurSel 4;
 [_display] call RACA_fnc_syncLimitPolicy;
 
 [_display] call RACA_fnc_refreshRoleTemplateCombo;
-if !(missionNamespace getVariable ["RACA_quickStartPulseSeen_v2", false]) then {
+private _quickStartPulseSeen = profileNamespace getVariable ["RACA_quickStartPulseSeen_v2", false];
+if (!(_quickStartPulseSeen isEqualType true)) then {_quickStartPulseSeen = false;};
+if !(_quickStartPulseSeen) then {
     [_display] spawn RACA_fnc_pulseQuickStartButton;
 };
 

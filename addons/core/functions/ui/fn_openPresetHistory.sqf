@@ -1,18 +1,11 @@
 #include "..\..\script_component.hpp"
-params [
-    ["_display", displayNull, [displayNull]],
-    ["_comboIdc", RACA_IDC_PRESET_TOOL, [0]]
-];
+params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {displayNull};
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
-if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
-    [_display, "Use the Preset Analysis selector to choose the saved preset whose history you want to inspect."] call RACA_fnc_setStatus;
-    displayNull
-};
-private _combo = _display displayCtrl _comboIdc;
+private _combo = _display displayCtrl RACA_IDC_PRESET_TOOL;
 private _selection = lbCurSel _combo;
 if (_selection <= 0) exitWith {
-    [_display, "Select a saved preset in Preset Analysis before opening its history."] call RACA_fnc_setStatus;
+    [_display, "Select a preset in 'Preset Analysis' before opening its history."] call RACA_fnc_setStatus;
     displayNull
 };
 private _selectedName = _combo lbData _selection;
