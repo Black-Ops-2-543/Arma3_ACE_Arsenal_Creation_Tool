@@ -6,18 +6,21 @@ params [
 
 _summary params [["_errors", 0, [0]], ["_warnings", 0, [0]], ["_info", 0, [0]]];
 private _lines = [
-    format ["RACA compatibility report: %1", _name],
-    format ["Errors: %1 | Warnings: %2 | Information: %3", _errors, _warnings, _info]
+    format ["Compatibility report: %1", _name],
+    format ["Errors: %1 | Warnings: %2 | Information: %3", _errors, _warnings, _info],
+    "Severity | Code | Message | Class | Source",
+    "-------- | ---- | ------- | ----- | ------"
 ];
 {
     _x params ["_severity", "_code", "_message", ["_className", ""], ["_modName", ""], ["_sourceAddon", ""]];
+    private _source = if (_sourceAddon isEqualTo "") then {_modName} else {format ["%1 (%2)", _modName, _sourceAddon]};
     _lines pushBack format [
         "%1 | %2 | %3 | %4 | %5",
         _severity,
         _code,
         _message,
         _className,
-        format ["%1%2", _modName, if (_sourceAddon isEqualTo "") then {""} else {": " + _sourceAddon}]
+        _source
     ];
 } forEach _entries;
 

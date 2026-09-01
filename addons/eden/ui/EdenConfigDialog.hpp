@@ -15,7 +15,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class Header: ctrlStatic {
             idc = -1;
-            text = "RACA Eden Arsenal Configuration";
+            text = "Restricted Arsenal Configuration";
             style = 2;
             x = "safeZoneX + 0.04 * safeZoneW";
             y = "safeZoneY + 0.04 * safeZoneH";
@@ -85,7 +85,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SlotHelp: ctrlStatic {
             idc = -1;
-            text = "Each enabled slot creates a separate ACE interaction. Save your changes with Apply Configuration.";
+            text = "Each enabled slot creates a separate ACE interaction. Use Apply Configuration to save all changes.";
             style = 16;
             x = "safeZoneX + 0.05 * safeZoneW";
             y = "safeZoneY + 0.70 * safeZoneH";
@@ -120,6 +120,7 @@ class RACA_RscDisplayEdenConfig {
             y = "safeZoneY + 0.205 * safeZoneH";
             w = "0.22 * safeZoneW";
             h = "0.032 * safeZoneH";
+            tooltip = "Choose a saved preset for this slot.";
         };
         class EnabledLabel: NameLabel {text = "Enabled"; y = "safeZoneY + 0.25 * safeZoneH";};
         class SlotEnabled: ctrlCheckbox {
@@ -133,6 +134,7 @@ class RACA_RscDisplayEdenConfig {
         class HideDenied: SlotEnabled {
             idc = RACA_EDEN_IDC_SLOT_HIDE_DENIED;
             x = "safeZoneX + 0.62 * safeZoneW";
+            tooltip = "Hide the interaction instead of showing a denial message.";
         };
         class IconLabel: NameLabel {text = "ACE icon path"; y = "safeZoneY + 0.295 * safeZoneH";};
         class SlotIcon: SlotName {
@@ -168,14 +170,14 @@ class RACA_RscDisplayEdenConfig {
             tooltip = "Use the exact side, faction, group, rank, unit class, UID, vehicle role, item class, or permission key";
         };
         class AddCondition: AddSlot {
-            text = "Add Rule";
+            text = "Add";
             x = "safeZoneX + 0.585 * safeZoneW";
             y = "safeZoneY + 0.565 * safeZoneH";
             w = "0.08 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorAddCondition";
         };
         class RemoveCondition: AddCondition {
-            text = "Remove Rule";
+            text = "Remove";
             x = "safeZoneX + 0.585 * safeZoneW";
             y = "safeZoneY + 0.61 * safeZoneH";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenEditorRemoveCondition";
@@ -187,7 +189,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SaveSlot: ctrlButton {
             idc = -1;
-            text = "Save slot changes";
+            text = "SAVE SLOT";
             x = "safeZoneX + 0.45 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
             w = "0.22 * safeZoneW";
@@ -209,20 +211,20 @@ class RACA_RscDisplayEdenConfig {
             onLBDblClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardSelect";
         };
         class RefreshDashboard: AddSlot {
-            text = "REFRESH";
+            text = "Refresh";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.565 * safeZoneH";
             w = "0.055 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardRefresh";
         };
         class SelectDashboard: RefreshDashboard {
-            text = "SELECT";
+            text = "Select";
             x = "safeZoneX + 0.77 * safeZoneW";
             w = "0.08 * safeZoneW";
             onButtonClick = "ctrlParent (_this select 0) call RACA_fnc_edenDashboardSelect";
         };
         class CopyDashboardReport: RefreshDashboard {
-            text = "Copy report";
+            text = "Copy";
             tooltip = "Copy a detailed compatibility report for every configured arsenal object";
             x = "safeZoneX + 0.855 * safeZoneW";
             w = "0.085 * safeZoneW";
@@ -244,7 +246,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class SimulateAccess: RefreshDashboard {
             idc = RACA_EDEN_IDC_SIMULATE_ACCESS;
-            text = "Simulate access";
+            text = "Test access";
             tooltip = "Open the access-rule simulator and choose any unit in the Eden mission";
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.665 * safeZoneH";
@@ -253,7 +255,7 @@ class RACA_RscDisplayEdenConfig {
         };
         class DashboardHelp: ctrlStatic {
             idc = -1;
-            text = "Dashboard rows show READY, WARN, or BLOCKED for applied Eden attributes. Apply current editor changes before refreshing.";
+            text = "Rows show READY, WARN, or BLOCKED. Apply editor changes before refreshing.";
             style = 16;
             x = "safeZoneX + 0.71 * safeZoneW";
             y = "safeZoneY + 0.715 * safeZoneH";
@@ -366,7 +368,7 @@ class RACA_RscDisplayAccessSimulator {
         };
         class Refresh: ctrlButton {
             idc = RACA_EDEN_IDC_SIMULATOR_REFRESH;
-            text = "SIMULATE UNIT";
+            text = "SIMULATE ACCESS";
             tooltip = "Evaluate the current slot's access rules against the chosen Eden unit";
             x = "safeZoneX + 0.17 * safeZoneW";
             y = "safeZoneY + 0.74 * safeZoneH";

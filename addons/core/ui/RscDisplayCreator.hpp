@@ -226,7 +226,7 @@ class RACA_RscDisplayCreator {
 
         class DeletePreset: SavePreset {
             idc = RACA_IDC_DELETE_PRESET;
-            text = "Delete";
+            text = "DELETE";
             tooltip = "Delete the selected profile preset after confirmation; embedded mission copies are unaffected";
             x = "safeZoneX + 0.33 * safeZoneW";
             colorBackground[] = {0.45, 0.12, 0.12, 0.9};

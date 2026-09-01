@@ -95,6 +95,7 @@ class CfgFunctions {
             class preflightRerun {};
             class preflightSelect {};
             class openQuickStart {};
+            class pulseQuickStartButton {};
             class pushCreatorHistory {};
             class quickStartApply {};
             class quickStartOnLoad {};

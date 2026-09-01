@@ -76,6 +76,9 @@ _scopeCombo lbSetCurSel 4;
 [_display] call RACA_fnc_syncLimitPolicy;
 
 [_display] call RACA_fnc_refreshRoleTemplateCombo;
+if !(profileNamespace getVariable ["RACA_quickStartPulseSeen_v1", false]) then {
+    [_display] spawn RACA_fnc_pulseQuickStartButton;
+};
 
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_updateSummary;

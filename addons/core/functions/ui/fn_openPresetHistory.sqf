@@ -1,28 +1,21 @@
 #include "..\..\script_component.hpp"
 params [
     ["_display", displayNull, [displayNull]],
-    ["_comboIdc", RACA_IDC_PRESET_LIST, [0]]
+    ["_comboIdc", RACA_IDC_PRESET_TOOL, [0]]
 ];
 if (isNull _display) exitWith {displayNull};
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
-private _selectedName = "";
-private _selectionCandidates = [RACA_IDC_PRESET_LIST, RACA_IDC_PRESET_TOOL];
-if (_comboIdc isEqualTo RACA_IDC_PRESET_TOOL || _comboIdc isEqualTo RACA_IDC_PRESET_LIST) then {
-    _selectionCandidates = [_comboIdc, RACA_IDC_PRESET_LIST, RACA_IDC_PRESET_TOOL];
+if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
+    [_display, "Preset history currently uses the Preset Analysis selector. Select a saved preset there first."] call RACA_fnc_setStatus;
+    displayNull
 };
-
-{
-    private _candidate = _x;
-    if (_selectedName isNotEqualTo "") exitWith {};
-    private _combo = _display displayCtrl _candidate;
-    private _selection = lbCurSel _combo;
-    if (_selection > 0) then {_selectedName = _combo lbData _selection;};
-} forEach _selectionCandidates;
-if (_selectedName isEqualTo "") then {
-    private _fallbackCombo = _display displayCtrl RACA_IDC_PRESET_LIST;
-    private _fallbackSelection = lbCurSel _fallbackCombo;
-    if (_fallbackSelection > 0) then {_selectedName = _fallbackCombo lbData _fallbackSelection;};
+private _combo = _display displayCtrl _comboIdc;
+private _selection = lbCurSel _combo;
+if (_selection <= 0) exitWith {
+    [_display, "Choose a preset in Preset Analysis before viewing history."] call RACA_fnc_setStatus;
+    displayNull
 };
+private _selectedName = _combo lbData _selection;
 private _savedPreset = if (_selectedName isEqualTo "") then {[]} else {
     _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _selectedName};
 };
