@@ -1,16 +1,19 @@
 # Restricted Arsenal Creation Assistant — Implementation Wiki
 
-> **Documentation status:** This wiki describes the `0.10.0-dev` implementation present in this repository. It is a source-grounded guide to what RACA is designed and coded to do. It is not, by itself, a release certificate: use the [in-game release checklist](IN_GAME_TEST_CHECKLIST.md) for real-game verification, particularly with separate multiplayer clients.
+> **Documentation status:** This wiki describes the `0.10.0-dev` implementation present in this repository on September 4, 2026. The consolidated package passed static validation, a clean Core/Eden build, and 97/97 deterministic Arma assertions; a dedicated server and one initial remote client also passed the rehearsal probes. Resolution-specific visual checks, actual Curator placement, native Eden interaction matrices, and a distinct-account JIP client remain open. This wiki is an implementation reference, not a public-release certificate. Use the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [in-game release checklist](IN_GAME_TEST_CHECKLIST.md).
 
-Restricted Arsenal Creation Assistant (RACA) is an Arma 3 add-on for mission makers using ACE Arsenal. It is an **authoring and control layer**, not a replacement arsenal. A mission maker builds a controlled list of equipment, assigns one or more named lists to an Eden object, and players open those lists through familiar ACE interactions. The same project can additionally enforce access rules, quantity limits, server authority, personal loadouts, audit records, administrator controls, and Zeus changes.
+Restricted Arsenal Creation Assistant (RACA) is an Arma 3 add-on for mission makers using ACE Arsenal. It is an **authoring and control layer**, not a replacement arsenal. A mission maker builds a controlled list of equipment, turns it into a named mission-wide Arsenal Configuration, links that configuration to Eden objects, and players open it through a familiar ACE interaction. The same project can additionally enforce access rules, quantity limits, server authority, personal loadouts, audit records, administrator controls, and Zeus changes.
+
+This wiki is the detailed operating and implementation reference for readers who have already decided to evaluate, use, test, administer, or contribute to RACA. It answers **how RACA behaves and how to work with it**: exact controls, workflows, terminology, schemas, persistence, edge cases, diagnostics, security boundaries, tests, and source architecture. For the pre-install question—**whether RACA fits your unit or mission workflow at all**—begin with the [README](../README.md). Its final Quick Start is intentionally brief; the complete behavior and edge cases live here.
 
 ## Contents
 
 - [What RACA is and is not](#what-raca-is-and-is-not)
+- [Current implementation and test status](#current-implementation-and-test-status)
 - [Requirements, installation, and terminology](#requirements-installation-and-terminology)
 - [The complete authoring-to-player workflow](#the-complete-authoring-to-player-workflow)
 - [Creator: catalogue, selection, presets, and exports](#creator-catalogue-selection-presets-and-exports)
-- [Eden: multi-slot mission configuration](#eden-multi-slot-mission-configuration)
+- [Eden Mission Arsenal Tool](#eden-mission-arsenal-tool)
 - [Runtime: player interactions, access, quotas, and loadouts](#runtime-player-interactions-access-quotas-and-loadouts)
 - [Administration and Zeus](#administration-and-zeus)
 - [Data formats and persistence boundaries](#data-formats-and-persistence-boundaries)
@@ -27,7 +30,7 @@ It **is**:
 
 - a single-player Creator mission available at **Tutorials > Restricted Arsenal Creator**;
 - a profile-local preset library and authoring workspace;
-- an Eden object attribute named **Restricted Arsenals**;
+- an Eden **Tools > RACA Mission Arsenal Tool** window plus a compact **Restricted Arsenals** object attribute;
 - an optional server-authoritative runtime system for access control, quotas, audits, saved player loadouts, administrator tools, and Zeus changes; and
 - a data-only import/export and diagnostic tool.
 
@@ -44,13 +47,46 @@ The core design boundary is intentional:
 flowchart LR
     A[Loaded Arma, CBA, ACE, and content mods] --> B[Creator catalogue]
     B --> C[Profile-local preset library]
-    C --> D[Eden embeds a complete preset in the mission]
-    D --> E[Server validates object config and registers slots]
-    E --> F[Client receives only ACE-action metadata]
-    F --> G[Player opens a permitted ACE Arsenal]
+    C --> D[Eden creates a named mission configuration]
+    D --> E[Linked objects receive self-contained snapshots]
+    E --> F[Server validates object config and registers interactions]
+    F --> G[Client receives only ACE-action metadata]
+    G --> H[Player opens a permitted ACE Arsenal]
 ```
 
 An inherited profile preset is useful while authoring, but is never a runtime dependency. Eden and runtime configurations contain a flattened, standalone preset snapshot.
+
+## Current implementation and test status
+
+The current development version is `0.10.0-dev`. The September 4 source and package are complete for the consolidated diagnostic docket and passed the deterministic packaged-engine suite. This evidence does not complete the full release checklist because several requirements are inherently visual, native-editor, Curator, or distinct-client scenarios.
+
+| Gate | Latest result | Scope |
+| --- | --- | --- |
+| Static validation and clean build | **Pass — September 4** | Core/Eden configuration, SQF checks, packaging, PBO-prefix checks, and final hashes completed. |
+| Consolidated Creator/Eden/Zeus implementation | **Source-complete — September 4** | All O1–O15 and F1–F15 solution packages are implemented; evidence classes remain separate below. |
+| Automated Arma acceptance | **Pass — 97/97 on September 4** | Packaged Creator dialogs, catalogue, tags, magazine navigation, interchange, Eden data/preflight, runtime, and accepted/rejected Zeus server paths. |
+| Large-import matrix | **Pass** | 19,999 through 100,000-record fixtures, including the exact 40,280 case, were processed without a hidden item ceiling. |
+| Synthetic catalogue performance | **Functional pass with measured constraint** | 100,000-record settled filter p95 was 1.558 s; initial full render was 3.646 s and missed the proposed 250 ms visible-result target. |
+| Dedicated multiplayer | **Pass for server + initial client** | Dedicated SERVER and initial remote CLIENT probes passed; the distinct JIP role remained WAITING. |
+| Distinct-identity JIP | **Not tested** | Arma rejected a second simultaneous process using the same Steam ID; a second account/machine is required. |
+| Visual/native-editor/Curator matrix | **Not tested in the final session** | The available computer-control surface exposed no native Arma image/app surface. |
+
+The current hashes, exact timings, redacted multiplayer evidence, Zeus excerpts, and remaining evidence rows are in the [September 4 test log](TEST_LOG_2026-09-04.md). The final deterministic RPT contains no RACA assertion failure, expression error, missing script, or undefined variable.
+
+### Resolved findings and open evidence gaps
+
+| ID | Area | Recorded behavior or current status |
+| --- | --- | --- |
+| `RACA-TEST-001` | Creator catalogue | **Defined behavior.** Row-body click selects; Included checkbox or Space changes inclusion. Selection is class-based across paging/filtering. |
+| `RACA-TEST-002` | Import decisions | **Resolved in source/engine tests.** The explicit choices are Import, Overwrite, Import Copy, and Cancel, with one atomic profile write at most. Resolution-specific visual inspection remains open. |
+| `RACA-TEST-003` | Compatibility Check | **Resolved in source/engine tests.** Five real columns, Errors-first display, conditional navigation, and full-report copy are implemented. Resolution-specific layout inspection remains open. |
+| `RACA-TEST-004` | Creator/Eden animation | **Resolved in source.** Changed actions use static profile-accent controls. Ten-second pixel captures remain open. |
+| `RACA-TEST-005` | Autotest staging | **Resolved.** Recursive staging runs under the tested Windows PowerShell 5.1 environment. |
+| `RACA-TEST-006` | Large catalogue | **Measured constraint.** No hidden record cap was found, but the 100,000-record initial render took 3.646 s. |
+| `RACA-TEST-007` | Eden Dashboard assignment | **Resolved in source/engine tests.** Shared preflight, exact readback, request-owned native fallback, and cache invalidation are implemented. Manual cancel/race/Undo paths remain open. |
+| `RACA-TEST-008` | Distinct JIP | **Environment blocker.** A second local profile cannot supply a second Steam identity. |
+
+The open evidence gaps prevent the development build from being described as fully mission-ready even though the deterministic package is clean.
 
 ## Requirements, installation, and terminology
 
@@ -71,7 +107,7 @@ Use a release package or build `@RestrictedArsenalCreationAssistant`, then enabl
 | PBO | Purpose |
 | --- | --- |
 | `addons/core.pbo` | Creator mission, catalogue, preset library, runtime logic, ACE actions, server networking, admin UI, and Zeus modules. |
-| `addons/eden.pbo` | Eden attribute registration, configuration editor, access simulator, mission dashboard, and transactional Eden editing. |
+| `addons/eden.pbo` | Eden Tools-menu integration, mission configuration library, compact object assignment attribute, access-rule test, Dashboard, and transactional Eden editing. |
 
 ### Key terms
 
@@ -79,8 +115,13 @@ Use a release package or build `@RestrictedArsenalCreationAssistant`, then enabl
 | --- | --- |
 | **Catalogue** | The ACE virtual-arsenal items discoverable from the active Arma session. |
 | **Preset** | A named, profile-local selection of permitted classes, grouped into ACE/BIS virtual-cargo buckets. |
-| **Slot** | One named player-facing ACE interaction on an object. A single object can have several slots. |
-| **Object configuration** | The mission-embedded collection of slots and their individual access, limits, icon, and visibility settings. |
+| **Arsenal Configuration** | A named mission-wide record containing one flattened preset snapshot, an optional icon, access rules, and a denied message. It can be linked to many objects. |
+| **Configuration display name** | Human-readable mission-authoring text. It may contain spaces and punctuation and may be renamed without changing object identity. |
+| **Stable configuration ID** | Opaque 1–64-character internal link stored separately from the display name. New IDs are generated by RACA; repair replaces missing/unsafe IDs and updates links atomically. |
+| **Configuration recovery state** | `READY` for a valid v1 library, `RECOVERY` for malformed/duplicate/repairable v1 records, `FUTURE` for a newer version, or `BLOCKED` for an unrecognized/invalid envelope. Inspection never writes. |
+| **Object assignment** | The selected Arsenal Configuration stored on an Eden object as a self-contained runtime snapshot. |
+| **Runtime slot** | The normalized player-facing ACE interaction carried inside an object configuration. The current Eden tool produces one slot from each assigned Arsenal Configuration; the runtime schema remains compatible with older multi-slot object data. |
+| **Object configuration** | The complete mission-embedded runtime envelope on one object, including its slot, access, limits, icon, and stable configuration-link metadata. |
 | **Source/inherited preset** | A profile-level parent relationship used to derive a child preset with additions and removals. |
 | **Flattened preset** | A complete result with no required source reference. This is what Eden and runtime use. |
 | **Quantity policy** | A per-class or per-category allowance with a scope and reset rule. `-1` means unlimited. |
@@ -93,14 +134,14 @@ Use a release package or build `@RestrictedArsenalCreationAssistant`, then enabl
 3. Use Quick Start, a role starter, a role pack, or the catalogue to assemble a draft.
 4. Optionally tag, favourite, inspect, sort, limit, compare, or preflight the draft.
 5. Save it to the active Arma profile. Optionally export JSON for sharing or archival.
-6. In Eden, select an object, open **Attributes > Restricted Arsenals**, and choose **Configure slots**.
-7. Add slots; choose a saved preset for each; configure access, limits, presentation, and enabled state; then apply the transaction.
-8. Preview the mission. The server validates and registers the configuration, clients receive the relevant named ACE interactions, and the player uses a slot to open its restricted ACE Arsenal.
+6. In Eden, open **Tools > RACA Mission Arsenal Tool**, switch to **Configure**, and create a named Arsenal Configuration from the saved preset.
+7. Save the configuration, return to **Mission Dashboard**, select a mission-object row, choose the configuration below the table, and use **Apply to Object**. The compact **Attributes > Restricted Arsenals** dropdown is an equivalent per-object assignment path.
+8. Preview the mission. The server validates and registers the object's self-contained snapshot, clients receive the relevant named ACE interaction, and the player uses it to open the restricted ACE Arsenal.
 9. For a live mission, use authorized server administration or Zeus modules to change, clear, enable/disable, or reset configured arsenals.
 
 ### First successful mission: minimum path
 
-For the smallest dependable setup, create a non-empty preset, save it, put an ammunition crate in Eden, configure one enabled slot without access conditions, apply it, and preview. The object should expose the slot's name as an ACE interaction and the resulting ACE Arsenal should contain only the preset's available classes. If it does not, capture the newest RPT lines containing `[RACA]`, `Error`, or `Warning` and follow the [release checklist](IN_GAME_TEST_CHECKLIST.md).
+For the smallest dependable setup, create a non-empty preset, save it, put an ammunition crate in Eden, create one Arsenal Configuration without access conditions, assign it to the crate from the Mission Dashboard, and preview. The object should expose the configuration's name as an ACE interaction and the resulting ACE Arsenal should contain only the preset's available classes. If it does not, capture the newest RPT lines containing `[RACA]`, `Error`, or `Warning` and follow the [release checklist](IN_GAME_TEST_CHECKLIST.md).
 
 ## Creator: catalogue, selection, presets, and exports
 
@@ -113,7 +154,7 @@ The Creator asks ACE Arsenal for the current virtual-item set, then creates one 
  author, picture, searchable text, owning CfgPatches add-on]
 ```
 
-The searchable text includes display name, class name, RACA category, source mod, author, Arma add-on, owning `CfgPatches` add-on, and BIS item type. It deliberately uses the **owning** add-on rather than every compatibility patch that touches a class, so a vanilla class patched by ACE does not falsely appear as ACE content.
+The searchable text includes display name, class name, RACA category, source mod, author, loaded-mod directory, owning `CfgPatches` add-on, and BIS item type. RACA first identifies the declaring/owning add-on, then correlates its PBO prefix with Arma's loaded-mod table. That loaded PBO owner is authoritative when available, which prevents a community class with incomplete `configSourceMod` metadata from being mislabeled as Arma 3 and prevents later compatibility patches from claiming the original item.
 
 Supported classes are classified into the ACE/BIS virtual-cargo buckets `items`, `weapons`, `magazines`, and `backpacks`, with these player-facing categories:
 
@@ -129,12 +170,14 @@ Supported classes are classified into the ACE/BIS virtual-cargo buckets `items`,
 
 This categorisation is a browsing aid; runtime always receives the correct underlying virtual-cargo buckets.
 
+The catalogue is indexed once by class, category, source, add-on, author, tag, and search text. Filtering computes the complete ordered match set, then renders a bounded page of at most 200 rows. Inclusion, multi-selection, favorites, limits, and diagnostic navigation are stored by class name rather than visible row index, so paging and filtering cannot silently retarget an edit. This removes hidden item ceilings without asking Arma controls to materialize every matching row at once.
+
 ### Creator interface and navigation
 
 The Creator has two principal tabs:
 
-- **Preset Management**: name, saved presets, save/load/delete, inheritance, Quick Start, role packs, revision history, comparison, import/export, compatibility checks, and diagnostics.
-- **Assignment**: the full item table, search, filters, tags, sorting, details, included/inherited/favourite views, quantity policies, and bulk operations.
+- **Preset Management**: name, saved presets, save/load/delete, inheritance, Quick Start, role packs, Preset Analysis, history, comparison, import/export, compatibility checks, and diagnostics.
+- **Arsenal Contents**: the full item table, search, filters, tags, sorting, details, included/inherited/favourite views, quantity policies, and bulk operations.
 
 The footer distinguishes **SAVED** from **UNSAVED DRAFT**. Draft changes are checkpointed to the active profile and, after an unexpected close or restart, RACA offers to restore or discard the recovery draft. Successful save/load and deliberate discard remove that recovery copy.
 
@@ -147,15 +190,19 @@ The following controls narrow presentation only; they do not silently alter the 
 | Search | Matches the complete metadata record described above. |
 | Category | Shows a category, Included, Inherited, Favorites, or all classes. |
 | Mod / Add-on / Author | Counted filters for the loaded source mod, owning add-on, and config author. They compose with search and category filters. |
-| Tags | Profile-wide custom labels. Tags are searchable, filterable, persistent even when a mod is temporarily unloaded, and have no effect on preset inclusion. |
-| Saved Views | Captures/restores search, category, mod, add-on, author, tag, and sort order. It never mutates a draft. Older saved views migrate with an all-tags filter. |
+| Tags | Profile-wide custom labels. The tag editor has independent tag/member search and paging, edits exact class membership, retains unloaded classes, and has no 5,000-member or 100-tag truncation. Tags do not affect preset inclusion. |
+| Saved Filters | Captures/restores search mode/text, category, mod, add-on, author, tag, and sort order. Missing values are shown explicitly and fail closed instead of broadening to All. **Clear Missing Filters** is the deliberate recovery action. It never mutates a draft. |
 | Favorites | Persistent profile-wide class markers, shown through the Favorites view. |
 | Sort headers | Included, Item, Class Name, Mod, and Author each toggle deterministic ascending/descending sorting and persist the last choice. |
-| Details / Enter | Opens the item inspector: class/config lineage, base class, source add-ons, type/compatibility data, draft state, favourite state, and effective quantity policy. The inspector can copy details and include, exclude, or favourite the class. |
+| Details / Enter | Opens the item inspector: class/config lineage, base class, source add-ons, type/compatibility data, draft state, favourite state, effective quantity policy, and loaded compatible magazines. The inspector can copy details and include, exclude, favourite, or show those magazines. |
+
+For RACA, a **compatible magazine** is a class returned by Arma's `compatibleMagazines <weapon class>` command—therefore including magazine-well and alternate-muzzle results—that is also present in the current RACA catalogue as magazine cargo. Results are de-duplicated and sorted by class. Unloaded magazine classes are not presented as selectable catalogue rows.
+
+**Show Magazines** is a temporary navigation context, not a saved filter or draft change. RACA captures the exact search mode/text, category, source/add-on/author/tag filters, sort, page, and class-based selection; closes Item Details; and shows only the weapon's loaded compatible magazines. **Clear Magazine Filter** restores that exact prior workspace. Inclusion, favorites, limits, tag membership, undo/redo history, and Saved Filters are not changed.
 
 ### Build a selection
 
-Clicking a row toggles that class immediately. Space toggles the selected row, except while focus is in the Search field. Ctrl-click selects disjoint rows and Shift-click selects a contiguous range without immediately changing inclusion; then Space, Favorite, or Limit Item performs a single batch operation. Selection state belongs to the underlying class, not only to a visible row, so filters do not accidentally change it.
+Clicking a row body selects that class without changing inclusion. Clicking its Included checkbox toggles it; Space toggles the current selection except while focus is in the Search field. Ctrl-click selects disjoint rows and Shift-click selects a contiguous range; then Space, Favorite, or Limit Selection performs a single batch operation. Selection state belongs to the underlying class, not only to a visible row, so filters do not accidentally change it.
 
 - **Include Visible** and **Exclude Visible** affect only currently filtered rows.
 - **Clear All** removes all selected classes, including hidden ones.
@@ -164,7 +211,7 @@ Clicking a row toggles that class immediately. Space toggles the selected row, e
 
 ### Quick Start, role starters, and role packs
 
-Quick Start creates an **unsaved review draft**. It can start blank, use a built-in role, or use a custom profile role pack. The built-in roles are rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon.
+**Quick Start** creates an **unsaved review draft**. With Optional Settings closed it starts blank; opening Optional Settings exposes an optional built-in role or custom profile role pack, source-mod boundary, and item-type policies. The built-in roles are rifleman, medic, grenadier, marksman, machine gunner, engineer, EOD, pilot, crew, and recon.
 
 Quick Start can restrict its result to one loaded source mod and apply optic, suppressor, night-vision, and medical add/exclude policies. It persists valid parameter choices but never automatically saves or assigns the generated result. Starters are search-based suggestions against the current catalogue rather than hard-coded faction loadouts.
 
@@ -174,7 +221,12 @@ Role packs are profile-wide authoring aids. Capture a current draft as a named p
 
 Presets are stored in the active Arma profile under a versioned library. A save requires a non-empty name and non-empty selection. Names compare case-insensitively, so saving the same name is an overwrite rather than a case variant.
 
-Before destructive library changes—overwrite, deletion, imported replacement, revision rollback, or conversion to standalone—RACA archives the outgoing preset. The history holds up to 20 prior revisions per preset. Revision History compares prior versions and restores one as a **new** revision; it does not mutate historical records. Compare Draft copies exact added/removed class and quantity-policy differences against the selected saved preset.
+Before destructive library changes—overwrite, deletion, imported replacement, revision rollback, or conversion to standalone—RACA archives the outgoing preset. The history holds up to 20 prior revisions per preset. **See History** compares prior versions and restores one as a **new** revision; it does not mutate historical records. **Compare With Draft** copies exact added/removed class and quantity-policy differences against the independently selected **Preset Analysis** preset.
+
+The two preset selectors have different responsibilities:
+
+- **Saved presets** is the current library/load/delete/export selection. Its first entry, **`<Select a saved preset>`**, leaves no library preset selected; Export to Clipboard then uses the active draft.
+- **Preset Analysis** supplies the target for **See History** and **Compare With Draft**. Selecting an analysis target does not load or change the current draft.
 
 Delete requires confirmation and removes only the selected profile record. It leaves the selected classes as an unsaved recovery copy, protecting the work currently shown in the Creator. A saved mission or standalone preset already produced from that profile record remains intact.
 
@@ -205,14 +257,14 @@ The Creator stores limits with the preset and displays the active effective limi
 
 ### Preflight, diagnostic report, manifest, and support bundle
 
-**Run Preflight** produces colour-coded Error, Warning, and Information entries. The report covers ACE/CBA/RACA Eden availability, active catalogue scope, malformed preset data, missing classes, duplicate entries, category/bucket corrections, and likely source mods/add-ons. The detailed window filters severity, can copy the report, and can navigate from an available affected class to Assignment.
+**Check Compatibility** produces colour-coded Error, Warning, and Information entries. The report covers ACE/CBA/RACA Eden availability, active catalogue scope, malformed preset data, missing classes, duplicate entries, category/bucket corrections, and likely source mods/add-ons. **View Details** opens the Compatibility Check window on **Errors** every time, while the summary retains full counts. The five real columns—Severity, Code, Class, Source, and Message—align with their cells. **Copy Report** always copies the full report, **Check Again** reruns analysis, and **Show Available Item** appears only when the selected record names a class present in the current catalogue. Navigation preserves unrelated draft state and marks an older report stale when the draft fingerprint changes.
 
 Two diagnostic exports extend this evidence:
 
 - **Required-mod manifest**: versioned JSON grouping every selected class by source mod and owning add-on.
 - **Support bundle**: versioned JSON with RACA/Arma environment data, activated add-ons, compatibility analysis, the required-mod manifest, and the portable preset.
 
-They are diagnostics, not preset data; Import Auto deliberately rejects them.
+They are diagnostics, not preset data; **Import Automatically** deliberately rejects them.
 
 ### Import and export
 
@@ -221,9 +273,11 @@ They are diagnostics, not preset data; Import Auto deliberately rejects them.
 | JSON preset | Versioned authoritative RACA interchange. Preserves name, cargo buckets, validated metadata, runtime limits, and safe inheritance details. | Yes, between compatible RACA versions. |
 | Reusable SQF | Standalone ACE setup script for use in a mission folder. It validates `[this]`, runs server-side, removes an earlier virtual arsenal, and initializes ACE Arsenal globally. | No; it is a reusable deployment artifact. |
 | Class list | Alphabetical, de-duplicated comma-separated class names for documentation or other tooling. | Yes, as a conservative class-list import while classes remain available. |
-| Required-mod manifest / support bundle | Diagnostics and handoff artifacts. | No; intentionally rejected by Import Auto. |
+| Required-mod manifest / support bundle | Diagnostics and handoff artifacts. | No; intentionally rejected by Import Automatically. |
 
-Export uses a saved preset when one is selected in **Saved presets**. Its first entry, **`<Select a saved preset>`**, means no library preset is selected; Export then builds and exports the active draft instead.
+**Export to Clipboard** uses a saved preset when one is selected in **Saved presets**. Its first entry, **`<Select a saved preset>`**, means no library preset is selected; export then builds and exports the active draft instead. **Import Automatically** detects JSON first and otherwise uses the conservative SQF/class-list migration parser.
+
+An import is one explicit operation with a unique identity, progress checkpoints, and cancellation. When no same-name record exists, **Import** commits the decoded preset. A name collision offers **Overwrite**, **Import Copy** with a generated unique name, or **Cancel**. The operation verifies that the library did not change underneath it and performs at most one profile write; parse failure, validation failure, cancellation, a superseding import, or failed compare-and-swap leaves the library untouched.
 
 To use a reusable SQF output, save it as `raca_arsenal.sqf` in the mission folder and put this in each relevant object's Init field:
 
@@ -231,24 +285,38 @@ To use a reusable SQF output, save it as `raca_arsenal.sqf` in the mission folde
 [this] execVM "raca_arsenal.sqf";
 ```
 
-The JSON schema and examples are documented in [Portable preset format](PORTABLE_PRESET_FORMAT.md). Clipboard import is intentionally single-player only because Arma disables `copyFromClipboard` in multiplayer. Import recognizes RACA JSON first; when no RACA signature is present, it conservatively scans SQF or a class list for quoted, currently available, safe config class names. It handles common arrays combined with `+`, `append`, or `arrayIntersect`, but cannot recover class names computed at runtime.
+The JSON schema and examples are documented in [Portable preset format](PORTABLE_PRESET_FORMAT.md). Clipboard import is intentionally single-player only because Arma disables `copyFromClipboard` in multiplayer. Import recognizes RACA JSON first; when no RACA signature is present, its lexer reads quoted strings and ignores line/block comments without compiling or executing the source. It handles common arrays combined with `+`, `append`, or `arrayIntersect`, but cannot recover class names computed at runtime. Generated SQF writes preset metadata only as safe line comments.
 
-## Eden: multi-slot mission configuration
+There is no fixed 20,000/50,000 record or 2,000,000-character authoring ceiling. Work is checkpointed so cancellation and engine resource failures remain atomic. The September 4 engine matrix processed 19,999, 20,000, 20,001, 40,280, 50,001, and 100,000-record class-list fixtures plus a 2.4 MB/100,000-record JSON fixture; see [the test log](TEST_LOG_2026-09-04.md) for timings and the duplicate-heavy-fixture caveat.
 
-Every placeable object receives **Attributes > Restricted Arsenals**. The custom control shows a slot summary and provides **Configure slots**, **Refresh presets**, and **Clear**.
+## Eden Mission Arsenal Tool
 
-### Slots
+The modern Eden workflow is mission-centered rather than object-centered. Open **Tools > RACA Mission Arsenal Tool** in the 3den toolbar. The window uses the active Arma profile accent and contains two tabs: **Mission Dashboard** and **Configure**.
 
-The transactional editor can add, remove, rename, reorder, select, and commit several slots on one object. A slot contains:
+The tool keeps a versioned library inside the mission:
 
 ```text
-[slot ID, player-facing name, flattened preset, enabled,
- access envelope, limits, icon path, hide when denied]
+["RACA_EDEN_CONFIGURATIONS", 1,
+  [[configuration ID, name, flattened preset, icon path, access envelope], ...]]
 ```
 
-Each slot may refer to the same or a different preset and independently keeps its enabled state, presentation, access mode, conditions, denial text, icon, visibility behavior, and limits. `Refresh presets` replaces matching embedded preset copies while retaining those slot-specific settings. Legacy single-preset values load as a compatible single default slot and save back as a modern object configuration.
+This library is mission data, not profile data. The flattened preset inside each entry remains usable without the original author's profile or preset inheritance chain. The first field is an opaque stable ID used for links; the second is the author-facing display name. Display names may contain spaces/punctuation and can change without changing identity. New IDs are generated independently, use the supported 1–64-character identifier contract, and are never derived from display text. Each object also stores a complete snapshot for runtime and dedicated-server use.
 
-The editor is transactional: **Cancel** discards the working changes; **Apply configuration** writes the complete valid configuration to the parent attribute. Overlong names, denial text, icon paths, or condition values show inline errors. The working state remains open for correction instead of being discarded.
+Every Eden entry point first performs a read-only, lossless classification. A valid v1 envelope is `READY`; a v1 envelope containing malformed, duplicate, missing-ID, or legacy unsafe-ID records enters `RECOVERY`; a newer schema is `FUTURE`; and an unrecognized or malformed root is `BLOCKED`. Opening, refreshing, copying recovery evidence, and closing preserve the exact raw mission value. `FUTURE` and `BLOCKED` values cannot be rewritten by normal editing. In `RECOVERY`, the tool lists every valid, repairable, and blocked record with its exact cause. **Repair Configurations** generates replacement IDs only for repairable records, updates linked objects, reports changed records/object links, and commits the repaired envelope as one Eden history transaction. Records that cannot be repaired automatically remain blocked until the author explicitly replaces or removes them.
+
+### Configure tab
+
+The left side lists every named Arsenal Configuration in the mission. **Add Configuration** creates a draft from the first available saved RACA preset. The right side edits:
+
+- a unique configuration name, limited to 128 characters;
+- one saved preset, stored as a standalone snapshot;
+- an optional interaction icon path, limited to 512 characters;
+- AND/OR access conditions;
+- a denied message, limited to 512 characters.
+
+**Save Configuration** validates the current fields through the same assignment preflight used by Dashboard and the compact attribute, writes the library as one Eden history change, and refreshes every object linked to that configuration. Therefore a mission maker can maintain many arsenal objects from one location. Selecting a newer version of a profile preset is deliberate; profile changes never rewrite the mission by themselves.
+
+**Delete Configuration** confirms the configuration name and linked-object count. Deletion removes the library entry and clears its linked object snapshots in the same undoable Eden history step. **Save and Close** preflights all remaining configurations before it writes and closes. The plain **Close** button discards only uncommitted field edits; changes already saved to the mission remain.
 
 ### Access rules
 
@@ -273,17 +341,53 @@ Supported conditions are:
 | Required item | Present in items, assigned items, weapons, or magazines. |
 | ACE permission | Mission variable `RACA_permission_<key>` is true or contains the player's UID. |
 
-No conditions means allow. AND requires every condition; OR requires at least one. Unknown condition kinds and malformed/oversized values are discarded during normalization and never executed. The optional **hide when denied** setting controls whether a player sees a denied ACE action; a denied attempt otherwise displays the configured denial message.
+No conditions means allow everyone. AND requires every listed condition; OR requires any one condition. Unknown condition kinds and malformed or oversized values are discarded during normalization and never executed. A denied interaction displays the configuration's denied message.
 
-### Eden access simulation and dashboard
+### Mission Dashboard
 
-**Simulate access** evaluates a chosen playable or AI soldier against a slot before preview. It reports each condition as PASS, FAIL, or UNKNOWN, uses the slot's AND/OR logic, does not treat UNKNOWN as a pass, and can copy the result. UID and permission conditions may be unknown in the editor because they are runtime information.
+The Dashboard is an inventory of mission objects, not merely a list of objects already configured by RACA. Its table columns are:
 
-The mission dashboard inventories configured objects and reports READY, WARN, or BLOCKED, enabled-slot counts, issue totals, object type, entity ID, and detailed preflight results. Double-clicking a row selects only that object. Dashboard bulk assignment and clear operations apply only to selected Eden objects after confirmation; one Eden Undo reverses the entire bulk edit.
+| Column | Meaning |
+| --- | --- |
+| Arsenal Configuration | The linked configuration, `<No configuration>`, a legacy embedded value, or a missing-link warning. |
+| Item Name | The readable `CfgVehicles` display name. |
+| Class Name | The exact object class returned by `typeOf`. |
+| Variable Name | The Eden variable name, intentionally blank when none is assigned. |
 
-### Object preflight and application
+The **Variable name** filter offers **All** (default), **No variable name**, and **Only variable names**. The **Object type** filter offers **All**, **Unit**, **Module**, and **Object**, with **Object** selected by default. Search matches readable names, class names, and variable names.
 
-Before runtime application, RACA validates the entire object configuration. It blocks wrong field types, duplicate slot IDs, malformed presets/access/limits, unsupported access conditions, invalid condition values, and other BLOCKED findings. Missing content can degrade to warning rather than making an object vanish from the dashboard, but malformed unsafe data never reaches runtime unless a controlled call explicitly opts into error-tolerant application.
+Selecting a row synchronizes the assignment dropdown beneath the table. Choose an Arsenal Configuration and use **Apply to Object** to run shared preflight and write a complete snapshot as one undoable Eden history step. A blocked preflight leaves the object and tool open without mutation. Choosing `<No Arsenal Configuration>` removes an existing assignment only after confirmation. **Select in Eden** focuses the row's object in the scene, and double-clicking a row does the same. **Copy Report** copies the current filtered inventory plus preflight findings for configured rows.
+
+The configuration column is colour-coded: neutral for unconfigured objects, green for a clean preflight, amber for warnings, and red for blocking errors. Missing content can remain visible as a warning instead of silently dropping the object. Malformed policy data remains a blocking error.
+
+Dashboard refresh is debounced and separate from the Creator catalogue. It caches each object's identity, attribute fingerprint, display/class/variable metadata, and preflight result, then rebuilds only invalidated entries. Paging bounds the number of controls updated at once. Eden Undo/Redo and configuration/library edits invalidate the relevant cache so reports and summary counts remain current.
+
+The normal assignment path succeeds only after exact attribute readback. If Arma rejects a direct scripted write for the custom attribute, RACA creates a request-owned native-attribute fallback containing the intended object, configuration ID, and starting fingerprints. Cancel, Escape, dialog close, selection change, a superseding Apply, or a concurrent configuration edit clears/rejects the pending request. A successful native save is accepted once, restores Dashboard filters/selection, and remains one Eden Undo step.
+
+### Compact object attribute
+
+Every placeable object still receives **Attributes > Restricted Arsenals**, but this is deliberately an assignment control rather than a second configuration editor. It contains only:
+
+- `<No Arsenal Configuration>`;
+- the named configurations currently stored in the mission; or
+- a preservation entry when an older embedded object configuration does not match the modern library.
+
+The attribute explains that additional configurations are created in the Eden RACA tool accessible from the toolbar. Choosing a named entry runs the same shared preflight and stores the same complete object snapshot used by Dashboard assignment. Legacy embedded data is preserved unless the author deliberately selects a modern configuration or removes it.
+
+### Access-rule test
+
+From **Configure**, **Test Access** opens the access-rule test against any soldier currently placed in the mission. **Run Test** reports each condition as PASS, FAIL, or UNKNOWN, applies the configuration's AND/OR logic, and can copy a readable result. UID and ACE-permission rules are runtime-only information and therefore remain UNKNOWN in this editor rehearsal rather than being treated as a pass.
+
+### Object preflight and runtime application
+
+Before a configuration is saved, assigned through Dashboard/attribute, or applied at runtime, RACA validates the same object candidate. It blocks wrong field types, malformed presets/access/limits, unsupported conditions, unsafe/duplicate identifiers, and invalid condition values; unavailable required classes are reported consistently. The object snapshot contains one normalized runtime slot:
+
+```text
+[configuration ID, configuration name, flattened preset, enabled,
+ access envelope, limits, icon path, hide when denied]
+```
+
+The current Eden tool always enables that slot and shows the denied message. The wider runtime schema still accepts existing valid multi-slot object configurations, so an older mission is preserved until the author deliberately reassigns an object.
 
 When applied on the server, RACA removes a previous ACE virtual arsenal, cancels active sessions with loadout restoration, prunes now-invalid quota state, stores the normalized configuration on the object, registers it in the mission registry, creates a sanitized action manifest, sends that manifest to clients (with persistent JIP registration), and writes an audit event.
 
@@ -327,12 +431,24 @@ RACA registers four global curator modules under **Restricted Arsenals**:
 
 | Module | Effect |
 | --- | --- |
-| Assign / Replace Restricted Arsenal | Assigns a saved profile preset to target objects as a restricted arsenal. Module attributes provide preset name and player-facing slot name. |
+| Assign / Replace Restricted Arsenal | Resolves a mission-embedded configuration by stable ID or display name and assigns it to target objects. Module attributes provide configuration choice and player-facing slot name. Server-profile fallback is off unless the mission explicitly enables `RACA_allowZeusProfileFallback`. |
 | Clear Restricted Arsenal | Removes RACA configuration from targets. |
 | Enable / Disable Restricted Arsenal | Toggles a configured restricted arsenal's enabled state. |
 | Reset Arsenal Quotas | Clears quota records for the target configuration. |
 
-The module functions are `moduleAssign`, `moduleClear`, `moduleToggle`, and `moduleResetQuotas`. They use the same core runtime registration/application lifecycle rather than creating a separate unrestricted path.
+The operator workflow is:
+
+1. Place a module on one or more synchronized target objects. For Assign, enter the mission configuration ID/name and optional player-facing slot name; for Toggle, choose enable or disable.
+2. The machine that owns the module submits one bounded request. Global duplicate executions do not submit again.
+3. The server verifies the requester is the server or currently assigned curator, verifies module type and `RACA_allowZeusModules`, accepts only synchronized objects editable by that curator, and rejects a repeated placement.
+4. Assign resolves the mission configuration library first and can fall back to an already registered embedded mission slot. Profile fallback is opt-in only. Clear/Toggle use the normal bulk runtime lifecycle; Reset clears only target-scoped quotas. There is no implicit no-target “reset all.”
+5. The server writes registry/audit changes, returns `RACA Zeus <request-id>: <accepted/rejected message>` through system chat and a hint, and deletes the consumed module.
+
+The wrapper functions are `moduleAssign`, `moduleClear`, `moduleToggle`, and `moduleResetQuotas`; the bridge is `requestZeusModule`, `handleZeusModuleRequest`, and `receiveZeusModuleResult`. All changes go through the same server runtime lifecycle rather than a separate unrestricted client path.
+
+### Zeus troubleshooting
+
+Copy the request ID from the visible `RACA Zeus ...` result, then search the **server** RPT for `[RACA][ZEUS:<request-id>]`. The event records operation, accepted target/change/rejection counts, `accepted=true|false`, and a reason. A visible “not current authorized curator” maps to an authorization rejection; “module identity” maps to a module/operation mismatch; “disabled by the mission” maps to `RACA_allowZeusModules=false`; “place the module on at least one valid target” means no synchronized editable target survived validation; and “mission configuration ... was not found” means no mission-library/registered match was available and profile fallback was disabled. Share the request ID, message, operation, and redacted event—never player UIDs or unrelated RPT identity lines.
 
 ## Data formats and persistence boundaries
 
@@ -354,7 +470,7 @@ Runtime metadata is versioned as `RACA_RUNTIME` and holds normalized limits plus
 ["RACA_PORTABLE_PRESET", 2, preset, metadata]
 ```
 
-Its metadata includes name, profile author, creation time, preset schema version, source mods, source add-ons, revision, modified-by/time, notes, and optional inherited-source fingerprint. Portable decoding is resource-bounded and rejects unknown future versions without rewriting user data.
+Its metadata includes name, profile author, creation time, preset schema version, source mods, source add-ons, revision, modified-by/time, notes, optional inherited-source fingerprint, and preserved safe extension metadata. Unavailable syntactically valid cargo remains in its original bucket and is reported so a later profile with the content mod can restore it. Portable decoding is checkpointed, fails closed, and rejects unknown future versions without rewriting user data.
 
 ### Object schema
 
@@ -381,9 +497,9 @@ Options default to `auditLevel = standard` and `persistence = mission`. For back
 RACA is intentionally defensive at every data boundary.
 
 - **Imports never execute code.** SQF is scanned as text only; RACA does not compile, call, spawn, or `execVM` imported text.
-- **Input is bounded and atomic.** Clipboard input over 2,000,000 characters; presets over 20,000 references; JSON with over 64 preset-metadata or 256 transport-metadata records; and SQF/class-list scans over 50,000 quoted values/tokens are rejected without changing the library.
+- **Import is checkpointed and atomic.** There is no fixed item/token/character ceiling substituting for the removed 20,000-item limit. Cancellation, invalid data, superseded operations, concurrent library changes, and engine resource failure leave the profile library unchanged.
 - **Names and conditions are normalized.** Unsafe class names, unknown versions, unknown condition kinds, malformed values, duplicate/invalid policy data, and malformed access envelopes do not become executable behavior.
-- **Future versions fail closed.** Unknown newer schemas are rejected without rewriting the stored profile or mission value.
+- **Future versions fail closed and remain recoverable.** Unknown newer preset schemas are rejected. Eden future/malformed configuration envelopes are classified read-only and kept byte-for-byte unchanged until an explicit supported recovery action.
 - **Mission runtime is server-authoritative.** Client requests do not define the permissions, quotas, registry, or allowed loadout. Direct non-server invocations of protected client handlers are rejected.
 - **Missing content degrades visibly.** Missing classes are excluded at use time or warned about in validation/preflight; they do not make unrelated classes permissive.
 - **Active sessions are recoverable.** Configuration changes and unregistering cancel sessions and restore players rather than leaving a stale arsenal open.
@@ -392,7 +508,7 @@ RACA is intentionally defensive at every data boundary.
 
 ### Automated and manual evidence
 
-The repository contains an isolated automated Creator/Eden/runtime mission and a separate multiplayer rehearsal mission. The current development acceptance record reports a passing `61/61` automated assertion run and successful static validation/PBO build for a prior clean development-package evidence run. It also records dedicated-server and initial remote-client rehearsal as passing, while distinct-identity JIP and visual ACE inspection on a second machine remain unknown. See [Development acceptance evidence](DEVELOPMENT_ACCEPTANCE.md) for the exact evidence and [In-game release checklist](IN_GAME_TEST_CHECKLIST.md) for the full human test protocol.
+The repository contains an isolated automated Creator/Eden/runtime mission and a separate multiplayer rehearsal mission. The September 4 packaged run passed `97/97` assertions with no RACA/script error and covered the consolidated catalogue, interchange, Creator-dialog, Eden-data, runtime, and Zeus-handler contracts. The dedicated rehearsal passed server and initial-client probes; the distinct-JIP role remained waiting because Arma rejected a second process using the same Steam identity. Visual/native-editor/Curator scenarios remain separate. See the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [In-game release checklist](IN_GAME_TEST_CHECKLIST.md).
 
 The checklist is deliberately broader than a code test: it covers start-up, Creator UI, catalogue semantics, selection regressions, persistence, inheritance, imports, Eden data integrity, object compatibility checks, ACE interaction behavior, access/quotas/loadouts, administrator paths, Zeus, host/client synchronization, dedicated server, and real JIP.
 
@@ -400,13 +516,20 @@ The checklist is deliberately broader than a code test: it covers start-up, Crea
 
 RACA emits diagnostic messages using the `[RACA]` prefix. When reporting a problem, preserve the on-screen message, relevant mission/object configuration, active mod set, and the newest RPT lines matching `[RACA]`, `Error`, or `Warning`. A support bundle and copied preflight/object/dashboard report should accompany this evidence when possible.
 
+### Performance architecture and measured budgets
+
+Creator catalogue search uses precomputed lower-case indexes and a bounded 200-row renderer; tag membership uses class-keyed maps and independent member paging; Dashboard uses debounced filters and per-object fingerprint/preflight caches. Operations invalidate only the data they affect. Import checkpoints separate parsing/validation/commit progress and make cancellation atomic.
+
+On the September 4 target machine, the packaged engine processed class-list inputs of 20,001, 40,280, 50,001, and 100,000 records in 0.988 s, 2.012 s, 2.476 s, and 4.931 s. A 2.4 MB/100,000-record JSON fixture completed in 1.991 s. A synthetic 100,000-record catalogue indexed in 1.374 s; settled 100-result filtering measured p50 1.002 s/p95 1.558 s, but initial 100,000-match render took 3.646 s. Thus the proposed two-second settled 100,000-record computation budget passed, while the proposed 250 ms first-visible-result target did not. The actual isolated 1,534-class catalogue refreshed in 0.067 s. The fixtures are duplicate-heavy stress inputs, not claims of 100,000 unique installed classes.
+
 ### Developer tools
 
 | Tool | Purpose |
 | --- | --- |
 | `tools/validate.ps1` | Static/configuration/SQF validation. Run before calling a build/release valid. |
 | `tools/build.ps1` | Builds Core and Eden PBOs, verifies `x\\raca\\addons\\<name>\\` PBO prefixes, copies metadata, and writes SHA-256 checksums. Its clean target is guarded to remain under the repository build directory. |
-| `tools/prepare-autotest.ps1` | Stages the isolated automatic mission, profile, and required CBA/ACE/RACA launch arguments. |
+| `tools/prepare-autotest.ps1` | Recursively stages the isolated automatic mission, profile, and required CBA/ACE/RACA launch arguments. It supports the tested Windows PowerShell 5.1 environment. |
+| `tools/reconstruct-rpt-copy.ps1` | Reconstructs one exact clipboard payload from chunked Unicode-safe RPT records and verifies length/checksum evidence. |
 | `tools/prepare-multiplayer-smoke.ps1` | Stages server/client profiles, rehearsal mission, server configuration, and launch arguments for a local smoke test. |
 | `tools/release.ps1` | Requires a clean tree, matching version metadata, validation, PBO checksums, and release archive/report generation. Development versions need the explicit `-AllowDevelopmentVersion` switch. |
 
@@ -434,14 +557,14 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 
 | Group and directory | Implemented responsibilities |
 | --- | --- |
-| `functions/catalog` | `classifyClass` maps an Arma class to category/bucket/config; `scanItems` queries ACE virtual items and builds searchable metadata. |
+| `functions/catalog` | Classification/cache helpers map Arma classes to category/bucket/config; `scanItems` queries ACE virtual items; catalogue indexes and compatible-magazine resolution support scalable navigation. |
 | `functions/diagnostics` | Environment/preset analysis, human-readable diagnostic formatting, and object-configuration preflight. |
 | `functions/presets` | Build, validate, migrate, flatten, fingerprint, archive, save/load/delete, inheritance/cycle management, library/composition/history access, runtime-policy extraction, JSON/SQF decoding/formatting, export/import, manifests, and support bundles. |
 | `functions/templates` | Built-in role templates, profile role-pack retrieval, starter application, and parameterized Quick Start policy application. |
 | `functions/ui` | Creator startup/shutdown, keyboard input, tab/view/filter/sort/table refresh, selection, status/summary, history, draft recovery, limits, favorites, tags, saved views, role packs, Quick Start, item details, preflight, and revision-history dialogs. |
 | `functions/runtime` | Pre/post initialization, config/access/limit normalization, registry/object lifecycle, ACE action manifests, server open/session flows, access/quotas/loadout validation, saved loadouts, audit logs, admin dashboard, runtime rehearsal, request/response handlers, and cleanup/reset operations. |
-| `functions/zeus` | Assign, clear, enable/disable, and quota-reset curator modules. |
-| `addons/eden/functions` | Attribute load/save/on-load; editor add/remove/select/move/commit/apply/refresh; summary/population; clear; access simulation; mission dashboard selection/bulk/reporting. |
+| `functions/zeus` | Assign, clear, enable/disable, and quota-reset curator wrappers plus the server request/validation/result bridge. |
+| `addons/eden/functions` | Lossless mission-envelope classification/repair; mission configuration read/write/snapshot conversion; compact attribute load/save; Configure editing; access-rule testing; shared assignment preflight; paged/cached Dashboard filtering, selection, assignment, and reporting. |
 
 ### Detailed runtime function map
 
@@ -461,8 +584,8 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | --- | --- |
 | Preset construction and persistence | `buildPreset`, `validatePreset`, `migratePreset`, `saveCurrentPreset`, `loadSelectedPreset`, `deletePreset`, `getPresetLibrary`, `removePresetFromLibrary`, `refreshPresetCombo`, `setPresetRevision`, `archivePreset`, `getPresetHistory`. |
 | Inheritance and flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `getRuntimePolicy`. |
-| Interchange | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `exportPreset`, `importPreset`, `decodeSqfPreset`, `formatSqfExport`, `isSafeClassName`, `buildModManifest`, `buildSupportBundle`. |
-| Creator UX | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `refreshItemList`, `refreshCategoryCombo`, `refreshSourceCombo`, `toggleRow`, `setVisibleSelection`, `clearSelection`, `setSortMode`, `setCatalogView`, `setStatus`, `updateSummary`, `switchCreatorTab`, `pushCreatorHistory`, `restoreCreatorHistory`, `refreshHistoryButtons`, `requestCreatorClose`. |
+| Interchange | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `exportPreset`, `importPreset`, `importCheckpoint`, `decodeSqfPreset`, `formatSqfExport`, `isSafeClassName`, `buildModManifest`, `buildSupportBundle`. |
+| Creator UX | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `refreshItemList`, `catalogPage`, `refreshCategoryCombo`, `refreshSourceCombo`, `toggleRow`, `resolveCreatorSelection`, `setVisibleSelection`, `clearSelection`, `setSortMode`, `setSearchMode`, `setCatalogView`, `captureCatalogView`, `restoreCatalogView`, `setStatus`, `updateSummary`, `switchCreatorTab`, `pushCreatorHistory`, `captureCreatorState`, `restoreCreatorHistory`, `refreshHistoryButtons`, `requestCreatorClose`. |
 | Creator enhancements | `openQuickStart`, `quickStartOnLoad`, `quickStartApply`, `applySelectedRoleTemplate`, `refreshRoleTemplateCombo`, `openRolePacks`, role-pack CRUD/refresh/select functions, `toggleFavorite`, item-detail functions, tag functions, saved-view functions, draft recovery functions, limit functions, preflight/diagnostic functions, comparison/history restore functions. |
 
 ### Detailed Eden function map
@@ -470,9 +593,10 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | Area | Functions |
 | --- | --- |
 | Attribute lifecycle | `edenAttributeOnLoad`, `edenAttributeLoad`, `edenAttributeSave`, `edenPopulate`, `edenUpdateSummary`, `edenRefresh`, `edenClearAttribute`. |
-| Slot editor | `edenOpenEditor`, `edenEditorOnLoad`, `edenEditorRefresh`, `edenEditorAddSlot`, `edenEditorRemoveSlot`, `edenEditorMoveSlot`, `edenEditorSelectSlot`, `edenEditorCommitSlot`, `edenEditorAddCondition`, `edenEditorRemoveCondition`, `edenEditorApply`. |
+| Mission configuration library | `edenGetConfigurations`, `edenGetConfigurationState`, `edenParseConfigurationEnvelope`, `edenIsSafeConfigurationId`, `edenGenerateConfigurationId`, `edenCopyLibraryRecovery`, `edenRepairConfigurations`, `edenStoreConfigurations`, `edenConfigurationToObjectConfig`, `validateConfigurationForAssignment`. |
+| Mission tool and Configure tab | `edenOpenEditor`, `edenEditorOnLoad`, `edenEditorOnUnload`, `edenSwitchTab`, `edenEditorRefresh`, `edenEditorAddSlot`, `edenEditorRemoveSlot`, `edenEditorMoveSlot`, `edenEditorSelectSlot`, `edenEditorCommitSlot`, `edenEditorAddCondition`, `edenEditorRemoveCondition`, `edenEditorApply`. Historical `Slot` function names are retained for binary/script compatibility but now edit mission-wide Arsenal Configurations. |
 | Access simulation | `edenOpenAccessSimulator`, `edenAccessSimulatorOnLoad`, `edenAccessSimulatorRefresh`, `edenAccessSimulatorCopy`. |
-| Dashboard | `edenDashboardRefresh`, `edenDashboardSelect`, `edenDashboardBulk`, `edenDashboardCopy`. |
+| Dashboard | `edenDashboardQueueRefresh`, `edenDashboardRefresh`, `edenDashboardRenderPage`, `edenDashboardPage`, `edenDashboardSelect`, `edenDashboardBulk`, `edenDashboardCopy`. |
 
 ### Complete registered-function index
 
@@ -483,13 +607,13 @@ The tables above explain the responsibilities. This index supplies the exact reg
 
 | Group | Registered functions |
 | --- | --- |
-| Catalogue | `classifyClass`, `scanItems` |
+| Catalogue | `classifyClass`, `classifyCached`, `scanItems`, `indexCatalog`, `getCompatibleMagazines` |
 | Diagnostics | `analyzeEnvironment`, `analyzePreset`, `formatDiagnosticReport`, `preflightObjectConfig` |
 | Templates | `applyRoleTemplate`, `applyTemplateParameters`, `getRolePacks`, `getRoleTemplates` |
 | Preset build/validation | `buildPreset`, `validatePreset`, `migratePreset`, `isSafeClassName`, `getRuntimePolicy` |
-| Preset library/history | `getPresetLibrary`, `refreshPresetCombo`, `loadSelectedPreset`, `saveCurrentPreset`, `deletePreset`, `removePresetFromLibrary`, `setPresetRevision`, `archivePreset`, `getPresetHistory` |
+| Preset library/history | `getPresetLibrary`, `refreshPresetCombo`, `loadSelectedPreset`, `saveCurrentPreset`, `confirmPresetDeletion`, `presetDeletionOnLoad`, `deletePreset`, `removePresetFromLibrary`, `setPresetRevision`, `archivePreset`, `getPresetHistory` |
 | Inheritance/flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `refreshBaseCombo` |
-| Interchange and support | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `formatSqfExport`, `decodeSqfPreset`, `exportPreset`, `importPreset`, `buildModManifest`, `buildSupportBundle` |
+| Interchange and support | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `formatSqfExport`, `decodeSqfPreset`, `exportPreset`, `importPreset`, `importCheckpoint`, `buildModManifest`, `buildSupportBundle` |
 
 </details>
 
@@ -498,15 +622,15 @@ The tables above explain the responsibilities. This index supplies the exact reg
 
 | Area | Registered functions |
 | --- | --- |
-| Core display/input | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `switchCreatorTab`, `requestCreatorClose`, `queueRefresh`, `setStatus`, `updateSummary` |
-| Catalogue/table | `refreshItemList`, `refreshCategoryCombo`, `refreshSourceCombo`, `setCatalogView`, `setSortMode`, `toggleRow`, `setVisibleSelection`, `clearSelection` |
-| History and recovery | `pushCreatorHistory`, `restoreCreatorHistory`, `refreshHistoryButtons`, `saveDraftRecovery`, `queueDraftRecovery`, `offerDraftRecovery`, `clearDraftRecovery` |
+| Core display/input | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `switchCreatorTab`, `requestCreatorClose`, `queueRefresh`, `setStatus`, `updateSummary`, `copyTextAndLog` |
+| Catalogue/table | `refreshItemList`, `catalogPage`, `refreshCategoryCombo`, `refreshSourceCombo`, `setCatalogView`, `setSearchMode`, `setSortMode`, `captureCatalogView`, `restoreCatalogView`, `clearMissingFilters`, `showMagazines`, `clearMagazineFilter`, `resolveCreatorSelection`, `itemListSelectionChanged`, `toggleRow`, `setVisibleSelection`, `clearSelection` |
+| History and recovery | `pushCreatorHistory`, `captureCreatorState`, `restoreCreatorHistory`, `refreshHistoryButtons`, `saveDraftRecovery`, `queueDraftRecovery`, `offerDraftRecovery`, `clearDraftRecovery` |
 | Quantity policies | `readQuantityPolicy`, `syncLimitPolicy`, `setItemLimit`, `setCategoryLimit` |
 | Favorites and item details | `toggleFavorite`, `openItemDetails`, `itemDetailsOnLoad`, `itemDetailsRefresh`, `itemDetailsCopy`, `itemDetailsToggleFavorite`, `itemDetailsToggleIncluded` |
-| Tags | `getCatalogTags`, `refreshCatalogTagIndex`, `openCatalogTags`, `catalogTagsOnLoad`, `catalogTagsRefresh`, `catalogTagsSelect`, `catalogTagsExecute` |
+| Tags | `getCatalogTags`, `refreshCatalogTagIndex`, `openCatalogTags`, `catalogTagsOnLoad`, `catalogTagsRefresh`, `catalogTagsSelect`, `catalogTagsExecute`, `catalogTagMembersRefresh`, `catalogTagMembersSelect`, `catalogTagsPage` |
 | Saved catalogue views | `getSavedCatalogViews`, `openSavedCatalogViews`, `savedCatalogViewOnLoad`, `savedCatalogViewRefresh`, `savedCatalogViewSelect`, `savedCatalogViewCapture`, `savedCatalogViewApply`, `savedCatalogViewDelete` |
 | Role packs and Quick Start | `refreshRoleTemplateCombo`, `applySelectedRoleTemplate`, `openQuickStart`, `quickStartOnLoad`, `quickStartApply`, `openRolePacks`, `rolePackOnLoad`, `rolePackRefresh`, `rolePackSelect`, `rolePackCapture`, `rolePackApply`, `rolePackDelete` |
-| Preflight and revision tools | `runCreatorDiagnostics`, `openCreatorDiagnostics`, `preflightOnLoad`, `preflightRefresh`, `preflightSelect`, `preflightRerun`, `preflightCopy`, `copyCreatorDiagnostics`, `compareSelectedPreset`, `openPresetHistory`, `historyOnLoad`, `historySelect`, `restorePresetRevision` |
+| Preflight and revision tools | `runCreatorDiagnostics`, `openCreatorDiagnostics`, `preflightOnLoad`, `preflightRefresh`, `preflightSelect`, `preflightSelectionChanged`, `preflightRemoveUnavailable`, `preflightRerun`, `preflightCopy`, `copyCreatorDiagnostics`, `compareSelectedPreset`, `openPresetHistory`, `historyOnLoad`, `historySelect`, `restorePresetRevision` |
 
 </details>
 
@@ -520,9 +644,9 @@ The tables above explain the responsibilities. This index supplies the exact reg
 | Runtime security/loadouts/quotas | `evaluateAccess`, `countLoadout`, `pruneObjectQuotas`, `resetQuotas`, `requestQuotaStatus`, `receiveQuotaStatus`, `requestLoadoutApply`, `applyAuthorizedLoadout`, `applyCorrectedLoadout`, `applyPlayerLoadout`, `savePlayerLoadout`, `listPlayerLoadouts`, `deletePlayerLoadout` |
 | Runtime admin/audit | `isAdminAuthorized`, `logEvent`, `adminOnLoad`, `adminRefresh`, `adminExecute`, `adminCommand`, `adminCopyAudit`, `requestAdminAccess`, `receiveAdminAccess`, `requestAdminSnapshot`, `receiveAdminSnapshot` |
 | Runtime rehearsal | `openRehearsal`, `rehearsalOnLoad`, `rehearsalRefresh`, `rehearsalExecute`, `rehearsalCopy`, `buildRehearsalSnapshot`, `requestRehearsal`, `rehearsalClientReady`, `rehearsalProbeClient`, `receiveRehearsalProbe`, `receiveRehearsalSnapshot`, `sendRehearsalSnapshot` |
-| Zeus | `moduleAssign`, `moduleClear`, `moduleToggle`, `moduleResetQuotas` |
-| Eden attribute/editor | `edenAttributeOnLoad`, `edenAttributeLoad`, `edenAttributeSave`, `edenPopulate`, `edenUpdateSummary`, `edenRefresh`, `edenClearAttribute`, `edenOpenEditor`, `edenEditorOnLoad`, `edenEditorRefresh`, `edenEditorAddSlot`, `edenEditorRemoveSlot`, `edenEditorMoveSlot`, `edenEditorSelectSlot`, `edenEditorCommitSlot`, `edenEditorAddCondition`, `edenEditorRemoveCondition`, `edenEditorApply` |
-| Eden simulator/dashboard | `edenOpenAccessSimulator`, `edenAccessSimulatorOnLoad`, `edenAccessSimulatorRefresh`, `edenAccessSimulatorCopy`, `edenDashboardRefresh`, `edenDashboardSelect`, `edenDashboardBulk`, `edenDashboardCopy` |
+| Zeus | `moduleAssign`, `moduleClear`, `moduleToggle`, `moduleResetQuotas`, `requestZeusModule`, `handleZeusModuleRequest`, `receiveZeusModuleResult` |
+| Eden attribute/configuration/editor | `edenAttributeOnLoad`, `edenAttributeLoad`, `edenAttributeSave`, `edenPopulate`, `edenUpdateSummary`, `edenRefresh`, `edenClearAttribute`, `edenGetConfigurations`, `edenGetConfigurationState`, `edenParseConfigurationEnvelope`, `edenIsSafeConfigurationId`, `edenGenerateConfigurationId`, `edenCopyLibraryRecovery`, `edenRepairConfigurations`, `validateConfigurationForAssignment`, `edenStoreConfigurations`, `edenConfigurationToObjectConfig`, `edenOpenEditor`, `edenEditorOnLoad`, `edenEditorOnUnload`, `edenSwitchTab`, `edenEditorRefresh`, `edenEditorAddSlot`, `edenEditorRemoveSlot`, `edenEditorMoveSlot`, `edenEditorSelectSlot`, `edenEditorCommitSlot`, `edenEditorAddCondition`, `edenEditorRemoveCondition`, `edenEditorApply` |
+| Eden access test/Dashboard | `edenOpenAccessSimulator`, `edenAccessSimulatorOnLoad`, `edenAccessSimulatorRefresh`, `edenAccessSimulatorCopy`, `edenDashboardQueueRefresh`, `edenDashboardRefresh`, `edenDashboardRenderPage`, `edenDashboardPage`, `edenDashboardSelect`, `edenDashboardBulk`, `edenDashboardCopy` |
 
 </details>
 
@@ -530,16 +654,21 @@ The tables above explain the responsibilities. This index supplies the exact reg
 
 The source and recorded acceptance evidence demonstrate substantial implementation coverage, but a player-facing documentation claim should distinguish code from field proof.
 
-- The documented acceptance record has a passing automated mission and local dedicated-server/initial-client evidence.
-- A distinct Steam identity/machine for JIP and visual ACE Arsenal inspection on a second machine were not available for that record. Those gates are **Unknown**, not passed.
+- The September 4 packaged mission passed 97/97 assertions and the dedicated SERVER/initial CLIENT probes passed.
+- A distinct Steam identity/machine for JIP was unavailable. The attempted second local client was rejected as the same Steam identity, so that gate is **Unknown**, not passed.
+- The final session could not observe native Arma pixels through its available computer-control surface. Resolution-specific no-blink/layout screenshots, full native Eden recovery/fallback/large-object flows, actual Curator placement, and final player-facing ACE content inspection remain open.
+- The 100,000-record catalogue retains complete results, but the measured 3.646 s initial render misses the proposed 250 ms visible-result target; this is a documented performance constraint rather than a hidden cap.
 - Content availability is inherently dependent on the active mod set. A valid preset can warn and omit content if its source mod is not loaded.
 - This is a development version (`0.10.0-dev`), so use the release process and checklist before calling a packaged build a public release.
 
 ## Further reading
 
-- [README](../README.md) — overview and tutorial-oriented quick start.
+- [README](../README.md) — pre-install purpose, methodology, suitability, requirements, feature overview, maturity, and a deliberately brief Quick Start.
 - [Portable preset format](PORTABLE_PRESET_FORMAT.md) — JSON/SQF/class-list interchange details and examples.
 - [In-game release checklist](IN_GAME_TEST_CHECKLIST.md) — complete player/editor/runtime test protocol.
+- [September 4 test log](TEST_LOG_2026-09-04.md) — current packaged-engine, performance, Zeus, clipboard, and multiplayer evidence.
+- [Consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md) — solution-package status and remaining evidence classes.
 - [Development acceptance evidence](DEVELOPMENT_ACCEPTANCE.md) — current recorded acceptance results and their limits.
+- [September 2 targeted test log](TEST_LOG_2026-09-02.md) and [September 1 test log](TEST_LOG_2026-09-01.md) — historical evidence for earlier builds.
 - [Release process](RELEASE_PROCESS.md) — versioning, packaging, checksums, and release gate.
 - [Changelog](../CHANGELOG.md) — release history and unreleased feature list.

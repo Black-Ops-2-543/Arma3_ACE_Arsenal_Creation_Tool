@@ -1,0 +1,168 @@
+# Changed-file inventory — September 4, 2026
+
+This is the complete working-tree inventory at the consolidated implementation handoff. It includes pre-existing authorized dirty-tree work that was preserved; it is not a claim that every listed change originated in one turn.
+
+Summary: 158 paths (105 modified, 1 deleted, 52 untracked).
+
+Legend: `M` modified, `D` deleted, `??` untracked.
+
+```text
+ M addons/core/CfgFunctions.hpp
+ M addons/core/config.cpp
+?? addons/core/functions/catalog/fn_classifyCached.sqf
+?? addons/core/functions/catalog/fn_getCompatibleMagazines.sqf
+?? addons/core/functions/catalog/fn_indexCatalog.sqf
+ M addons/core/functions/catalog/fn_scanItems.sqf
+ M addons/core/functions/diagnostics/fn_analyzePreset.sqf
+ M addons/core/functions/diagnostics/fn_formatDiagnosticReport.sqf
+ M addons/core/functions/diagnostics/fn_preflightObjectConfig.sqf
+ M addons/core/functions/presets/fn_archivePreset.sqf
+ M addons/core/functions/presets/fn_buildPreset.sqf
+?? addons/core/functions/presets/fn_confirmPresetDeletion.sqf
+ M addons/core/functions/presets/fn_decodePortablePreset.sqf
+ M addons/core/functions/presets/fn_decodeSqfPreset.sqf
+ M addons/core/functions/presets/fn_deletePreset.sqf
+ M addons/core/functions/presets/fn_exportPreset.sqf
+ M addons/core/functions/presets/fn_formatSqfExport.sqf
+?? addons/core/functions/presets/fn_importCheckpoint.sqf
+ M addons/core/functions/presets/fn_importPreset.sqf
+ M addons/core/functions/presets/fn_loadSelectedPreset.sqf
+?? addons/core/functions/presets/fn_presetDeletionOnLoad.sqf
+ M addons/core/functions/presets/fn_saveCurrentPreset.sqf
+ M addons/core/functions/presets/fn_setPresetRevision.sqf
+ M addons/core/functions/presets/fn_validatePreset.sqf
+ M addons/core/functions/runtime/fn_adminCopyAudit.sqf
+ M addons/core/functions/runtime/fn_bulkUpdateObjects.sqf
+ M addons/core/functions/runtime/fn_normalizeObjectConfig.sqf
+ M addons/core/functions/runtime/fn_rehearsalCopy.sqf
+?? addons/core/functions/ui/fn_captureCatalogView.sqf
+?? addons/core/functions/ui/fn_captureCreatorState.sqf
+?? addons/core/functions/ui/fn_catalogPage.sqf
+?? addons/core/functions/ui/fn_catalogTagMembersRefresh.sqf
+?? addons/core/functions/ui/fn_catalogTagMembersSelect.sqf
+ M addons/core/functions/ui/fn_catalogTagsExecute.sqf
+ M addons/core/functions/ui/fn_catalogTagsOnLoad.sqf
+?? addons/core/functions/ui/fn_catalogTagsPage.sqf
+ M addons/core/functions/ui/fn_catalogTagsRefresh.sqf
+ M addons/core/functions/ui/fn_catalogTagsSelect.sqf
+?? addons/core/functions/ui/fn_clearMagazineFilter.sqf
+?? addons/core/functions/ui/fn_clearMissingFilters.sqf
+ M addons/core/functions/ui/fn_compareSelectedPreset.sqf
+ M addons/core/functions/ui/fn_copyCreatorDiagnostics.sqf
+?? addons/core/functions/ui/fn_copyTextAndLog.sqf
+ M addons/core/functions/ui/fn_creatorKeyDown.sqf
+ M addons/core/functions/ui/fn_creatorOnLoad.sqf
+ M addons/core/functions/ui/fn_getCatalogTags.sqf
+ M addons/core/functions/ui/fn_getSavedCatalogViews.sqf
+ M addons/core/functions/ui/fn_itemDetailsCopy.sqf
+ M addons/core/functions/ui/fn_itemDetailsRefresh.sqf
+?? addons/core/functions/ui/fn_itemListSelectionChanged.sqf
+ M addons/core/functions/ui/fn_offerDraftRecovery.sqf
+ M addons/core/functions/ui/fn_openCatalogTags.sqf
+ M addons/core/functions/ui/fn_openItemDetails.sqf
+ M addons/core/functions/ui/fn_openPresetHistory.sqf
+ M addons/core/functions/ui/fn_preflightCopy.sqf
+ M addons/core/functions/ui/fn_preflightOnLoad.sqf
+ M addons/core/functions/ui/fn_preflightRefresh.sqf
+?? addons/core/functions/ui/fn_preflightRemoveUnavailable.sqf
+ M addons/core/functions/ui/fn_preflightSelect.sqf
+?? addons/core/functions/ui/fn_preflightSelectionChanged.sqf
+ D addons/core/functions/ui/fn_pulseQuickStartButton.sqf
+ M addons/core/functions/ui/fn_pushCreatorHistory.sqf
+ M addons/core/functions/ui/fn_quickStartApply.sqf
+ M addons/core/functions/ui/fn_refreshCatalogTagIndex.sqf
+ M addons/core/functions/ui/fn_refreshCategoryCombo.sqf
+ M addons/core/functions/ui/fn_refreshHistoryButtons.sqf
+ M addons/core/functions/ui/fn_refreshItemList.sqf
+ M addons/core/functions/ui/fn_refreshSourceCombo.sqf
+?? addons/core/functions/ui/fn_resolveCreatorSelection.sqf
+?? addons/core/functions/ui/fn_restoreCatalogView.sqf
+ M addons/core/functions/ui/fn_restoreCreatorHistory.sqf
+ M addons/core/functions/ui/fn_runCreatorDiagnostics.sqf
+ M addons/core/functions/ui/fn_savedCatalogViewApply.sqf
+ M addons/core/functions/ui/fn_savedCatalogViewCapture.sqf
+ M addons/core/functions/ui/fn_saveDraftRecovery.sqf
+ M addons/core/functions/ui/fn_setItemLimit.sqf
+ M addons/core/functions/ui/fn_setSearchMode.sqf
+ M addons/core/functions/ui/fn_setVisibleSelection.sqf
+?? addons/core/functions/ui/fn_showMagazines.sqf
+ M addons/core/functions/ui/fn_switchCreatorTab.sqf
+ M addons/core/functions/ui/fn_toggleFavorite.sqf
+ M addons/core/functions/ui/fn_toggleRow.sqf
+ M addons/core/functions/ui/fn_updateSummary.sqf
+?? addons/core/functions/zeus/fn_handleZeusModuleRequest.sqf
+ M addons/core/functions/zeus/fn_moduleAssign.sqf
+ M addons/core/functions/zeus/fn_moduleClear.sqf
+ M addons/core/functions/zeus/fn_moduleResetQuotas.sqf
+ M addons/core/functions/zeus/fn_moduleToggle.sqf
+?? addons/core/functions/zeus/fn_receiveZeusModuleResult.sqf
+?? addons/core/functions/zeus/fn_requestZeusModule.sqf
+ M addons/core/script_component.hpp
+?? addons/core/ui/ImportDialog.hpp
+ M addons/core/ui/RscDisplayCreator.hpp
+?? addons/core/ui/StaticControls.hpp
+ M addons/eden/Cfg3DEN.hpp
+ M addons/eden/CfgFunctions.hpp
+ M addons/eden/config.cpp
+ M addons/eden/functions/fn_edenAccessSimulatorCopy.sqf
+ M addons/eden/functions/fn_edenAccessSimulatorRefresh.sqf
+ M addons/eden/functions/fn_edenAttributeLoad.sqf
+ M addons/eden/functions/fn_edenAttributeSave.sqf
+ M addons/eden/functions/fn_edenClearAttribute.sqf
+?? addons/eden/functions/fn_edenConfigurationToObjectConfig.sqf
+?? addons/eden/functions/fn_edenCopyLibraryRecovery.sqf
+ M addons/eden/functions/fn_edenDashboardBulk.sqf
+ M addons/eden/functions/fn_edenDashboardCopy.sqf
+?? addons/eden/functions/fn_edenDashboardPage.sqf
+?? addons/eden/functions/fn_edenDashboardQueueRefresh.sqf
+ M addons/eden/functions/fn_edenDashboardRefresh.sqf
+?? addons/eden/functions/fn_edenDashboardRenderPage.sqf
+ M addons/eden/functions/fn_edenDashboardSelect.sqf
+ M addons/eden/functions/fn_edenEditorAddCondition.sqf
+ M addons/eden/functions/fn_edenEditorAddSlot.sqf
+ M addons/eden/functions/fn_edenEditorApply.sqf
+ M addons/eden/functions/fn_edenEditorCommitSlot.sqf
+ M addons/eden/functions/fn_edenEditorMoveSlot.sqf
+ M addons/eden/functions/fn_edenEditorOnLoad.sqf
+?? addons/eden/functions/fn_edenEditorOnUnload.sqf
+ M addons/eden/functions/fn_edenEditorRefresh.sqf
+ M addons/eden/functions/fn_edenEditorRemoveCondition.sqf
+ M addons/eden/functions/fn_edenEditorRemoveSlot.sqf
+ M addons/eden/functions/fn_edenEditorSelectSlot.sqf
+?? addons/eden/functions/fn_edenGenerateConfigurationId.sqf
+?? addons/eden/functions/fn_edenGetConfigurations.sqf
+?? addons/eden/functions/fn_edenGetConfigurationState.sqf
+?? addons/eden/functions/fn_edenIsSafeConfigurationId.sqf
+ M addons/eden/functions/fn_edenOpenAccessSimulator.sqf
+ M addons/eden/functions/fn_edenOpenEditor.sqf
+?? addons/eden/functions/fn_edenParseConfigurationEnvelope.sqf
+ M addons/eden/functions/fn_edenPopulate.sqf
+ M addons/eden/functions/fn_edenRefresh.sqf
+?? addons/eden/functions/fn_edenRepairConfigurations.sqf
+?? addons/eden/functions/fn_edenStoreConfigurations.sqf
+?? addons/eden/functions/fn_edenSwitchTab.sqf
+ M addons/eden/functions/fn_edenUpdateSummary.sqf
+?? addons/eden/functions/fn_validateConfigurationForAssignment.sqf
+ M addons/eden/script_component.hpp
+ M addons/eden/ui/EdenConfigDialog.hpp
+ M addons/eden/ui/PresetAttribute.hpp
+?? docs/CHANGED_FILES_2026-09-04.md
+?? docs/CONSOLIDATED_IMPLEMENTATION_2026-09-04.md
+ M docs/IMPLEMENTATION_WIKI.md
+ M docs/IN_GAME_TEST_CHECKLIST.md
+ M docs/PORTABLE_PRESET_FORMAT.md
+?? docs/TEST_LOG_2026-09-01.md
+?? docs/TEST_LOG_2026-09-02.md
+?? docs/TEST_LOG_2026-09-04.md
+ M README.md
+ M tests/autotest/RACA_Automated.VR/description.ext
+?? tests/autotest/RACA_Automated.VR/functions/fn_consolidatedCatalogStressTests.sqf
+?? tests/autotest/RACA_Automated.VR/functions/fn_consolidatedDataTests.sqf
+?? tests/autotest/RACA_Automated.VR/functions/fn_consolidatedEdenTests.sqf
+?? tests/autotest/RACA_Automated.VR/functions/fn_consolidatedLargeImportTests.sqf
+?? tests/autotest/RACA_Automated.VR/functions/fn_consolidatedSqfLexerTests.sqf
+ M tests/autotest/RACA_Automated.VR/initPlayerLocal.sqf
+ M tools/prepare-autotest.ps1
+?? tools/reconstruct-rpt-copy.ps1
+ M tools/validate.ps1
+```

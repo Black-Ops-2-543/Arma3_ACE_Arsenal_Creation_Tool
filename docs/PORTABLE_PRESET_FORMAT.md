@@ -1,19 +1,19 @@
 # Preset interchange formats
 
-RACA exports three clipboard formats: authoritative round-trip JSON, a reusable ACE Arsenal SQF file, and a simple comma-separated class list. **Import Auto** recognizes all three. File exchange is handled by pasting the exported text into or out of a normal UTF-8 file.
+RACA exports three deployment/interchange formats to the clipboard: authoritative round-trip JSON, a reusable ACE Arsenal SQF file, and a simple comma-separated class list. **Import Automatically** recognizes all three. Save or read them through ordinary UTF-8 files by copying the complete text.
 
-## JSON preset: guaranteed RACA round trip
+## JSON preset: authoritative round trip
 
-JSON is the format to use when a preset must be restored in RACA without losing its name or cargo-bucket structure. Every JSON export produced by the current creator is accepted by the matching importer when copied in full. Classes absent from the destination mod set are the only intentional exclusions, and they are reported to the user.
+Use JSON when a preset must return to RACA without losing its authored name, cargo buckets, unavailable classes, quantity/runtime metadata, safe extension metadata, or inheritance context. A matching/current RACA importer accepts every complete JSON preset produced by the Creator. Content that is not loaded on the destination remains preserved and visibly reported rather than being silently deleted.
 
-### Version 1 envelope
+### Version 2 envelope
 
 The JSON root is an array:
 
 ```json
 [
   "RACA_PORTABLE_PRESET",
-  1,
+  2,
   [
     "RACA_PRESET",
     1,
@@ -23,24 +23,38 @@ The JSON root is an array:
       ["arifle_MX_F"],
       ["30Rnd_65x39_caseless_mag"],
       ["B_AssaultPack_mcamo"]
+    ],
+    [
+      "RACA_RUNTIME",
+      1,
+      [["arifle_MX_F", 2, "player", "respawn"]],
+      "Example notes",
+      3,
+      "Example profile",
+      [2026, 9, 4, 20, 0, 0, 0],
+      []
     ]
   ],
   [
     ["name", "Example preset"],
     ["author", "Example profile"],
-    ["createdAtUTC", [2026, 8, 30, 13, 0, 0, 0]],
+    ["createdAtUTC", [2026, 9, 4, 20, 0, 0, 0]],
     ["presetSchemaVersion", 1],
     ["sourceMods", ["Arma 3"]],
-    ["sourceAddons", ["A3_Weapons_F"]]
+    ["sourceAddons", ["A3_Weapons_F"]],
+    ["revision", 3],
+    ["modifiedBy", "Example profile"],
+    ["modifiedAtUTC", [2026, 9, 4, 20, 0, 0, 0]],
+    ["notes", "Example notes"]
   ]
 ]
 ```
 
-The four cargo arrays preserve ACE/BIS virtual-arsenal ordering: inventory items, weapons, magazines, and backpacks. Metadata is descriptive and does not control runtime behavior.
+The four cargo arrays are inventory items, weapons, magazines, and backpacks—the buckets expected by the BIS/ACE virtual-arsenal interfaces. Validation sorts/de-duplicates classes and reclassifies loaded content into its actual bucket. A syntactically valid unavailable class stays in the authored bucket with a `Missing item:` notice, allowing it to return when the content mod is loaded again.
 
-### Optional inheritance metadata
+### Inheritance metadata
 
-An inherited preset may append one authoring-only element to `RACA_PRESET`:
+An inherited preset may carry this authoring record after its cargo arrays:
 
 ```json
 [
@@ -53,55 +67,59 @@ An inherited preset may append one authoring-only element to `RACA_PRESET`:
 ]
 ```
 
-The fields are signature, version, inherited source name, source-bucket fingerprint, four additive-override buckets, and a flat list of subtractive overrides. The preset's normal cargo buckets remain the complete resolved result. This means importing, exporting, or losing the source never makes the child unusable.
+The fields are signature, version, source name, source-bucket fingerprint, four additive-override buckets, and subtractive class names. The preset's normal cargo buckets still contain the complete resolved result, so losing the source never makes the child unusable. JSON preserves the relationship for continued authoring. Reusable SQF, class lists, Eden configurations, and runtime object snapshots are standalone.
 
-JSON preserves inheritance metadata so another RACA profile can continue editing the relationship. Reusable SQF, class-list exports, and Eden mission attributes are standalone and contain no source reference. Circular inheritance metadata is rejected during import or save. The importer accepts the legacy `RACA_ADOPTION` and `RACA_COMPOSITION` signatures and normalizes them to `RACA_INHERITANCE` when saved or exported.
+Legacy `RACA_ADOPTION` and `RACA_COMPOSITION` records normalize to `RACA_INHERITANCE`. Circular relationships are rejected. Unknown metadata beginning with a short safe `RACA_` signature is preserved without interpretation; unsafe unknown metadata is ignored with a notice.
 
-### Import behavior and safety
+### Import transaction and safety
 
-- JSON is decoded with `fromJSON`. Import text is never passed to `compile`, `compileFinal`, `call`, or `spawn` as code.
-- The root signature and format version must be recognized.
-- Clipboard input is limited to 2,000,000 characters before format decoding.
-- A preset may reference at most 20,000 cargo, inheritance, removal, and quantity-limit records in total. The preset array may carry at most 64 metadata records, and the portable envelope may carry at most 256 transport-metadata records.
-- SQF migration is limited to 50,000 quoted values; an unquoted class list is limited to 50,000 tokens.
-- Preset names must contain 1–128 printable characters.
-- Class names must use the identifier shape accepted by Arma config classes: ASCII letters, numbers, and underscore, with a maximum length of 256.
-- Unavailable classes are listed as warnings and removed from the imported copy; the remaining valid classes are preserved.
-- An import containing no currently available classes is rejected.
-- If the profile already contains the name, the creator prompts to overwrite it or create a uniquely named imported copy.
+1. RACA reads the clipboard only in the single-player Creator and assigns the attempt a unique operation ID.
+2. JSON is decoded with `fromJSON`; SQF is never used to decode JSON.
+3. Signature, version, types, name, class identifiers, metadata, inheritance, and runtime policies are validated with cancellable checkpoints.
+4. The review shows authored and unavailable counts plus notices.
+5. A new name offers **Import**. A collision offers **Overwrite**, **Import Copy**, or **Cancel**.
+6. Immediately before commit, RACA verifies the profile library still matches the reviewed baseline. It then performs at most one `saveProfileNamespace` operation.
 
-Every limit is fail-closed and atomic: exceeding one rejects the complete clipboard document before the profile library is written. The limits are intentionally much larger than a normal all-items arsenal while bounding hostile or accidentally repeated input.
+Import text is never passed to `compile`, `compileFinal`, `call`, `spawn`, or `execVM`. There is no fixed item/token/character ceiling that substitutes for the old 20,000-item restriction. Invalid data, cancellation, a newer superseding operation, concurrent profile changes, and engine resource failure leave the library untouched. The engine's native `fromJSON` call itself is not interruptible, but no profile write occurs until all later checkpoints and review have passed.
 
-For migration compatibility, the importer also accepts current raw `RACA_PRESET` arrays and the legacy portable format 0 shape `["RACA_PORTABLE_PRESET", 0, name, buckets]`. Both are converted to the current in-profile schema before saving. Unsupported future format versions are rejected without modifying the profile library.
-
-## Diagnostic JSON exports
-
-The creator also exports `RACA_MOD_MANIFEST` and `RACA_SUPPORT_BUNDLE` JSON documents. A manifest groups every selected class by its detected source mod and owning add-on. A support bundle contains environment metadata, compatibility analysis, that manifest, and a complete portable preset for maintainers to inspect.
-
-These signatures are intentionally not accepted by **Import Auto**. Only `RACA_PORTABLE_PRESET` is the guaranteed preset interchange envelope; keeping diagnostic documents distinct prevents a support attachment from being mistaken for authoring data.
+Supported migration inputs are current version 2, version 1 (upgraded with a notice), legacy format 0 `["RACA_PORTABLE_PRESET", 0, name, buckets]`, and raw `RACA_PRESET` arrays. Unsupported future versions are rejected without mutation.
 
 ### JSON file workflow
 
-1. Choose **JSON preset** and then **Export** in the creator.
-2. Paste the clipboard contents into a UTF-8 `.json` file to archive or share it.
+1. Choose **JSON preset** and **Export to Clipboard**.
+2. Paste the entire clipboard contents into a UTF-8 `.json` file.
 3. On the destination profile, copy the entire file contents.
-4. Open the single-player creator and choose **Import Auto**.
+4. Open **Tutorials > Restricted Arsenal Creator** in single-player and choose **Import Automatically**.
+5. Review unavailable classes/notices, then choose Import, Overwrite, Import Copy, or Cancel.
+
+## Diagnostic JSON exports
+
+`RACA_MOD_MANIFEST` groups selected classes by detected source mod and owning add-on. `RACA_SUPPORT_BUNDLE` contains environment evidence, compatibility analysis, the manifest, and a complete portable preset. These documents are deliberately not importable as presets, preventing a support attachment from being mistaken for authoring data.
 
 ## Reusable mission SQF
 
-The **Reusable SQF** export is a standalone ACE script and has no runtime dependency on RACA. Save it as `raca_arsenal.sqf` in a 3den mission folder. In each arsenal object's Init field, use:
+The **Reusable SQF** export is a standalone ACE script and has no runtime dependency on RACA. Save it as `raca_arsenal.sqf` in a 3den mission folder. In every arsenal object's Init field use:
 
 ```sqf
 [this] execVM "raca_arsenal.sqf";
 ```
 
-Any number of objects can call the same file. The generated script validates the object argument, exits on non-server machines, stores the exported class names in one private array, removes an earlier ACE virtual arsenal from the object, and initializes the restricted ACE Arsenal globally.
+Any number of objects can call the same file. The generated script:
+
+- accepts and validates the passed object;
+- exits on non-server machines;
+- declares one private `_arsenalItems` array containing the complete flattened available selection;
+- de-duplicates the array;
+- removes any earlier ACE virtual arsenal from that object; and
+- initializes the restricted ACE Arsenal globally.
+
+Preset names and instructions are emitted only as safe `//` line comments. Cargo appears only as validated quoted class identifiers. The script does not include RACA access rules, quotas, administration, saved loadouts, audits, or Zeus control.
 
 ### Existing SQF migration
 
-Copy the complete existing SQF file, optionally enter the desired name in **Preset name**, and choose **Import Auto**. The migration parser scans quoted string literals for currently available Arma config classes. It therefore handles the common pattern of several category arrays combined with `+`, as well as `append` or `arrayIntersect` workflows, without needing to understand variable execution order.
+Copy the complete existing SQF file, optionally enter a desired preset name, and choose **Import Automatically**. The conservative lexer recognizes quoted string literals, doubled SQF quotes, `//` line comments, and `/* ... */` block comments. Comment contents are ignored; source code is never compiled or executed. This recovers common category arrays combined with `+`, `append`, or `arrayIntersect` even though RACA does not evaluate variable order.
 
-The SQF is never compiled, called, spawned, or executed. Dynamic class names calculated at runtime cannot be recovered automatically. Missing quoted class names are reported and excluded; an import with no available classes is rejected.
+Only safe class-shaped strings that correspond to loaded catalogue entries can be classified from migration SQF. Dynamic class names computed at runtime cannot be recovered automatically. Review all migration notices and keep the original file until the imported preset has been compared.
 
 ## Simple class list
 
@@ -111,6 +129,10 @@ The **Class list** export produces one alphabetically sorted, de-duplicated line
 30Rnd_65x39_caseless_mag, arifle_MX_F, FirstAidKit
 ```
 
-Copy that line and choose **Import Auto** to turn it back into a named preset. RACA classifies every currently available entry into the correct ACE/BIS virtual-cargo bucket.
+Copy the line and choose **Import Automatically**. RACA tokenizes the plain list and classifies every currently loaded entry into its correct cargo bucket. This is convenient for interchange with other tooling, but only JSON preserves RACA metadata and unavailable authored cargo.
 
-Clipboard reads are intentionally limited to the single-player creator because Arma disables `copyFromClipboard` in multiplayer for security reasons.
+## Clipboard and RPT recovery
+
+All Creator exports and copyable reports use the same Unicode-safe helper. It sends the exact text to the clipboard and also writes chunked, ordered RPT records with a copy ID, code-point length, and checksum. If clipboard contents are lost, use `tools\reconstruct-rpt-copy.ps1` with the RPT path and copy ID. The reconstructed file is accepted only when the recorded chunks, length, and checksum agree.
+
+Arma restricts `copyFromClipboard` to non-multiplayer use, so imports remain a single-player Creator operation. Exports/copy reports still provide RPT recovery evidence when the clipboard path is unavailable.
