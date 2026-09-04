@@ -32,8 +32,23 @@ params ["_player"];
         (!isNil "RACA_fnc_validatePreset" &&
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
+        {!isNil "RACA_fnc_confirmPresetDeletion"} &&
         {!isNil "RACA_fnc_removePresetFromLibrary"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
+        {!isNil "RACA_fnc_edenGetConfigurations"} &&
+        {!isNil "RACA_fnc_edenStoreConfigurations"} &&
+        {!isNil "RACA_fnc_edenConfigurationToObjectConfig"} &&
+        {!isNil "RACA_fnc_edenParseConfigurationEnvelope"} &&
+        {!isNil "RACA_fnc_edenEditorOnUnload"} &&
+        {!isNil "RACA_fnc_handleZeusModuleRequest"} &&
+        {!isNil "RACA_fnc_requestZeusModule"} &&
+        {!isNil "RACA_fnc_copyTextAndLog"} &&
+        {!isNil "RACA_fnc_getCompatibleMagazines"} &&
+        {!isNil "RACA_Test_fnc_consolidatedDataTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedSqfLexerTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedLargeImportTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedEdenTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedCatalogStressTests"} &&
         {!isNil "RACA_fnc_moduleAssign"} &&
         {!isNil "RACA_fnc_moduleClear"} &&
         {!isNil "RACA_fnc_moduleToggle"} &&
@@ -46,8 +61,23 @@ params ["_player"];
         !isNil "RACA_fnc_validatePreset" &&
         {!isNil "RACA_fnc_preflightObjectConfig"} &&
         {!isNil "RACA_fnc_deletePreset"} &&
+        {!isNil "RACA_fnc_confirmPresetDeletion"} &&
         {!isNil "RACA_fnc_removePresetFromLibrary"} &&
         {!isNil "RACA_fnc_edenEditorApply"} &&
+        {!isNil "RACA_fnc_edenGetConfigurations"} &&
+        {!isNil "RACA_fnc_edenStoreConfigurations"} &&
+        {!isNil "RACA_fnc_edenConfigurationToObjectConfig"} &&
+        {!isNil "RACA_fnc_edenParseConfigurationEnvelope"} &&
+        {!isNil "RACA_fnc_edenEditorOnUnload"} &&
+        {!isNil "RACA_fnc_handleZeusModuleRequest"} &&
+        {!isNil "RACA_fnc_requestZeusModule"} &&
+        {!isNil "RACA_fnc_copyTextAndLog"} &&
+        {!isNil "RACA_fnc_getCompatibleMagazines"} &&
+        {!isNil "RACA_Test_fnc_consolidatedDataTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedSqfLexerTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedLargeImportTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedEdenTests"} &&
+        {!isNil "RACA_Test_fnc_consolidatedCatalogStressTests"} &&
         {!isNil "RACA_fnc_moduleAssign"} &&
         {!isNil "RACA_fnc_moduleClear"} &&
         {!isNil "RACA_fnc_moduleToggle"} &&
@@ -64,10 +94,20 @@ params ["_player"];
         "Creator mission directory resolves to the packaged PBO prefix"
     ] call _record;
     [isClass (configFile >> "RACA_RscDisplayCreator"), "Creator display class is registered"] call _record;
+    [isClass (configFile >> "RACA_RscDisplayPresetDeletion"), "Preset Deletion display class is registered"] call _record;
+    [isClass (configFile >> "RACA_RscDisplayEdenConfig"), "Eden Mission Arsenal Tool display is registered"] call _record;
     [isClass (configFile >> "Cfg3DEN" >> "Attributes" >> "RACA_PresetAttribute"), "Eden preset attribute control is registered"] call _record;
     [
         isClass (configFile >> "Cfg3DEN" >> "Object" >> "AttributeCategories" >> "RACA_RestrictedArsenals" >> "Attributes" >> "RACA_Preset"),
         "Eden object attribute is registered"
+    ] call _record;
+    [
+        isClass (configFile >> "Cfg3DEN" >> "Mission" >> "RACA_RestrictedArsenals" >> "AttributeCategories" >> "RACA_ConfigurationStorage" >> "Attributes" >> "RACA_ArsenalConfigurations"),
+        "Mission-wide Eden Arsenal Configuration storage is registered"
+    ] call _record;
+    [
+        isClass (configFile >> "display3DEN" >> "Controls" >> "MenuStrip" >> "Items" >> "RACA_MissionArsenalTool"),
+        "RACA Mission Arsenal Tool is registered in the Eden Tools menu"
     ] call _record;
     private _zeusModuleClasses = ["RACA_ModuleAssign", "RACA_ModuleClear", "RACA_ModuleToggle", "RACA_ModuleResetQuotas"];
     [
@@ -218,14 +258,43 @@ params ["_player"];
 
     private _wasTagsMissing = isNil {profileNamespace getVariable "RACA_catalogTags_v1"};
     private _oldTags = profileNamespace getVariable ["RACA_catalogTags_v1", []];
+    private _wasTagRevisionMissing = isNil {profileNamespace getVariable "RACA_catalogTagsRevision_v1"};
+    private _oldTagRevision = profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0];
     profileNamespace setVariable ["RACA_catalogTags_v1", [["RACA_CATALOG_TAG", 1, "Unit Gear", ["arifle_MX_F", "bad;call", "arifle_MX_F"]]]];
+    profileNamespace setVariable ["RACA_catalogTagsRevision_v1", _oldTagRevision + 1];
     private _normalizedTags = call RACA_fnc_getCatalogTags;
     [
         (count _normalizedTags) isEqualTo 1 &&
         {((_normalizedTags select 0) select 3) isEqualTo ["arifle_MX_F"]},
         "Catalogue tags persist only safe, unique class names"
     ] call _record;
+    private _largeTagMembers = [];
+    _largeTagMembers resize 20001;
+    for "_memberIndex" from 0 to 20000 do {
+        _largeTagMembers set [_memberIndex, format ["RACA_Tag_Member_%1", _memberIndex]]
+    };
+    private _manyTags = [["RACA_CATALOG_TAG", 1, "Large Tag", _largeTagMembers]];
+    for "_tagIndex" from 1 to 100 do {
+        _manyTags pushBack [
+            "RACA_CATALOG_TAG",
+            1,
+            format ["Boundary Tag %1", _tagIndex],
+            [format ["RACA_Tag_Boundary_%1", _tagIndex]]
+        ]
+    };
+    profileNamespace setVariable ["RACA_catalogTags_v1", _manyTags];
+    profileNamespace setVariable ["RACA_catalogTagsRevision_v1", _oldTagRevision + 2];
+    private _largeNormalizedTags = call RACA_fnc_getCatalogTags;
+    private _largeTagIndex = _largeNormalizedTags findIf {(_x select 2) isEqualTo "Large Tag"};
+    private _largeTagMemberCount = if (_largeTagIndex < 0) then {-1} else {count ((_largeNormalizedTags select _largeTagIndex) select 3)};
+    [
+        (count _largeNormalizedTags) isEqualTo 101 &&
+        {_largeTagMemberCount isEqualTo 20001},
+        "Catalogue tags preserve 101 tags and 20,001 members without truncation",
+        format ["tags=%1 largeTagMembers=%2", count _largeNormalizedTags, _largeTagMemberCount]
+    ] call _record;
     if (_wasTagsMissing) then {profileNamespace setVariable ["RACA_catalogTags_v1", nil]} else {profileNamespace setVariable ["RACA_catalogTags_v1", _oldTags]};
+    if (_wasTagRevisionMissing) then {profileNamespace setVariable ["RACA_catalogTagsRevision_v1", nil]} else {profileNamespace setVariable ["RACA_catalogTagsRevision_v1", _oldTagRevision]};
     saveProfileNamespace;
 
     private _portable = [_preset, _catalog] call RACA_fnc_buildPortablePreset;
@@ -237,6 +306,42 @@ params ["_player"];
         _jsonPreset isNotEqualTo [] && {_jsonClasses isEqualTo _expectedClasses},
         "JSON export imports losslessly",
         format ["metadata=%1 notices=%2", count _jsonMetadata, count _jsonWarnings]
+    ] call _record;
+
+    private _copyLongLine = "";
+    for "_copyCharacter" from 1 to 4096 do {_copyLongLine = _copyLongLine + "x"};
+    private _copyNewline = toString [13, 10];
+    private _copyFixture = "RACA copy fixture" + _copyNewline + "blank:" + _copyNewline + _copyNewline +
+        "Unicode: " + toString [937] + " | quoted: ""value"" | slash: " + toString [92] + _copyNewline + _copyLongLine;
+    private _copyId = [_copyFixture, "Automated exact-copy fixture"] call RACA_fnc_copyTextAndLog;
+    private _copyDeadline = diag_tickTime + 10;
+    waitUntil {
+        uiSleep 0.01;
+        (uiNamespace getVariable ["RACA_copyCompleted", -1]) >= _copyId || {diag_tickTime >= _copyDeadline}
+    };
+    forceUnicode 1;
+    private _clipboardText = copyFromClipboard;
+    forceUnicode 1;
+    private _clipboardCodes = toArray _clipboardText;
+    forceUnicode 1;
+    private _expectedClipboardCodes = toArray _copyFixture;
+    private _clipboardDifference = -1;
+    for "_clipboardIndex" from 0 to (((count _clipboardCodes) min (count _expectedClipboardCodes)) - 1) do {
+        if ((_clipboardCodes select _clipboardIndex) isNotEqualTo (_expectedClipboardCodes select _clipboardIndex)) exitWith {
+            _clipboardDifference = _clipboardIndex
+        };
+    };
+    private _expectedClipboardCode = _expectedClipboardCodes param [_clipboardDifference, -1];
+    private _actualClipboardCode = _clipboardCodes param [_clipboardDifference, -1];
+    [
+        _clipboardCodes isEqualTo _expectedClipboardCodes &&
+        {(uiNamespace getVariable ["RACA_copyCompleted", -1]) >= _copyId},
+        "Clipboard and serialized local RPT archive use one exact Unicode/multiline payload",
+        format [
+            "copyId=%1 stringUnits=%2 expectedCodes=%3 actualCodes=%4 firstDifference=%5 expectedCode=%6 actualCode=%7",
+            _copyId, count _copyFixture, count _expectedClipboardCodes, count _clipboardCodes, _clipboardDifference,
+            _expectedClipboardCode, _actualClipboardCode
+        ]
     ] call _record;
 
     private _sqf = [_preset] call RACA_fnc_formatSqfExport;
@@ -254,6 +359,10 @@ params ["_player"];
     private _listClasses = [_listPreset] call RACA_fnc_flattenPresetClasses;
     _listClasses sort true;
     [_listPreset isNotEqualTo [] && {_listClasses isEqualTo _expectedClasses}, "Class-list import recovers all available class names"] call _record;
+
+    [_record, _catalog, _preset] call RACA_Test_fnc_consolidatedDataTests;
+    [_record] call RACA_Test_fnc_consolidatedSqfLexerTests;
+    [_record, _catalog] call RACA_Test_fnc_consolidatedLargeImportTests;
 
     private _unsafeJson = '["RACA_PORTABLE_PRESET",2,["RACA_PRESET",1,"Unsafe",[["arifle_MX_F;call"],[],[],[]]],[]]';
     ([_unsafeJson] call RACA_fnc_decodePortablePreset) params ["_unsafePreset"];
@@ -299,6 +408,8 @@ params ["_player"];
         {(_badEntries findIf {(_x select 1) isEqualTo "DUPLICATE_SLOT_ID"}) >= 0},
         "Malformed object configuration is blocked with specific diagnostics"
     ] call _record;
+
+    [_record, _preset, _access] call RACA_Test_fnc_consolidatedEdenTests;
 
     private _manifest = [_normalizedConfig] call RACA_fnc_buildActionManifest;
     [
@@ -624,9 +735,15 @@ params ["_player"];
     player setUnitLoadout _originalLoadout;
 
     private _zeusTarget = createVehicle ["Box_NATO_Ammo_F", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
-    private _assignLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _zeusLogicGroup = createGroup sideLogic;
+    private _assignLogic = _zeusLogicGroup createUnit ["RACA_ModuleAssign", [4259, 4195, 0], [], 0, "NONE"];
+    // Let the engine's automatic module activation settle before exercising
+    // one deterministic, fully populated placement through the public wrapper.
+    uiSleep 0.1;
+    _assignLogic synchronizeObjectsAdd [_zeusTarget];
     _assignLogic setVariable ["RACA_presetName", "Automated Acceptance"];
     _assignLogic setVariable ["RACA_slotName", "Zeus Acceptance"];
+    _assignLogic setVariable ["RACA_serverHandled", false, true];
     private _zeusAssigned = [_assignLogic, [_zeusTarget], true] call RACA_fnc_moduleAssign;
     uiSleep 0.1;
     private _zeusObjectId = [_zeusTarget] call RACA_fnc_getRuntimeObjectId;
@@ -635,11 +752,14 @@ params ["_player"];
     private _zeusSlot = if (_zeusIndex < 0) then {[]} else {((_zeusRegistry select _zeusIndex) select 1 select 2) param [0, []]};
     [
         _zeusAssigned && {_zeusSlot isNotEqualTo []} && {(_zeusSlot select 1) isEqualTo "Zeus Acceptance"},
-        "Zeus Assign resolves an embedded mission preset and configures a target"
+        "Zeus Assign resolves an embedded mission preset and configures a target",
+        format ["returned=%1 registryIndex=%2 slot=%3 result=%4", _zeusAssigned, _zeusIndex, _zeusSlot, missionNamespace getVariable ["RACA_lastZeusResult", []]]
     ] call _record;
 
-    private _toggleLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _toggleLogic = _zeusLogicGroup createUnit ["RACA_ModuleToggle", [4259, 4195, 0], [], 0, "NONE"];
+    _toggleLogic synchronizeObjectsAdd [_zeusTarget];
     _toggleLogic setVariable ["RACA_enable", false];
+    _toggleLogic setVariable ["RACA_serverHandled", false, true];
     private _zeusDisabled = [_toggleLogic, [_zeusTarget], true] call RACA_fnc_moduleToggle;
     uiSleep 0.1;
     _zeusRegistry = call RACA_fnc_getMissionRegistry;
@@ -651,7 +771,9 @@ params ["_player"];
     ] call _record;
 
     private _quotaBeforeReset = count keys (missionNamespace getVariable ["RACA_quotaState", createHashMap]);
-    private _resetLogic = createAgent ["Logic", [4256, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _resetLogic = _zeusLogicGroup createUnit ["RACA_ModuleResetQuotas", [4256, 4195, 0], [], 0, "NONE"];
+    _resetLogic synchronizeObjectsAdd [_box];
+    _resetLogic setVariable ["RACA_serverHandled", false, true];
     private _zeusReset = [_resetLogic, [_box], true] call RACA_fnc_moduleResetQuotas;
     private _quotaAfterReset = count keys (missionNamespace getVariable ["RACA_quotaState", createHashMap]);
     [
@@ -659,7 +781,47 @@ params ["_player"];
         "Zeus Reset Quotas removes target-scoped quota counters"
     ] call _record;
 
-    private _clearLogic = createAgent ["Logic", [4259, 4195, 0], [], 0, "CAN_COLLIDE"];
+    private _noTargetLogic = _zeusLogicGroup createUnit ["RACA_ModuleClear", [4259, 4195, 0], [], 0, "NONE"];
+    _noTargetLogic setVariable ["RACA_serverHandled", false, true];
+    private _zeusNoTarget = [_noTargetLogic, [], true] call RACA_fnc_moduleClear;
+    private _noTargetResult = missionNamespace getVariable ["RACA_lastZeusResult", []];
+    [
+        !_zeusNoTarget &&
+        {!(_noTargetResult param [2, true])} &&
+        {((_noTargetResult param [1, ""]) find "at least one valid target") >= 0},
+        "Zeus modules reject no-target placement with exact operator feedback"
+    ] call _record;
+
+    private _missingLogic = _zeusLogicGroup createUnit ["RACA_ModuleAssign", [4259, 4195, 0], [], 0, "NONE"];
+    _missingLogic synchronizeObjectsAdd [_zeusTarget];
+    _missingLogic setVariable ["RACA_presetName", "RACA Missing Mission Configuration"];
+    _missingLogic setVariable ["RACA_serverHandled", false, true];
+    private _zeusMissing = [_missingLogic, [_zeusTarget], true] call RACA_fnc_moduleAssign;
+    private _missingResult = missionNamespace getVariable ["RACA_lastZeusResult", []];
+    [
+        !_zeusMissing &&
+        {!(_missingResult param [2, true])} &&
+        {((_missingResult param [1, ""]) find "was not found") >= 0},
+        "Zeus Assign rejects a missing mission configuration without profile fallback"
+    ] call _record;
+
+    missionNamespace setVariable ["RACA_allowZeusModules", false];
+    private _disabledLogic = _zeusLogicGroup createUnit ["RACA_ModuleClear", [4259, 4195, 0], [], 0, "NONE"];
+    _disabledLogic synchronizeObjectsAdd [_zeusTarget];
+    _disabledLogic setVariable ["RACA_serverHandled", false, true];
+    private _zeusBlocked = [_disabledLogic, [_zeusTarget], true] call RACA_fnc_moduleClear;
+    private _disabledResult = missionNamespace getVariable ["RACA_lastZeusResult", []];
+    missionNamespace setVariable ["RACA_allowZeusModules", true];
+    [
+        !_zeusBlocked &&
+        {!(_disabledResult param [2, true])} &&
+        {((_disabledResult param [1, ""]) find "disabled by the mission") >= 0},
+        "Mission policy can disable Zeus modules with an observable rejection"
+    ] call _record;
+
+    private _clearLogic = _zeusLogicGroup createUnit ["RACA_ModuleClear", [4259, 4195, 0], [], 0, "NONE"];
+    _clearLogic synchronizeObjectsAdd [_zeusTarget];
+    _clearLogic setVariable ["RACA_serverHandled", false, true];
     private _zeusCleared = [_clearLogic, [_zeusTarget], true] call RACA_fnc_moduleClear;
     uiSleep 0.1;
     _zeusRegistry = call RACA_fnc_getMissionRegistry;
@@ -667,6 +829,8 @@ params ["_player"];
         _zeusCleared && {(_zeusRegistry findIf {(_x param [4, ""]) isEqualTo _zeusObjectId}) < 0},
         "Zeus Clear removes the target from the mission registry"
     ] call _record;
+    {deleteVehicle _x} forEach [_assignLogic, _toggleLogic, _resetLogic, _noTargetLogic, _missingLogic, _disabledLogic, _clearLogic];
+    deleteGroup _zeusLogicGroup;
     deleteVehicle _zeusTarget;
 
     private _wasOnboardingMissing = isNil {profileNamespace getVariable "RACA_onboardingSeen_v1"};
@@ -680,12 +844,16 @@ params ["_player"];
     uiSleep 0.75;
     private _deleteControl = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1616};
     [!isNull _creatorDisplay, "Creator display opens inside the packaged runtime"] call _record;
-    [!isNull _deleteControl && {ctrlText _deleteControl isEqualTo "DELETE"}, "Preset deletion control is present in the live Creator"] call _record;
+    [!isNull _deleteControl && {ctrlText _deleteControl isEqualTo "Delete"}, "Preset deletion control is present in the live Creator"] call _record;
     private _quickStartDisplay = if (isNull _creatorDisplay) then {displayNull} else {[_creatorDisplay] call RACA_fnc_openQuickStart};
     uiSleep 0.1;
     [!isNull _quickStartDisplay && {!isNull findDisplay 904110}, "Quick Start opens as a live guided Creator workflow"] call _record;
     if (!isNull _quickStartDisplay) then {_quickStartDisplay closeDisplay 2};
 
+    if (!isNull _creatorDisplay) then {
+        (_creatorDisplay displayCtrl 1400) ctrlSetText "arifle_MX_F";
+        [_creatorDisplay] call RACA_fnc_refreshItemList;
+    };
     private _creatorList = if (isNull _creatorDisplay) then {controlNull} else {_creatorDisplay displayCtrl 1500};
     private _weaponRow = -1;
     if (!isNull _creatorList) then {
@@ -693,7 +861,11 @@ params ["_player"];
             if ((_creatorList lnbData [_row, 0]) isEqualTo "arifle_MX_F") exitWith {_weaponRow = _row};
         };
     };
-    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    if (_weaponRow >= 0) then {
+        _creatorList lnbSetCurSelRow _weaponRow;
+        _creatorDisplay setVariable ["RACA_highlighted", createHashMapFromArray [["arifle_MX_F", true]]];
+        _creatorDisplay setVariable ["RACA_focusedClass", "arifle_MX_F"];
+    };
     private _detailsOpened = _weaponRow >= 0 && {[_creatorDisplay] call RACA_fnc_openItemDetails};
     uiSleep 0.1;
     private _detailsDisplay = findDisplay 904160;
@@ -702,6 +874,31 @@ params ["_player"];
         {!isNull _detailsDisplay} &&
         {(uiNamespace getVariable ["RACA_itemDetailsClass", ""]) isEqualTo "arifle_MX_F"},
         "Item details opens for the selected catalogue class"
+    ] call _record;
+    private _compatibleMagazines = ["arifle_MX_F"] call RACA_fnc_getCompatibleMagazines;
+    private _catalogViewBeforeMagazines = [_creatorDisplay] call RACA_fnc_captureCatalogView;
+    private _showedMagazines = !isNull _detailsDisplay && {[_detailsDisplay] call RACA_fnc_showMagazines; true};
+    uiSleep 0.2;
+    private _magazineResults = uiNamespace getVariable ["RACA_visibleClasses", []];
+    private _magazineResultSet = createHashMapFromArray (_magazineResults apply {[_x, true]});
+    private _magazineFilterExact =
+        _showedMagazines &&
+        {_compatibleMagazines isNotEqualTo []} &&
+        {(count _magazineResults) isEqualTo (count _compatibleMagazines)} &&
+        {(_compatibleMagazines findIf {!(_magazineResultSet getOrDefault [_x, false])}) < 0};
+    [_creatorDisplay] call RACA_fnc_clearMagazineFilter;
+    uiSleep 0.3;
+    private _catalogViewAfterMagazines = [_creatorDisplay] call RACA_fnc_captureCatalogView;
+    [
+        _magazineFilterExact &&
+        {(_catalogViewAfterMagazines select 0) isEqualTo (_catalogViewBeforeMagazines select 0)} &&
+        {(_catalogViewAfterMagazines select 1) isEqualTo (_catalogViewBeforeMagazines select 1)} &&
+        {(_catalogViewAfterMagazines select 2) isEqualTo (_catalogViewBeforeMagazines select 2)} &&
+        {(_catalogViewAfterMagazines select 3) isEqualTo (_catalogViewBeforeMagazines select 3)} &&
+        {(_catalogViewAfterMagazines select 8) isEqualTo (_catalogViewBeforeMagazines select 8)} &&
+        {(uiNamespace getVariable ["RACA_magazineFilterContext", []]) isEqualTo []},
+        "Show Magazines resolves every loaded compatible class and Clear restores the exact prior catalogue view",
+        format ["magazines=%1 visible=%2", count _compatibleMagazines, count _magazineResults]
     ] call _record;
     if (!isNull _detailsDisplay) then {_detailsDisplay closeDisplay 2};
 
@@ -717,7 +914,11 @@ params ["_player"];
     [_viewsOpened && {!isNull _viewsDisplay}, "Saved catalogue-view manager opens inside the live Creator"] call _record;
     if (!isNull _viewsDisplay) then {_viewsDisplay closeDisplay 2};
 
-    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    if (_weaponRow >= 0) then {
+        _creatorList lnbSetCurSelRow _weaponRow;
+        _creatorDisplay setVariable ["RACA_highlighted", createHashMapFromArray [["arifle_MX_F", true]]];
+        _creatorDisplay setVariable ["RACA_focusedClass", "arifle_MX_F"];
+    };
     private _tagsOpened = [_creatorDisplay] call RACA_fnc_openCatalogTags;
     uiSleep 0.1;
     private _tagsDisplay = findDisplay 904190;
@@ -735,12 +936,17 @@ params ["_player"];
     uiNamespace setVariable ["RACA_catalogFavorites", createHashMap];
     profileNamespace setVariable ["RACA_favoriteClasses_v1", []];
     [_creatorDisplay] call RACA_fnc_refreshItemList;
+    _creatorDisplay setVariable ["RACA_highlighted", createHashMap];
     _creatorList = _creatorDisplay displayCtrl 1500;
     _weaponRow = -1;
     for "_row" from 0 to (((lnbSize _creatorList) select 0) - 1) do {
         if ((_creatorList lnbData [_row, 0]) isEqualTo "arifle_MX_F") exitWith {_weaponRow = _row};
     };
-    if (_weaponRow >= 0) then {_creatorList lnbSetCurSelRow _weaponRow};
+    if (_weaponRow >= 0) then {
+        _creatorList lnbSetCurSelRow _weaponRow;
+        _creatorDisplay setVariable ["RACA_highlighted", createHashMapFromArray [["arifle_MX_F", true]]];
+        _creatorDisplay setVariable ["RACA_focusedClass", "arifle_MX_F"];
+    };
     private _favoriteAdded = _weaponRow >= 0 && {[_creatorDisplay] call RACA_fnc_toggleFavorite};
     private _storedFavoritesAfterAdd = profileNamespace getVariable ["RACA_favoriteClasses_v1", []];
     private _favoriteRemoved = [_creatorDisplay] call RACA_fnc_toggleFavorite;
@@ -756,6 +962,8 @@ params ["_player"];
     if (_wasFavoritesMissing) then {profileNamespace setVariable ["RACA_favoriteClasses_v1", nil]} else {profileNamespace setVariable ["RACA_favoriteClasses_v1", _oldFavoriteClasses]};
     saveProfileNamespace;
 
+    [_record, _creatorDisplay] call RACA_Test_fnc_consolidatedCatalogStressTests;
+
     private _oldSelectedKeys = keys (uiNamespace getVariable ["RACA_builderSelected", createHashMap]);
     private _oldInheritedKeys = keys (uiNamespace getVariable ["RACA_builderInherited", createHashMap]);
     private _oldLimitRecords = [];
@@ -764,20 +972,44 @@ params ["_player"];
     private _oldComposition = +(uiNamespace getVariable ["RACA_builderComposition", []]);
     private _oldUndo = +(uiNamespace getVariable ["RACA_creatorUndo", []]);
     private _oldRedo = +(uiNamespace getVariable ["RACA_creatorRedo", []]);
+    private _oldRawPreset = +(uiNamespace getVariable ["RACA_builderRawPreset", []]);
+    private _oldOrigin = uiNamespace getVariable ["RACA_builderOrigin", ""];
+    private _oldDraftName = ctrlText (_creatorDisplay displayCtrl 1401);
+    private _oldDirty = uiNamespace getVariable ["RACA_creatorDirty", false];
     uiNamespace setVariable ["RACA_builderSelected", createHashMap];
     uiNamespace setVariable ["RACA_builderInherited", createHashMap];
     uiNamespace setVariable ["RACA_builderLimits", createHashMap];
     uiNamespace setVariable ["RACA_builderComposition", []];
     uiNamespace setVariable ["RACA_creatorUndo", []];
     uiNamespace setVariable ["RACA_creatorRedo", []];
+    private _identityA = ["RACA_PRESET", 1, "Identity A", [["FirstAidKit"], [], [], []], ["RACA_AUTOTEST_IDENTITY", 1, "A"]];
+    private _identityB = ["RACA_PRESET", 1, "Identity B", [[], ["arifle_MX_F"], [], []], ["RACA_AUTOTEST_IDENTITY", 1, "B"]];
+    (_creatorDisplay displayCtrl 1401) ctrlSetText "Identity A";
+    uiNamespace setVariable ["RACA_builderRawPreset", +_identityA];
+    uiNamespace setVariable ["RACA_builderOrigin", "Identity A"];
     private _historyPushed = [_creatorDisplay] call RACA_fnc_pushCreatorHistory;
     private _changedSelection = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
     _changedSelection set ["arifle_MX_F", true];
+    (_creatorDisplay displayCtrl 1401) ctrlSetText "Identity B";
+    uiNamespace setVariable ["RACA_builderRawPreset", +_identityB];
+    uiNamespace setVariable ["RACA_builderOrigin", "Identity B"];
     private _undone = [_creatorDisplay, "UNDO"] call RACA_fnc_restoreCreatorHistory;
     private _absentAfterUndo = !((uiNamespace getVariable ["RACA_builderSelected", createHashMap]) getOrDefault ["arifle_MX_F", false]);
+    private _identityAfterUndo =
+        ctrlText (_creatorDisplay displayCtrl 1401) isEqualTo "Identity A" &&
+        {(uiNamespace getVariable ["RACA_builderOrigin", ""]) isEqualTo "Identity A"} &&
+        {(uiNamespace getVariable ["RACA_builderRawPreset", []]) isEqualTo _identityA};
     private _redone = [_creatorDisplay, "REDO"] call RACA_fnc_restoreCreatorHistory;
     private _presentAfterRedo = (uiNamespace getVariable ["RACA_builderSelected", createHashMap]) getOrDefault ["arifle_MX_F", false];
-    [_historyPushed && {_undone} && {_absentAfterUndo} && {_redone} && {_presentAfterRedo}, "Creator selection changes support live undo and redo"] call _record;
+    private _identityAfterRedo =
+        ctrlText (_creatorDisplay displayCtrl 1401) isEqualTo "Identity B" &&
+        {(uiNamespace getVariable ["RACA_builderOrigin", ""]) isEqualTo "Identity B"} &&
+        {(uiNamespace getVariable ["RACA_builderRawPreset", []]) isEqualTo _identityB};
+    [
+        _historyPushed && {_undone} && {_absentAfterUndo} && {_identityAfterUndo} &&
+        {_redone} && {_presentAfterRedo} && {_identityAfterRedo},
+        "Creator Undo and Redo restore contents, name, raw metadata, and save-target identity"
+    ] call _record;
     private _restoredSelected = createHashMap;
     {_restoredSelected set [_x, true]} forEach _oldSelectedKeys;
     private _restoredInherited = createHashMap;
@@ -788,6 +1020,10 @@ params ["_player"];
     uiNamespace setVariable ["RACA_builderInherited", _restoredInherited];
     uiNamespace setVariable ["RACA_builderLimits", _restoredLimits];
     uiNamespace setVariable ["RACA_builderComposition", _oldComposition];
+    uiNamespace setVariable ["RACA_builderRawPreset", _oldRawPreset];
+    uiNamespace setVariable ["RACA_builderOrigin", _oldOrigin];
+    uiNamespace setVariable ["RACA_creatorDirty", _oldDirty];
+    (_creatorDisplay displayCtrl 1401) ctrlSetText _oldDraftName;
     uiNamespace setVariable ["RACA_creatorUndo", _oldUndo];
     uiNamespace setVariable ["RACA_creatorRedo", _oldRedo];
     [_creatorDisplay] call RACA_fnc_refreshItemList;
@@ -828,10 +1064,11 @@ params ["_player"];
         _preflightOpened &&
         {!isNull _preflightDisplay} &&
         {!isNull _preflightSummaryControl} &&
-        {(ctrlText _preflightSummaryControl) find "PASSED" >= 0} &&
+        {(ctrlText _preflightSummaryControl) find "Blocked" >= 0} &&
         {!isNull _preflightListControl} &&
-        {((lnbSize _preflightListControl) select 0) > 0},
-        "Compatibility details render a completed report without a UI script error"
+        {((lnbSize _preflightListControl) select 0) > 0} &&
+        {(_preflightListControl lnbText [0, 1]) isEqualTo "EMPTY_PRESET"},
+        "Compatibility defaults to Errors and blocks an empty draft without a UI script error"
     ] call _record;
     if (!isNull _preflightDisplay) then {_preflightDisplay closeDisplay 2};
     if (!isNull _creatorDisplay) then {_creatorDisplay closeDisplay 2};

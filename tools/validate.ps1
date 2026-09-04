@@ -106,6 +106,11 @@ $requiredRelativeFiles = @(
     'addons\eden\functions\fn_edenDashboardBulk.sqf',
     'addons\eden\functions\fn_edenDashboardCopy.sqf',
     'addons\eden\functions\fn_edenDashboardRefresh.sqf',
+    'addons\eden\functions\fn_edenDashboardSelect.sqf',
+    'addons\eden\functions\fn_edenConfigurationToObjectConfig.sqf',
+    'addons\eden\functions\fn_edenGetConfigurations.sqf',
+    'addons\eden\functions\fn_edenStoreConfigurations.sqf',
+    'addons\eden\functions\fn_edenSwitchTab.sqf',
     'docs\PORTABLE_PRESET_FORMAT.md',
     'tests\multiplayer\RACA_Rehearsal.VR\mission.sqm',
     'tests\multiplayer\RACA_Rehearsal.VR\description.ext',
@@ -277,19 +282,43 @@ if (Test-Path -LiteralPath $edenCfgPath -PathType Leaf) {
     if ($edenCfg -notmatch 'RACA_fnc_applyObjectConfig') {
         $failures.Add("The Eden runtime expression must apply the authored multi-slot object configuration.")
     }
+    if ($edenCfg -match '(?s)class\s+RACA_Preset\s*\{.*?\bvalue\s*=') {
+        $failures.Add("The array-valued Eden preset attribute must not declare the scalar-only 'value' property.")
+    }
+    if ($edenCfg -notmatch 'RACA_ArsenalConfigurations' -or
+        $edenCfg -notmatch 'RACA_missionArsenalConfigurations') {
+        $failures.Add("Eden must serialize the reusable Arsenal Configuration library into a mission attribute.")
+    }
+}
+
+$edenAddonConfigPath = Join-Path $addonsDirectory 'eden\config.cpp'
+if (Test-Path -LiteralPath $edenAddonConfigPath -PathType Leaf) {
+    $edenAddonConfig = Get-Content -Raw -LiteralPath $edenAddonConfigPath
+    foreach ($requiredPattern in @('class\s+display3DEN', 'class\s+Tools', 'items\[\]\s*\+=', 'RACA Mission Arsenal Tool', 'RACA_fnc_edenOpenEditor')) {
+        if ($edenAddonConfig -notmatch $requiredPattern) {
+            $failures.Add("The Eden Tools menu integration is missing '$requiredPattern'.")
+        }
+    }
 }
 
 $edenDialogPath = Join-Path $addonsDirectory 'eden\ui\EdenConfigDialog.hpp'
 if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
     $edenDialog = Get-Content -Raw -LiteralPath $edenDialogPath
     foreach ($requiredPattern in @(
-        '(?i)SLOTS(\s+ON THIS\s+OBJECT)?',
-        '(?i)ACCESS RULES',
-        '(?i)MISSION[-\s]*WIDE\s+DASHBOARD',
-        '(?i)(APPLY CONFIGURATION|Apply configuration)',
-        '(?i)(ASSIGN TO SELECTED|Assign to selected)',
-        '(?i)(CLEAR SELECTED|Clear selected)',
-        '(?i)(COPY REPORT|Copy report)'
+        '(?i)MISSION\s+DASHBOARD',
+        '(?i)CONFIGURE',
+        '(?i)ARSENAL\s+CONFIGURATION',
+        '(?i)ITEM\s+NAME',
+        '(?i)CLASS\s+NAME',
+        '(?i)VARIABLE\s+NAME',
+        '(?i)APPLY\s+TO\s+OBJECT',
+        '(?i)ACCESS\s+RULES',
+        '(?i)SAVE\s+CONFIGURATION',
+        '(?i)COPY\s+REPORT',
+        'RACA_EDEN_IDC_DASHBOARD_GROUP',
+        'RACA_EDEN_IDC_CONFIGURE_GROUP',
+        'GUI_BCG_RGB_R',
+        'font\s*=\s*"Purista'
     )) {
         if ($edenDialog -notmatch $requiredPattern) {
             $failures.Add("The Eden configuration editor is missing required pattern '$requiredPattern'.")
@@ -297,6 +326,13 @@ if (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
     }
     if ($edenDialog -notmatch 'spawn\s+RACA_fnc_edenDashboardBulk') {
         $failures.Add('Mission-wide Eden confirmations must run in a scheduled environment.')
+    }
+    if ($edenDialog -notmatch '(?s)class\s+HeaderBar\s*:\s*ctrlStatic\s*\{.*?text\s*=\s*"RACA Mission Arsenal Tool".*?colorText\[\]\s*=\s*\{1,\s*1,\s*1,\s*1\}' -or
+        $edenDialog -notmatch '(?s)class\s+HeaderBar\s*:\s*ctrlStatic\s*\{.*?text\s*=\s*"RACA Access-Rule Test".*?colorText\[\]\s*=\s*\{1,\s*1,\s*1,\s*1\}') {
+        $failures.Add('Eden tool profile-color header bars must directly render their centered white titles.')
+    }
+    if ($edenDialog -match 'class\s+\w+\s*:\s*ctrlButton') {
+        $failures.Add('Eden tool buttons must use the title-case RscButton style instead of ctrlButton uppercase rendering.')
     }
 }
 
@@ -337,7 +373,7 @@ else {
         $edenCommit -notmatch 'count _denialMessage\) > 512' -or
         $edenCommit -notmatch 'count _icon\) > 512' -or
         $edenApply -notmatch 'if !\(\[_display, -1, false\] call RACA_fnc_edenEditorCommitSlot\)' -or
-        $edenApply -notmatch 'RACA_fnc_preflightObjectConfig') {
+        $edenApply -notmatch 'RACA_fnc_validateConfigurationForAssignment') {
         $failures.Add('Eden slot edits must validate field bounds, stop when commit fails, and pass object preflight before application.')
     }
     foreach ($edenCommitCaller in $edenCommitCallers) {
@@ -357,26 +393,40 @@ else {
 $edenBulkPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardBulk.sqf'
 if (Test-Path -LiteralPath $edenBulkPath -PathType Leaf) {
     $edenBulk = Get-Content -Raw -LiteralPath $edenBulkPath
-    foreach ($requiredPattern in @('get3DENSelected', 'BIS_fnc_guiMessage', 'collect3DENHistory', 'set3DENAttribute')) {
+    foreach ($requiredPattern in @('RACA_EDEN_IDC_DASHBOARD_LIST', 'RACA_EDEN_IDC_DASHBOARD_ASSIGNMENT', 'RACA_fnc_validateConfigurationForAssignment', 'BIS_fnc_guiMessage', 'closeDisplay 1', 'RACA_fnc_edenOpenEditor', 'set3DENAttributes', 'get3DENEntityID', 'do3DENAction "OpenAttributes"', 'RACA_edenNativeTransaction', '_didSet', 'get3DENAttribute', '_stored isEqualTo _value')) {
         if ($edenBulk -notmatch $requiredPattern) {
-            $failures.Add("Mission-wide Eden updates are missing '$requiredPattern'.")
+            $failures.Add("The Eden Dashboard assignment workflow is missing '$requiredPattern'.")
+        }
+    }
+}
+
+$edenAttributeLoadPath = Join-Path $addonsDirectory 'eden\functions\fn_edenAttributeLoad.sqf'
+if (Test-Path -LiteralPath $edenAttributeLoadPath -PathType Leaf) {
+    $edenAttributeLoad = Get-Content -Raw -LiteralPath $edenAttributeLoadPath
+    foreach ($requiredPattern in @('RACA_EDEN_NATIVE_TRANSACTION', 'RACA_edenNativeTransaction', 'get3DENSelected "Object"', 'RACA_EDEN_IDC_PRESET', 'ctrlActivate', 'displayCtrl 1', 'library changed', 'selection changed')) {
+        if ($edenAttributeLoad -notmatch $requiredPattern) {
+            $failures.Add("The native Eden attribute bridge is missing '$requiredPattern'.")
         }
     }
 }
 
 $edenDashboardRefreshPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardRefresh.sqf'
 $edenDashboardCopyPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardCopy.sqf'
+$edenDashboardRenderPath = Join-Path $addonsDirectory 'eden\functions\fn_edenDashboardRenderPage.sqf'
 if (-not (Test-Path -LiteralPath $edenDashboardRefreshPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $edenDashboardCopyPath -PathType Leaf)) {
+    -not (Test-Path -LiteralPath $edenDashboardCopyPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $edenDashboardRenderPath -PathType Leaf)) {
     $failures.Add('The Eden mission dashboard must provide mission-wide preflight and report-copy functions.')
 }
 else {
     $edenDashboard = (Get-Content -Raw -LiteralPath $edenDashboardRefreshPath) +
         [Environment]::NewLine +
+        (Get-Content -Raw -LiteralPath $edenDashboardRenderPath) +
+        [Environment]::NewLine +
         (Get-Content -Raw -LiteralPath $edenDashboardCopyPath)
-    foreach ($requiredPattern in @('RACA_fnc_preflightObjectConfig', 'lbSetColor', 'BLOCKED', 'WARN', 'READY', 'RACA_dashboardMissionReport', 'copyToClipboard')) {
+    foreach ($requiredPattern in @('all3DENEntities\s+select\s+0', 'RACA_EDEN_IDC_VARIABLE_FILTER', 'RACA_EDEN_IDC_OBJECT_FILTER', 'RACA_EDEN_IDC_DASHBOARD_SEARCH', 'lnbAddRow', 'lnbSetColor', 'RACA_fnc_preflightObjectConfig', 'RACA_dashboardMissionReport', 'RACA_fnc_copyTextAndLog')) {
         if ($edenDashboard -notmatch $requiredPattern) {
-            $failures.Add("The Eden mission preflight dashboard is missing '$requiredPattern'.")
+            $failures.Add("The Eden mission-object Dashboard is missing '$requiredPattern'.")
         }
     }
     foreach ($requiredPattern in @('RACA_transactionPreflightReport', 'RACA_transactionPreflightSummary')) {
@@ -443,12 +493,28 @@ if (Test-Path -LiteralPath $creatorMissionPath -PathType Leaf) {
 $creatorUiPath = Join-Path $addonsDirectory 'core\ui\RscDisplayCreator.hpp'
 if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     $creatorUi = Get-Content -Raw -LiteralPath $creatorUiPath
-    if ($creatorUi -notmatch 'onMouseButtonUp\s*=\s*"[^"\r\n]*spawn[^"\r\n]*uiSleep[^"\r\n]*RACA_fnc_toggleRow') {
-        $failures.Add("The item list must defer its mouse-up toggle until ListNBox commits the clicked row.")
+    if ($creatorUi -notmatch 'style\s*=\s*32' -or $creatorUi -notmatch 'RACA_fnc_toggleRow') {
+        $failures.Add("The item list must use explicit multi-selection style and the class-identity toggle controller.")
     }
     if ($creatorUi -notmatch 'idc\s*=\s*RACA_IDC_EXPORT_FORMAT' -or
         $creatorUi -notmatch 'text\s*=\s*"Import Automatically"') {
         $failures.Add("The creator must expose the export-format selector and automatic importer.")
+    }
+    $creatorOnLoadPath = Join-Path $addonsDirectory 'core\functions\ui\fn_creatorOnLoad.sqf'
+    if (Test-Path -LiteralPath $creatorOnLoadPath -PathType Leaf) {
+        $creatorOnLoad = Get-Content -Raw -LiteralPath $creatorOnLoadPath
+        if ($creatorOnLoad -notmatch 'lbSetTooltip' -or
+            $creatorOnLoad -notmatch 'lossless RACA re-import' -or
+            $creatorOnLoad -notmatch 'mission-folder script' -or
+            $creatorOnLoad -notmatch 'comma-separated list' -or
+            $creatorOnLoad -notmatch 'mission deployment' -or
+            $creatorOnLoad -notmatch 'diagnostic context') {
+            $failures.Add('Every Creator export format must provide option-specific hover guidance explaining when to choose it.')
+        }
+    }
+    if ($creatorUi -notmatch 'text\s*=\s*"Limit Selection"' -or
+        $creatorUi -match 'text\s*=\s*"Limit Item"') {
+        $failures.Add("The multi-row quantity action must be labelled 'Limit Selection'.")
     }
     if ($creatorUi -notmatch 'spawn\s+RACA_fnc_importPreset') {
         $failures.Add('Import Auto must run in a scheduled environment so duplicate-preset confirmation can suspend safely.')
@@ -553,11 +619,10 @@ if (Test-Path -LiteralPath $portableImportPath -PathType Leaf) {
     if ($portableImport -match '(?i)\bcompile(?:Final)?\s+(?:_text|copyFromClipboard)\b') {
         $failures.Add("Portable preset import must never compile clipboard or imported text.")
     }
-    if ($portableImport -notmatch '2000000' -or
-        $portableImport -notmatch '20000' -or
-        $portableImport -notmatch '256' -or
+    if ($portableImport -match '2000000|20000-reference|metadata safety limit' -or
+        $portableImport -notmatch 'RACA_fnc_importCheckpoint' -or
         $portableImport -notmatch 'RACA_PORTABLE_PRESET') {
-        $failures.Add("Portable preset import must enforce the documented character, reference, and metadata limits alongside its versioned signature.")
+        $failures.Add("Portable import must use measured, cancellable batches without obsolete arbitrary size ceilings.")
     }
 }
 
@@ -569,12 +634,22 @@ if (Test-Path -LiteralPath $portableExportPath -PathType Leaf) {
             $failures.Add("Preset export is missing the '$formatName' format path.")
         }
     }
-    if ($portableExport -notmatch '\bcopyToClipboard\b') {
-        $failures.Add("Preset export must copy its selected output to the clipboard.")
+    if ($portableExport -notmatch 'RACA_fnc_copyTextAndLog') {
+        $failures.Add("Preset export must route its immutable output through the clipboard/RPT archive helper.")
     }
 }
 
 $portableJsonFormatPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatPortableJson.sqf'
+$clipboardRecoveryPath = Join-Path $repositoryRoot 'tools\reconstruct-rpt-copy.ps1'
+if (-not (Test-Path -LiteralPath $clipboardRecoveryPath -PathType Leaf)) {
+    $failures.Add("The RPT clipboard archive must include its integrity-checking reconstruction utility.")
+}
+$directClipboardUse = Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File -Filter '*.sqf' |
+    Where-Object {$_.Name -ne 'fn_copyTextAndLog.sqf'} |
+    Select-String -Pattern '\bcopyToClipboard\b'
+if ($directClipboardUse) {
+    $failures.Add("All clipboard writes must route through fn_copyTextAndLog.sqf so the exact payload is archived to RPT.")
+}
 if (Test-Path -LiteralPath $portableJsonFormatPath -PathType Leaf) {
     $portableJsonFormat = Get-Content -Raw -LiteralPath $portableJsonFormatPath
     if ($portableJsonFormat -notmatch '\btoJSON\b') {
@@ -588,11 +663,12 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     if ($sqfImport -match '(?i)\b(?:compile|compileFinal|execVM|preprocessFile|loadFile)\b') {
         $failures.Add("Legacy SQF import must scan text only and must never load or execute it.")
     }
-    if ($sqfImport -notmatch '2000000' -or
-        $sqfImport -notmatch '50000' -or
-        $sqfImport -notmatch '20000' -or
-        $sqfImport -notmatch '\bRACA_fnc_classifyClass\b') {
-        $failures.Add("Legacy SQF import must use current-config classification and enforce the documented character, token, and class limits.")
+    if ($sqfImport -match '2000000|50000|20000' -or
+        $sqfImport -notmatch 'RACA_fnc_importCheckpoint' -or
+        $sqfImport -notmatch 'LINECOMMENT' -or
+        $sqfImport -notmatch 'BLOCKCOMMENT' -or
+        $sqfImport -notmatch '\bRACA_fnc_classifyCached\b') {
+        $failures.Add("Legacy SQF import must use a comment-aware, measured, cancellable lexer without obsolete arbitrary size ceilings.")
     }
     if ($sqfImport -notmatch '_isSqfIdentifier' -or $sqfImport -notmatch '\(_candidate find "_fnc_"\)') {
         $failures.Add("Legacy SQF import must ignore quoted local variables and function identifiers.")
@@ -609,7 +685,7 @@ if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
         'arrayIntersect _arsenalItems',
         'ace_arsenal_fnc_removeBox',
         'ace_arsenal_fnc_initBox',
-        '\[this\] execVM "raca_arsenal\.sqf"'
+        '\[this\] execVM ""raca_arsenal\.sqf""'
     )) {
         if ($sqfExport -notmatch $requiredPattern) {
             $failures.Add("Reusable SQF export is missing required mission behavior matching '$requiredPattern'.")
@@ -638,14 +714,22 @@ if (Test-Path -LiteralPath $cyclePath -PathType Leaf) {
 
 $deletePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_deletePreset.sqf'
 $removePresetPath = Join-Path $addonsDirectory 'core\functions\presets\fn_removePresetFromLibrary.sqf'
-if (-not (Test-Path -LiteralPath $deletePresetPath -PathType Leaf) -or -not (Test-Path -LiteralPath $removePresetPath -PathType Leaf)) {
+$presetDeletionOnLoadPath = Join-Path $addonsDirectory 'core\functions\presets\fn_presetDeletionOnLoad.sqf'
+$confirmPresetDeletionPath = Join-Path $addonsDirectory 'core\functions\presets\fn_confirmPresetDeletion.sqf'
+if (-not (Test-Path -LiteralPath $deletePresetPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $removePresetPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $presetDeletionOnLoadPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $confirmPresetDeletionPath -PathType Leaf)) {
     $failures.Add("The preset library must provide a guarded deletion workflow.")
 }
 else {
     $deletePresetSource = Get-Content -Raw -LiteralPath $deletePresetPath
     $removePresetSource = Get-Content -Raw -LiteralPath $removePresetPath
-    foreach ($requiredPattern in @('BIS_fnc_guiMessage', 'RACA_fnc_removePresetFromLibrary', 'unsaved recovery copy')) {
-        if ($deletePresetSource -notmatch [regex]::Escape($requiredPattern)) {
+    $presetDeletionOnLoadSource = Get-Content -Raw -LiteralPath $presetDeletionOnLoadPath
+    $confirmPresetDeletionSource = Get-Content -Raw -LiteralPath $confirmPresetDeletionPath
+    $presetDeletionSource = $deletePresetSource + $presetDeletionOnLoadSource + $confirmPresetDeletionSource
+    foreach ($requiredPattern in @('RACA_RscDisplayPresetDeletion', 'Are you sure you want to delete %1?', 'RACA_fnc_removePresetFromLibrary', 'unsaved recovery copy')) {
+        if ($presetDeletionSource -notmatch [regex]::Escape($requiredPattern)) {
             $failures.Add("Preset deletion is missing required behavior '$requiredPattern'.")
         }
     }
@@ -684,13 +768,13 @@ else {
 }
 
 $modalWorkflowPaths = @(
-    'core\functions\presets\fn_deletePreset.sqf',
     'core\functions\presets\fn_importPreset.sqf',
     'core\functions\ui\fn_requestCreatorClose.sqf',
     'core\functions\ui\fn_offerDraftRecovery.sqf',
     'core\functions\ui\fn_restorePresetRevision.sqf',
     'core\functions\runtime\fn_adminExecute.sqf',
-    'eden\functions\fn_edenDashboardBulk.sqf'
+    'eden\functions\fn_edenDashboardBulk.sqf',
+    'eden\functions\fn_edenEditorRemoveSlot.sqf'
 )
 foreach ($modalWorkflowRelativePath in $modalWorkflowPaths) {
     $modalWorkflowPath = Join-Path $addonsDirectory $modalWorkflowRelativePath
@@ -703,7 +787,12 @@ foreach ($modalWorkflowRelativePath in $modalWorkflowPaths) {
     if ($modalWorkflowSource -notmatch 'disableSerialization\s*;') {
         $failures.Add("Modal workflow '$modalWorkflowRelativePath' must preserve UI handles across scheduled confirmation dialogs.")
     }
-    if ($modalWorkflowSource -notmatch 'findDisplay\s+RACA_') {
+    if ($modalWorkflowRelativePath -eq 'core\functions\presets\fn_importPreset.sqf') {
+        if ($modalWorkflowSource -notmatch 'RACA_importId' -or $modalWorkflowSource -notmatch 'RACA_choice' -or $modalWorkflowSource -notmatch 'OVERWRITE' -or $modalWorkflowSource -notmatch 'COPY') {
+            $failures.Add("Modal import must retain explicit operation ownership and a three-way dialog result.")
+        }
+    }
+    elseif ($modalWorkflowSource -notmatch 'findDisplay\s+RACA_') {
         $failures.Add("Modal workflow '$modalWorkflowRelativePath' must reacquire its active parent display after confirmation.")
     }
 }
@@ -767,7 +856,7 @@ if (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
     if ($creatorUiSource -notmatch 'RACA_IDC_DELETE_PRESET' -or $creatorUiSource -notmatch 'RACA_fnc_deletePreset') {
         $failures.Add("The creator must expose preset deletion from Preset Management.")
     }
-    foreach ($creatorFeature in @('Quick Start', 'Preset Analysis', 'See History', 'Compare With Draft', 'RACA_IDC_PRESET_TOOL', 'Limit Category', 'Favorite', 'RACA_IDC_SOURCE_FILTER', 'RACA_IDC_TAG_FILTER', 'RACA_RscDisplayCatalogTags', 'RACA_fnc_requestCreatorClose')) {
+    foreach ($creatorFeature in @('Quick Start', 'Preset Analysis', 'See History', 'Compare With Draft', 'RACA_IDC_PRESET_TOOL', 'Limit Category', 'Favorite', 'RACA_IDC_SOURCE_FILTER', 'RACA_IDC_TAG_FILTER', 'RACA_RscDisplayCatalogTags', 'RACA_RscDisplayPresetDeletion', 'Preset Deletion', 'RACA_fnc_requestCreatorClose')) {
         if ($creatorUiSource -notmatch [regex]::Escape($creatorFeature)) {
             $failures.Add("The creator excellence workflow is missing '$creatorFeature'.")
         }
@@ -791,13 +880,13 @@ else {
         $catalogTags -notmatch 'RACA_CATALOG_TAG' -or
         $catalogTags -notmatch 'RACA_fnc_isSafeClassName' -or
         $catalogTags -notmatch 'RACA_catalogTagIndex' -or
-        $catalogTags -notmatch '_matchesTag' -or
+        $catalogTags -notmatch '_tag\s+in\s+_classTags' -or
         $catalogTags -notmatch 'RACA_IDC_TAG_FILTER' -or
         $catalogTags -notmatch 'saveProfileNamespace' -or
         $catalogTags -notmatch 'BIS_fnc_guiMessage' -or
-        $catalogTags -notmatch 'RACA_CATALOG_VIEW"\s*,\s*2' -or
-        $catalogTags -notmatch '_version\s+in\s+\[1,\s*2\]') {
-        $failures.Add("Catalogue tags must be bounded, safe-class-only, profile-persistent, searchable/filterable, confirmation-protected, and backward-compatible with saved views.")
+        $catalogTags -notmatch '"RACA_CATALOG_VIEW"\s*,\s*3' -or
+        $catalogTags -notmatch '_version\s+in\s+\[1,\s*2,\s*3\]') {
+        $failures.Add("Catalogue tags must be uncapped, safe-class-only, profile-persistent, searchable/filterable, confirmation-protected, and backward-compatible with saved views.")
     }
 }
 
@@ -837,8 +926,10 @@ if (-not (Test-Path -LiteralPath $historyPushPath -PathType Leaf) -or -not (Test
 $edenPopulatePath = Join-Path $addonsDirectory 'eden\functions\fn_edenPopulate.sqf'
 if (Test-Path -LiteralPath $edenPopulatePath -PathType Leaf) {
     $edenPopulate = Get-Content -Raw -LiteralPath $edenPopulatePath
-    if ($edenPopulate -notmatch 'RACA_fnc_flattenPreset') {
-        $failures.Add("Eden must embed standalone preset copies with no runtime source dependency.")
+    if ($edenPopulate -notmatch 'RACA_fnc_flattenPreset' -or
+        $edenPopulate -notmatch 'RACA_fnc_edenGetConfigurations' -or
+        $edenPopulate -notmatch '<No Arsenal Configuration>') {
+        $failures.Add("The Eden object attribute must offer mission-wide configurations while preserving standalone preset copies.")
     }
 }
 
@@ -894,7 +985,7 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $rehearsal -notmatch '"JIP"' -or
         $rehearsal -notmatch 'RACA_localActionState' -or
         $rehearsal -notmatch 'INCOMPLETE' -or
-        $rehearsal -notmatch 'copyToClipboard' -or
+        $rehearsal -notmatch 'RACA_fnc_copyTextAndLog' -or
         $requestRehearsal -notmatch 'initialParticipants' -or
         $receiveRehearsalProbe -notmatch '_initialParticipants\s+findIf' -or
         $receiveRehearsalProbe -notmatch 'distinct JIP identity cannot be proven') {
@@ -1060,10 +1151,10 @@ else {
     }
 }
 
-$zeusAssignPath = Join-Path $addonsDirectory 'core\functions\zeus\fn_moduleAssign.sqf'
+$zeusAssignPath = Join-Path $addonsDirectory 'core\functions\zeus\fn_handleZeusModuleRequest.sqf'
 if (Test-Path -LiteralPath $zeusAssignPath -PathType Leaf) {
     $zeusAssign = Get-Content -Raw -LiteralPath $zeusAssignPath
-    if ($zeusAssign -notmatch 'RACA_fnc_getMissionRegistry' -or $zeusAssign -notmatch 'embedded mission slot') {
+    if ($zeusAssign -notmatch 'RACA_fnc_getMissionRegistry' -or $zeusAssign -notmatch 'RACA_missionArsenalConfigurations') {
         $failures.Add("Zeus assignment must fall back to presets already embedded in registered mission objects for dedicated-server use.")
     }
 }
@@ -1167,7 +1258,7 @@ elseif ((Test-Path -LiteralPath $catalogRefreshPath -PathType Leaf) -and (Test-P
     }
     if ($catalogSort -notmatch 'RACA_catalogSort_v1' -or
         $catalogRefresh -notmatch '_decorated\s+sort' -or
-        $catalogRefresh -notmatch '_previousClass' -or
+        $catalogRefresh -notmatch 'RACA_focusedClass' -or
         $catalogRefresh -notmatch 'lnbSetCurSelRow') {
         $failures.Add("Catalogue sorting must persist its mode, sort filtered rows deterministically, and restore the selected class.")
     }
@@ -1185,13 +1276,13 @@ elseif ((Test-Path -LiteralPath $catalogRefreshPath -PathType Leaf) -and (Test-P
         if ($catalogFilters -notmatch 'RACA_IDC_ADDON_FILTER' -or
             $catalogFilters -notmatch 'RACA_IDC_AUTHOR_FILTER' -or
             $catalogFilters -notmatch '_counts\s+getOrDefault' -or
-            $catalogRefresh -notmatch '_matchesAddon' -or
-            $catalogRefresh -notmatch '_matchesAuthor' -or
+            $catalogRefresh -notmatch '_addon' -or
+            $catalogRefresh -notmatch '_author' -or
             $creatorUi -notmatch 'multiSelect\s*=\s*1' -or
             $creatorUi -notmatch 'Ctrl-click' -or
-            $catalogToggle -notmatch 'lbSelection\s+_list' -or
-            $favorite -notmatch 'lbSelection\s+_list' -or
-            $itemLimit -notmatch 'lbSelection\s+_list') {
+            $catalogToggle -notmatch 'RACA_highlighted' -or
+            $favorite -notmatch 'RACA_fnc_resolveCreatorSelection' -or
+            $itemLimit -notmatch 'RACA_fnc_resolveCreatorSelection') {
             $failures.Add("Catalogue filters must expose counted mod/add-on/author dimensions, and selection, favorite, and item limits must honor Ctrl/Shift multi-selection.")
         }
         if ($catalogToggle -match '\[\s*""\s*,') {
@@ -1244,7 +1335,9 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $savedViews -notmatch 'RACA_IDC_SOURCE_FILTER' -or
         $savedViews -notmatch 'RACA_IDC_ADDON_FILTER' -or
         $savedViews -notmatch 'RACA_IDC_AUTHOR_FILTER' -or
-        $savedViews -notmatch 'RACA_catalogSort_v1' -or
+        $savedViews -notmatch 'RACA_catalogSort' -or
+        $savedViews -notmatch 'RACA_catalogSearchMode' -or
+        $savedViews -notmatch 'RACA_IDC_TAG_FILTER' -or
         $savedViews -notmatch 'BIS_fnc_guiMessage' -or
         $savedViews -notmatch 'saveProfileNamespace') {
         $failures.Add("Saved catalogue views must persist and restore search, category, mod, add-on, author, and sort state with guarded replacement/deletion.")
@@ -1273,7 +1366,7 @@ elseif (Test-Path -LiteralPath $creatorUiPath -PathType Leaf) {
         $itemDetails -notmatch 'RACA_builderLimits' -or
         $itemDetails -notmatch 'RACA_fnc_pushCreatorHistory' -or
         $itemDetails -notmatch 'RACA_favoriteClasses_v1' -or
-        $itemDetails -notmatch 'copyToClipboard') {
+        $itemDetails -notmatch 'RACA_fnc_copyTextAndLog') {
         $failures.Add("Item details must expose config/source/type/policy context and support undoable inclusion, favorites, and report copying.")
     }
 }
@@ -1381,7 +1474,7 @@ elseif (Test-Path -LiteralPath $edenDialogPath -PathType Leaf) {
         $simulatorOnLoad -notmatch 'all3DENEntities\s+select\s+0' -or
         $simulatorOpen -notmatch 'RACA_fnc_edenEditorCommitSlot' -or
         $edenDialog -notmatch 'RACA_RscDisplayAccessSimulator' -or
-        $edenDialog -notmatch 'SIMULATE ACCESS') {
+        $edenDialog -notmatch '(?i)(TEST ACCESS|RUN TEST)') {
         $failures.Add("The Eden access simulator must use the unsaved slot draft, offer mission units, and preserve runtime-only rules as unknown rather than passing them.")
     }
 }

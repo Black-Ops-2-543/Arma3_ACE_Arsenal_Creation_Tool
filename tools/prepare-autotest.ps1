@@ -67,10 +67,21 @@ $profileRoot = Join-Path $ArmaDirectory ("Profiles\" + $ProfileName)
 $autotestRoot = Join-Path $profileRoot 'autotest'
 $stagedMission = Join-Path $autotestRoot 'RACA_Automated.VR'
 $autotestConfig = Join-Path $profileRoot 'autotest.cfg'
+$safeAutotestRoot = [System.IO.Path]::GetFullPath($autotestRoot).TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+$resolvedStagedMission = [System.IO.Path]::GetFullPath($stagedMission)
+if (-not $resolvedStagedMission.StartsWith($safeAutotestRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to replace staged mission '$resolvedStagedMission' because it is outside '$safeAutotestRoot'."
+}
+if (Test-Path -LiteralPath $resolvedStagedMission -PathType Container) {
+    Remove-Item -LiteralPath $resolvedStagedMission -Recurse -Force
+}
 $null = New-Item -ItemType Directory -Path $stagedMission -Force
 
-foreach ($missionFile in @('mission.sqm', 'description.ext', 'initPlayerLocal.sqf')) {
-    Copy-Item -LiteralPath (Join-Path $sourceMission $missionFile) -Destination (Join-Path $stagedMission $missionFile) -Force
+foreach ($missionFile in Get-ChildItem -LiteralPath $sourceMission -Recurse -File) {
+    $relativeMissionFile = $missionFile.FullName.Substring($sourceMission.TrimEnd([System.IO.Path]::DirectorySeparatorChar).Length).TrimStart([System.IO.Path]::DirectorySeparatorChar)
+    $destination = Join-Path $stagedMission $relativeMissionFile
+    $null = New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force
+    Copy-Item -LiteralPath $missionFile.FullName -Destination $destination -Force
 }
 
 $autotestConfigText = @"
@@ -84,10 +95,11 @@ class TestMissions
 };
 "@
 [System.IO.File]::WriteAllText($autotestConfig, $autotestConfigText, [System.Text.UTF8Encoding]::new($false))
-$autotestConfigArgument = [System.IO.Path]::GetRelativePath($ArmaDirectory, $autotestConfig)
-if ($autotestConfigArgument.StartsWith('..')) {
+$armaPrefix = $ArmaDirectory.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+if (-not $autotestConfig.StartsWith($armaPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Autotest configuration '$autotestConfig' must remain below the Arma directory so Arma can resolve it reliably."
 }
+$autotestConfigArgument = $autotestConfig.Substring($armaPrefix.Length)
 
 $modArgument = @($CbaDirectory, $AceDirectory, $RacaModDirectory) -join ';'
 $clientArguments = @(

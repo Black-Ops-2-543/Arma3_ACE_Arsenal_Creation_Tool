@@ -7,3 +7,15 @@ enableDebugConsole = 1;
 showHUD = 0;
 saving = 0;
 
+class CfgFunctions {
+    class RACA_Test {
+        class Consolidated {
+            file = "functions";
+            class consolidatedDataTests {};
+            class consolidatedSqfLexerTests {};
+            class consolidatedLargeImportTests {};
+            class consolidatedEdenTests {};
+            class consolidatedCatalogStressTests {};
+        };
+    };
+};
