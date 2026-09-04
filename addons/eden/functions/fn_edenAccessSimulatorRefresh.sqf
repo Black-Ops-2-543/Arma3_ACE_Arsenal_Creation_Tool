@@ -10,14 +10,12 @@ _display setVariable ["RACA_accessSimulatorReport", ""];
 
 private _parent = _display getVariable ["RACA_parentEdenConfig", displayNull];
 if (isNull _parent) exitWith {
-    _summary ctrlSetText "The parent Eden configuration is no longer open. Close the simulator and reopen it from the slot editor.";
+    _summary ctrlSetText "The parent Eden tool is no longer open. Close the simulator and reopen it from Configure.";
     false
 };
-private _index = _parent getVariable ["RACA_currentSlot", -1];
-private _config = _parent getVariable ["RACA_workingConfig", []];
-private _slot = (_config param [2, []]) param [_index, []];
+private _slot = _parent getVariable ["RACA_simulatorSlot", []];
 if (_slot isEqualTo []) exitWith {
-    _summary ctrlSetText "No current slot is available to simulate.";
+    _summary ctrlSetText "No current Arsenal Configuration is available to test.";
     false
 };
 
@@ -39,7 +37,7 @@ if (_unitName isEqualTo "") then {
 };
 if (_unitName isEqualTo "") then {_unitName = typeOf _unit};
 
-private _slotName = _slot param [1, "Restricted Arsenal", [""]];
+private _slotName = _slot param [1, "Arsenal Configuration", [""]];
 private _access = [_slot param [4, [], [[]]]] call RACA_fnc_normalizeAccess;
 private _mode = _access select 2;
 private _conditions = _access select 3;
@@ -132,14 +130,14 @@ private _outcomeColor = switch (_outcome) do {
 };
 _summary ctrlSetTextColor _outcomeColor;
 _summary ctrlSetText format [
-    "%1 — Slot '%2' against %3 (%4).%5Mode %6: %7 pass, %8 fail, %9 runtime-only unknown.%5This is an editor rehearsal; repeat UID, permission, quota, and JIP checks in multiplayer.",
+    "%1 - Configuration '%2' against %3 (%4).%5Mode %6: %7 pass, %8 fail, %9 runtime-only unknown.%5This is an editor rehearsal; repeat UID, permission, quota, and JIP checks in multiplayer.",
     _outcome, _slotName, _unitName, typeOf _unit, toString [10], _mode, _passCount, _failCount, _unknownCount
 ];
 
 private _reportLines = [
     "RACA ACCESS-RULE SIMULATION",
     format ["Outcome: %1", _outcome],
-    format ["Slot: %1", _slotName],
+    format ["Configuration: %1", _slotName],
     format ["Unit: %1 (%2)", _unitName, typeOf _unit],
     format ["Mode: %1", _mode],
     format ["Rules: %1 pass, %2 fail, %3 unknown", _passCount, _failCount, _unknownCount]

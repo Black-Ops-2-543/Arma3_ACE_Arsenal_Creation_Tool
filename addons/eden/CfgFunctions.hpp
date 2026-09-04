@@ -9,9 +9,22 @@ class CfgFunctions {
             class edenAccessSimulatorOnLoad {};
             class edenAccessSimulatorRefresh {};
             class edenClearAttribute {};
+            class edenConfigurationToObjectConfig {};
+            class edenGetConfigurations {};
+            class edenGetConfigurationState {};
+            class edenParseConfigurationEnvelope {};
+            class edenIsSafeConfigurationId {};
+            class edenGenerateConfigurationId {};
+            class edenCopyLibraryRecovery {};
+            class edenRepairConfigurations {};
+            class validateConfigurationForAssignment {};
+            class edenStoreConfigurations {};
             class edenDashboardBulk {};
             class edenDashboardCopy {};
             class edenDashboardRefresh {};
+            class edenDashboardQueueRefresh {};
+            class edenDashboardRenderPage {};
+            class edenDashboardPage {};
             class edenDashboardSelect {};
             class edenEditorAddCondition {};
             class edenEditorAddSlot {};
@@ -19,6 +32,7 @@ class CfgFunctions {
             class edenEditorCommitSlot {};
             class edenEditorMoveSlot {};
             class edenEditorOnLoad {};
+            class edenEditorOnUnload {};
             class edenEditorRefresh {};
             class edenEditorRemoveCondition {};
             class edenEditorRemoveSlot {};
@@ -27,6 +41,7 @@ class CfgFunctions {
             class edenOpenAccessSimulator {};
             class edenPopulate {};
             class edenRefresh {};
+            class edenSwitchTab {};
             class edenUpdateSummary {};
         };
     };

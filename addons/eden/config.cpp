@@ -22,7 +22,30 @@ class ctrlCheckbox;
 class ctrlEdit;
 class ctrlListbox;
 class ctrlListNBox;
+class ctrlMenuStrip;
 class ctrlStatic;
+class RscButton;
+class RACA_Button;
+class RACA_PrimaryButton;
+class RACA_DestructiveButton;
+class RACA_ComplementButton;
+
+class display3DEN {
+    class Controls {
+        class MenuStrip: ctrlMenuStrip {
+            class Items {
+                class Tools {
+                    items[] += {"RACA_MissionArsenalTool"};
+                };
+                class RACA_MissionArsenalTool {
+                    text = "RACA Mission Arsenal Tool";
+                    action = "[] call RACA_fnc_edenOpenEditor;";
+                    opensNewWindow = 1;
+                };
+            };
+        };
+    };
+};
 
 #include "Cfg3DEN.hpp"
 #include "ui\EdenConfigDialog.hpp"

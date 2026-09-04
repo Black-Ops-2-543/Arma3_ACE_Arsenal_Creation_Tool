@@ -1,66 +1,262 @@
 #include "..\script_component.hpp"
+disableSerialization;
 params [["_display", displayNull, [displayNull]]];
 if (isNull _display || {!is3DEN}) exitWith {false};
-private _list = _display displayCtrl RACA_EDEN_IDC_DASHBOARD_LIST;
-private _objects = [];
-private _reports = [];
-private _reportLines = [
-    "RACA mission-wide Eden preflight",
-    format ["Generated: %1", systemTimeUTC],
-    "Scope: applied Eden object attributes (transactional editor changes must be applied first)."
-];
-private _totalSlots = 0;
-private _totalErrors = 0;
-private _totalWarnings = 0;
-private _totalInfo = 0;
-lbClear _list;
+if (!canSuspend) exitWith {
+    [_display] spawn RACA_fnc_edenDashboardRefresh;
+    true
+};
+
+private _request = (_display getVariable ["RACA_dashboardModelRequest", 0]) + 1;
+_display setVariable ["RACA_dashboardModelRequest", _request];
+private _started = diag_tickTime;
+(_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText "Refreshing Mission Dashboard...";
+
+private _readFilter = {
+    params ["_idc", "_allowed", "_default"];
+    private _control = _display displayCtrl _idc;
+    private _value = _control lbData (lbCurSel _control);
+    if (_value in _allowed) then {_value} else {_default}
+};
+private _variableMode = [
+    RACA_EDEN_IDC_VARIABLE_FILTER,
+    ["all", "none", "only"],
+    "all"
+] call _readFilter;
+private _objectMode = [
+    RACA_EDEN_IDC_OBJECT_FILTER,
+    ["all", "unit", "module", "object"],
+    "object"
+] call _readFilter;
+private _search = toLowerANSI trim ctrlText (
+    _display displayCtrl RACA_EDEN_IDC_DASHBOARD_SEARCH
+);
+
+private _state = call RACA_fnc_edenGetConfigurationState;
+private _configurations = _state select 2;
+private _libraryRevision = str (_state select 3);
+private _catalogRevision = uiNamespace getVariable ["RACA_catalogGeneration", 0];
+private _cache = uiNamespace getVariable ["RACA_edenDashboardCache", createHashMap];
+private _seen = createHashMap;
+private _matches = [];
+private _stale = false;
+private _totalObjects = 0;
+
 {
-    private _raw = (_x get3DENAttribute "RACA_RestrictedArsenalPreset") param [0, []];
-    if (_raw isNotEqualTo []) then {
-        private _variableName = (_x get3DENAttribute "Name") param [0, ""];
-        if (_variableName isEqualTo "") then {_variableName = format ["%1 #%2", typeOf _x, get3DENEntityID _x]};
-        ([_raw, []] call RACA_fnc_preflightObjectConfig) params ["_canApply", "_config", "_entries", "_summary"];
-        _summary params ["_errors", "_warnings", "_info"];
-        private _slots = if (_config isEqualTo []) then {[]} else {_config select 2};
-        private _slotNames = _slots apply {_x select 1};
-        private _enabledCount = {_x select 3} count _slots;
-        private _state = if (_errors > 0) then {
-            format ["BLOCKED %1", _errors]
-        } else {
-            if (_warnings > 0) then {format ["WARN %1", _warnings]} else {"READY"}
+    if ((_forEachIndex mod 96) isEqualTo 0) then {
+        uiSleep 0.001;
+        _stale = isNull _display || {
+            (_display getVariable ["RACA_dashboardModelRequest", -1]) isNotEqualTo _request
         };
-        private _row = _list lbAdd format ["[%1] %2 | %3/%4 enabled", _state, _variableName, _enabledCount, count _slots];
-        _list lbSetTooltip [_row, if (_slotNames isEqualTo []) then {"No valid slots"} else {_slotNames joinString ", "}];
-        _list lbSetColor [_row, if (_errors > 0) then {
-            [1, 0.35, 0.35, 1]
+    };
+    if (_stale) exitWith {};
+
+    private _object = _x;
+    private _entityId = get3DENEntityID _object;
+    if (_entityId >= 0) then {
+        _totalObjects = _totalObjects + 1;
+        private _idKey = str _entityId;
+        _seen set [_idKey, true];
+
+        private _className = typeOf _object;
+        private _itemName = getText (
+            configFile >> "CfgVehicles" >> _className >> "displayName"
+        );
+        if (_itemName isEqualTo "") then {_itemName = _className};
+        private _variableName = (
+            _object get3DENAttribute "Name"
+        ) param [0, "", [""]];
+        private _kind = if (_object isKindOf "Module_F") then {
+            "module"
         } else {
-            if (_warnings > 0) then {[1, 0.78, 0.25, 1]} else {[0.55, 1, 0.55, 1]}
-        }];
-        _objects pushBack _x;
-        _reports pushBack [_x, _variableName, _config, _entries, _summary];
-        _totalSlots = _totalSlots + count _slots;
-        _totalErrors = _totalErrors + _errors;
-        _totalWarnings = _totalWarnings + _warnings;
-        _totalInfo = _totalInfo + _info;
-        _reportLines pushBack "";
-        _reportLines pushBack format ["Object: %1 | Type: %2 | Entity ID: %3 | Slots: %4 (%5 enabled)", _variableName, typeOf _x, get3DENEntityID _x, count _slots, _enabledCount];
-        _reportLines pushBack format ["Slot names: %1", if (_slotNames isEqualTo []) then {"<none valid>"} else {_slotNames joinString ", "}];
-        _reportLines pushBack ([_variableName, _entries, _summary] call RACA_fnc_formatDiagnosticReport);
+            if (_object isKindOf "CAManBase") then {"unit"} else {"object"}
+        };
+        private _raw = (
+            _object get3DENAttribute "RACA_RestrictedArsenalPreset"
+        ) param [0, []];
+        private _fingerprint = str [
+            _className,
+            _variableName,
+            _raw,
+            _libraryRevision,
+            _catalogRevision
+        ];
+        private _cached = _cache getOrDefault [_idKey, []];
+        private _model = [];
+
+        if (_cached isNotEqualTo [] && {
+            (_cached select 0) isEqualTo _fingerprint
+        }) then {
+            _model = +(_cached select 1);
+            _model set [1, _object];
+        } else {
+            private _linkedId = "";
+            private _linkedName = "";
+            {
+                if (_x isEqualType [] && {count _x >= 2}) then {
+                    private _key = toLowerANSI (_x param [0, "", [""]]);
+                    if (_key isEqualTo "configurationid") then {
+                        _linkedId = _x param [1, "", [""]]
+                    };
+                    if (_key isEqualTo "configurationname") then {
+                        _linkedName = _x param [1, "", [""]]
+                    };
+                };
+            } forEach (_raw param [3, [], [[]]]);
+
+            private _configurationName = "<No configuration>";
+            if (_linkedId isNotEqualTo "") then {
+                private _match = _configurations findIf {
+                    toLowerANSI (_x select 0) isEqualTo toLowerANSI _linkedId
+                };
+                _configurationName = if (_match >= 0) then {
+                    (_configurations select _match) select 1
+                } else {
+                    format [
+                        "<Missing: %1>",
+                        if (_linkedName isEqualTo "") then {_linkedId} else {_linkedName}
+                    ]
+                };
+            } else {
+                if (_raw isNotEqualTo []) then {
+                    _configurationName = "<Legacy embedded configuration>"
+                };
+            };
+
+            private _entries = [];
+            private _summary = [0, 0, 0];
+            if (_raw isNotEqualTo []) then {
+                ([_raw, []] call RACA_fnc_preflightObjectConfig) params [
+                    "",
+                    "",
+                    "_entries",
+                    "_summary"
+                ];
+            };
+            _model = [
+                _entityId,
+                _object,
+                _itemName,
+                _className,
+                _variableName,
+                _configurationName,
+                _entries,
+                _summary,
+                +_raw,
+                _kind
+            ];
+            _cache set [_idKey, [_fingerprint, +_model]];
+        };
+
+        private _variableMatch = switch _variableMode do {
+            case "none": {_variableName isEqualTo ""};
+            case "only": {_variableName isNotEqualTo ""};
+            default {true};
+        };
+        private _objectMatch = _objectMode isEqualTo "all" || {
+            _kind isEqualTo _objectMode
+        };
+        private _searchBlob = toLowerANSI format [
+            "%1 %2 %3 %4",
+            _itemName,
+            _className,
+            _variableName,
+            _configurationName
+        ];
+        private _searchMatch = _search isEqualTo "" || {
+            _searchBlob find _search >= 0
+        };
+        if (_variableMatch && {_objectMatch} && {_searchMatch}) then {
+            _matches pushBack _model
+        };
     };
 } forEach (all3DENEntities select 0);
-_display setVariable ["RACA_dashboardObjects", _objects];
-_display setVariable ["RACA_dashboardReports", _reports];
-_reportLines insert [3, [
-    format ["Configured objects: %1 | Slots: %2 | Errors: %3 | Warnings: %4 | Information: %5", count _objects, _totalSlots, _totalErrors, _totalWarnings, _totalInfo]
-]];
-_display setVariable ["RACA_dashboardMissionReport", _reportLines joinString toString [13, 10]];
-if (_objects isNotEqualTo []) then {_list lbSetCurSel 0};
+
+if (_stale) exitWith {false};
+{
+    if !(_seen getOrDefault [_x, false]) then {_cache deleteAt _x}
+} forEach keys _cache;
+uiNamespace setVariable ["RACA_edenDashboardCache", _cache];
+
+private _configured = 0;
+private _errors = 0;
+private _warnings = 0;
+private _information = 0;
+private _report = [
+    "RACA MISSION DASHBOARD REPORT",
+    format ["Generated (UTC): %1", systemTimeUTC],
+    format [
+        "Filters: variable=%1, object=%2, search='%3'",
+        _variableMode,
+        _objectMode,
+        _search
+    ]
+];
+{
+    _x params [
+        "",
+        "",
+        "_itemName",
+        "_className",
+        "_variableName",
+        "_configurationName",
+        "_entries",
+        "_summary",
+        "_raw"
+    ];
+    if (_raw isNotEqualTo []) then {
+        _configured = _configured + 1;
+        _errors = _errors + (_summary select 0);
+        _warnings = _warnings + (_summary select 1);
+        _information = _information + (_summary select 2);
+    };
+    _report pushBack "";
+    _report pushBack format [
+        "%1 | %2 | %3 | variable=%4",
+        _configurationName,
+        _itemName,
+        _className,
+        if (_variableName isEqualTo "") then {"<blank>"} else {_variableName}
+    ];
+    if (_raw isNotEqualTo []) then {
+        _report pushBack (
+            [_itemName, _entries, _summary] call RACA_fnc_formatDiagnosticReport
+        )
+    };
+} forEach _matches;
+_report insert [3, [format [
+    "Mission objects: %1 | Matching: %2 | Configured matching: %3 | Errors: %4 | Warnings: %5 | Information: %6",
+    _totalObjects,
+    count _matches,
+    _configured,
+    _errors,
+    _warnings,
+    _information
+]]];
+
+_display setVariable ["RACA_dashboardMatches", _matches];
+_display setVariable [
+    "RACA_dashboardMissionReport",
+    _report joinString toString [13, 10]
+];
+_display setVariable [
+    "RACA_dashboardSummary",
+    [_totalObjects, count _matches, _configured, _errors, _warnings, _information]
+];
+_display setVariable ["RACA_dashboardPage", 0];
+[_display] call RACA_fnc_edenDashboardRenderPage;
 (_display displayCtrl RACA_EDEN_IDC_EDITOR_STATUS) ctrlSetText format [
-    "Mission preflight: %1 object(s), %2 slot(s), %3 blocker(s), %4 warning(s); %5 object(s) selected in Eden.",
-    count _objects,
-    _totalSlots,
-    _totalErrors,
-    _totalWarnings,
-    count (get3DENSelected "object")
+    "Dashboard shows %1 of %2 mission object(s); %3 matching object(s) have an Arsenal Configuration. Cached refresh: %4 ms.",
+    count _matches,
+    _totalObjects,
+    _configured,
+    round ((diag_tickTime - _started) * 1000)
+];
+diag_log format [
+    "[RACA][PERF] Eden dashboard objects=%1 matches=%2 cache=%3 seconds=%4",
+    _totalObjects,
+    count _matches,
+    count _cache,
+    diag_tickTime - _started
 ];
 true
