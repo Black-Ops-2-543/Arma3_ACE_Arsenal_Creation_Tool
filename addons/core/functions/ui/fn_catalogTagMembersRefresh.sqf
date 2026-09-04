@@ -1,0 +1,40 @@
+#include "..\..\script_component.hpp"
+disableSerialization;
+params [["_display",displayNull,[displayNull]]];
+if (isNull _display) exitWith {};
+private _tags=call RACA_fnc_getCatalogTags;
+private _tagList=_display displayCtrl RACA_IDC_CATALOG_TAG_LIST;
+private _row=lnbCurSelRow _tagList;
+private _name=if (_row<0) then {""} else {_tagList lnbData [_row,0]};
+private _tagIndex=_tags findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
+private _tag=_tags param [_tagIndex,[]];
+private _members=_display displayCtrl RACA_IDC_CATALOG_TAG_MEMBERS;
+private _search=toLowerANSI ctrlText (_display displayCtrl RACA_IDC_CATALOG_MEMBER_SEARCH);
+private _catalog=uiNamespace getVariable ["RACA_itemCatalog",[]];
+private _index=[_catalog] call RACA_fnc_indexCatalog;
+private _highlighted=_display getVariable ["RACA_tagMemberHighlights",createHashMap];
+private _filtered=[];
+{
+    private _id=(_index get "class") getOrDefault [toLowerANSI _x,-1];
+    private _record=if (_id<0) then {[_x,_x,"Unavailable",-1,"Unavailable","", "",toLowerANSI _x,""]} else {_catalog select _id};
+    private _blob=toLowerANSI ((_record select 0)+" "+(_record select 1)+" "+(_record select 4));
+    if (_search isEqualTo "" || {(_blob find _search)>=0}) then {_filtered pushBack [_record,_id]};
+} forEach (_tag param [3,[]]);
+private _page=_display getVariable ["RACA_memberPage",0];
+private _pages=(ceil (count _filtered/200)) max 1;
+_page=_page min (_pages-1);
+_display setVariable ["RACA_memberPage",_page];
+_display setVariable ["RACA_renderingTagMembers",true];
+lnbClear _members;
+{
+    _x params ["_record","_id"];
+    private _r=_members lnbAddRow [_record select 0,_record select 1,_record select 4,["No","Yes"] select (_id>=0)];
+    private _class=_record select 1;
+    _members lnbSetData [[_r,0],_class];
+    _members lbSetSelected [_r,_highlighted getOrDefault [_class,false]];
+} forEach (_filtered select [_page*200,200]);
+_display setVariable ["RACA_renderingTagMembers",false];
+(_display displayCtrl RACA_IDC_CATALOG_MEMBER_PAGE_LABEL) ctrlSetText format ["Page %1 / %2 | %3 member(s) | %4 selected",_page+1,_pages,count _filtered,count _highlighted];
+(_display displayCtrl RACA_IDC_CATALOG_MEMBER_PAGE_PREV) ctrlEnable (_page>0);
+(_display displayCtrl RACA_IDC_CATALOG_MEMBER_PAGE_NEXT) ctrlEnable (_page+1<_pages);
+(_display displayCtrl RACA_IDC_CATALOG_TAG_REMOVE) ctrlEnable ((count _highlighted)>0);

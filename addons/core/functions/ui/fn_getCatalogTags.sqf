@@ -1,9 +1,13 @@
 /* Returns normalized profile-wide catalogue tags sorted by name. */
 private _raw = profileNamespace getVariable ["RACA_catalogTags_v1", []];
 if !(_raw isEqualType []) exitWith {[]};
+private _revision = profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0];
+if ((uiNamespace getVariable ["RACA_catalogTagsCacheRevision", -1]) isEqualTo _revision) exitWith {
+    +(uiNamespace getVariable ["RACA_catalogTagsCache", []])
+};
 
 private _tags = [];
-private _seenNames = [];
+private _seenNames = createHashMap;
 {
     if (
         _x isEqualType [] &&
@@ -14,19 +18,19 @@ private _seenNames = [];
         private _name = ((_x param [2, "", [""]]) splitString (toString [9, 10, 13, 32])) joinString " ";
         private _nameKey = toLowerANSI _name;
         private _classes = [];
+        private _seenClasses = createHashMap;
         {
             if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {
-                _classes pushBackUnique _x;
+                if !(_seenClasses getOrDefault [toLowerANSI _x, false]) then {_seenClasses set [toLowerANSI _x,true]; _classes pushBack _x};
             };
-        } forEach ((_x param [3, [], [[]]]) select [0, 5000]);
+        } forEach (_x param [3, [], [[]]]);
         _classes sort true;
         if (
             _name isNotEqualTo "" &&
             {(count _name) <= 48} &&
-            {!(_nameKey in _seenNames)} &&
-            {(count _tags) < 100}
+            {!(_seenNames getOrDefault [_nameKey,false])}
         ) then {
-            _seenNames pushBack _nameKey;
+            _seenNames set [_nameKey,true];
             _tags pushBack ["RACA_CATALOG_TAG", 1, _name, _classes];
         };
     };
@@ -34,4 +38,7 @@ private _seenNames = [];
 
 private _decorated = _tags apply {[toLowerANSI (_x select 2), _x]};
 _decorated sort true;
-_decorated apply {_x select 1}
+private _result = _decorated apply {_x select 1};
+uiNamespace setVariable ["RACA_catalogTagsCache", _result];
+uiNamespace setVariable ["RACA_catalogTagsCacheRevision", _revision];
++_result

@@ -15,12 +15,14 @@ private _changed = 0;
         private _next = +_current;
         switch (toLowerANSI _operation) do {
             case "clear": {
-                [_object, true] call ace_arsenal_fnc_removeBox;
-                [_object, "This restricted arsenal was cleared while open. Your previous loadout was restored."] call RACA_fnc_cancelObjectSessions;
-                _object setVariable ["RACA_objectConfig", nil, true];
-                [_object, []] remoteExecCall ["RACA_fnc_registerActions", 0, _object];
-                [_object] call RACA_fnc_unregisterObject;
-                _changed = _changed + 1;
+                if (_current isNotEqualTo []) then {
+                    [_object, true] call ace_arsenal_fnc_removeBox;
+                    [_object, "This restricted arsenal was cleared while open. Your previous loadout was restored."] call RACA_fnc_cancelObjectSessions;
+                    _object setVariable ["RACA_objectConfig", nil, true];
+                    [_object, []] remoteExecCall ["RACA_fnc_registerActions", 0, _object];
+                    [_object] call RACA_fnc_unregisterObject;
+                    _changed = _changed + 1;
+                };
             };
             case "assign": {
                 if ([_object, _payload] call RACA_fnc_applyObjectConfig) then {_changed = _changed + 1};

@@ -1,9 +1,9 @@
 #include "..\..\script_component.hpp"
 disableSerialization;
 /*
- * Deletes the selected profile preset only after an explicit confirmation.
- * The creator selection is deliberately retained as an unsaved recovery copy,
- * and mission-embedded presets are never touched.
+ * Opens RACA's lightweight deletion confirmation for the selected profile
+ * preset. The current creator selection remains an unsaved recovery copy, and
+ * mission-embedded presets are never touched.
  */
 params [["_display", displayNull, [displayNull]]];
 
@@ -25,53 +25,12 @@ if (_preset isEqualTo []) exitWith {
     false
 };
 
-private _name = _preset select 2;
-private _lineBreak = toString [10];
-private _paragraphBreak = _lineBreak + _lineBreak;
-/*
- * Ask immediately. The previous implementation walked and decomposed the
- * entire preset library before opening this dialog, which could make the
- * button appear unresponsive for minutes on a large profile library.
- */
-private _confirmed = [
-    format [
-        "Delete profile preset '%1'?%2Preset(s) that inherit from it will keep their saved item snapshots, but their source link will be marked missing.%2Already saved missions contain standalone copies and will not be changed. The current creator contents will be kept as an unsaved recovery copy.",
-        _name,
-        _paragraphBreak
-    ],
-    "Delete RACA Preset",
-    true,
-    true,
-    _display
-] call BIS_fnc_guiMessage;
-
-if (!_confirmed) exitWith {
-    [_name] spawn {
-        disableSerialization;
-        params ["_name"];
-        uiSleep 0.2;
-        private _display = findDisplay RACA_IDD_CREATOR;
-        if (!isNull _display) then {[_display, format ["Kept '%1'.", _name]] call RACA_fnc_setStatus};
-    };
+uiNamespace setVariable ["RACA_deletePresetPending", [_display, _preset]];
+private _confirmation = _display createDisplay "RACA_RscDisplayPresetDeletion";
+if (isNull _confirmation) exitWith {
+    uiNamespace setVariable ["RACA_deletePresetPending", nil];
+    [_display, "Preset Deletion could not be opened."] call RACA_fnc_setStatus;
     false
 };
 
-if !([_preset] call RACA_fnc_removePresetFromLibrary) exitWith {
-    [_display, format ["'%1' could not be deleted because the profile library changed. Refresh and try again.", _name]] call RACA_fnc_setStatus;
-    false
-};
-
-uiNamespace setVariable ["RACA_creatorDirty", true];
-[_name] spawn {
-    disableSerialization;
-    params ["_name"];
-    uiSleep 0.2;
-    private _display = findDisplay RACA_IDD_CREATOR;
-    if (isNull _display) exitWith {};
-    private _recoveryName = (_name select [0, 116]) + " (Recovered)";
-    (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText _recoveryName;
-    [_display] call RACA_fnc_refreshPresetCombo;
-    [_display] call RACA_fnc_queueDraftRecovery;
-    [_display, format ["Deleted '%1'. Current items remain available as an unsaved recovery copy.", _name]] call RACA_fnc_setStatus;
-};
 true

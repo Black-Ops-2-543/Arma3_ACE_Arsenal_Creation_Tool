@@ -5,7 +5,10 @@ class CfgFunctions {
         class Catalog {
             file = "\x\raca\addons\core\functions\catalog";
             class classifyClass {};
+            class classifyCached {};
             class scanItems {};
+            class indexCatalog {};
+            class getCompatibleMagazines {};
         };
 
         class Diagnostics {
@@ -26,6 +29,7 @@ class CfgFunctions {
             class buildPreset {};
             class decodePortablePreset {};
             class decodeSqfPreset {};
+            class confirmPresetDeletion {};
             class deletePreset {};
             class exportPreset {};
             class fingerprintPreset {};
@@ -38,6 +42,7 @@ class CfgFunctions {
             class getPresetHistory {};
             class getPresetLibrary {};
             class importPreset {};
+            class importCheckpoint {};
             class isSafeClassName {};
             class loadSelectedPreset {};
             class getRuntimePolicy {};
@@ -45,6 +50,7 @@ class CfgFunctions {
             class refreshBaseCombo {};
             class refreshPresetCombo {};
             class removePresetFromLibrary {};
+            class presetDeletionOnLoad {};
             class saveCurrentPreset {};
             class setPresetRevision {};
             class validatePreset {};
@@ -62,12 +68,23 @@ class CfgFunctions {
         class UI {
             file = "\x\raca\addons\core\functions\ui";
             class catalogTagsExecute {};
+            class catalogPage {};
+            class captureCatalogView {};
+            class restoreCatalogView {};
+            class clearMissingFilters {};
+            class showMagazines {};
+            class clearMagazineFilter {};
+            class resolveCreatorSelection {};
             class catalogTagsOnLoad {};
             class catalogTagsRefresh {};
             class catalogTagsSelect {};
+            class catalogTagMembersRefresh {};
+            class catalogTagMembersSelect {};
+            class catalogTagsPage {};
             class clearSelection {};
             class clearDraftRecovery {};
             class copyCreatorDiagnostics {};
+            class copyTextAndLog {};
             class creatorKeyDown {};
             class compareSelectedPreset {};
             class creatorOnLoad {};
@@ -94,9 +111,11 @@ class CfgFunctions {
             class preflightRefresh {};
             class preflightRerun {};
             class preflightSelect {};
+            class preflightSelectionChanged {};
+            class preflightRemoveUnavailable {};
             class openQuickStart {};
-            class pulseQuickStartButton {};
             class pushCreatorHistory {};
+            class captureCreatorState {};
             class quickStartApply {};
             class quickStartOnLoad {};
             class refreshQuickRoleCombo {};
@@ -137,6 +156,7 @@ class CfgFunctions {
             class syncLimitPolicy {};
             class toggleFavorite {};
             class toggleRow {};
+            class itemListSelectionChanged {};
             class toggleQuickSettings {};
             class updateSummary {};
         };
@@ -206,6 +226,9 @@ class CfgFunctions {
             class moduleClear {};
             class moduleResetQuotas {};
             class moduleToggle {};
+            class requestZeusModule {};
+            class handleZeusModuleRequest {};
+            class receiveZeusModuleResult {};
         };
     };
 };

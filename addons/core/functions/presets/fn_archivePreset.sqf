@@ -1,7 +1,8 @@
 /* Stores an immutable profile-local snapshot before overwrite, restore, or deletion. */
 params [
     ["_preset", [], [[]]],
-    ["_reason", "Saved revision", [""]]
+    ["_reason", "Saved revision", [""]],
+    ["_persist", true, [true]]
 ];
 if ((_preset param [0, "", [""]]) isNotEqualTo "RACA_PRESET" || {(count _preset) < 4}) exitWith {false};
 
@@ -28,5 +29,5 @@ for "_index" from ((count _history) - 1) to 0 step -1 do {
 reverse _keptReverse;
 if ((count _keptReverse) > 250) then {_keptReverse deleteRange [0, (count _keptReverse) - 250]};
 profileNamespace setVariable ["RACA_presetHistory_v1", _keptReverse];
-saveProfileNamespace;
+if (_persist) then {saveProfileNamespace};
 true

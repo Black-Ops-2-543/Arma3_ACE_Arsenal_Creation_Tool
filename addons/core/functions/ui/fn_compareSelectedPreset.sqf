@@ -5,19 +5,28 @@ params [
 ];
 
 if (isNull _display) exitWith {false};
+private _analysisComboId = if (_comboIdc isEqualTo RACA_IDC_PRESET_TOOL) then {_comboIdc} else {RACA_IDC_PRESET_TOOL};
 private _library = uiNamespace getVariable ["RACA_builderLibrary", []];
-
-if (_comboIdc != RACA_IDC_PRESET_TOOL) exitWith {
-    [_display, "Use the Preset Analysis selector to choose a saved preset before comparing with the draft."] call RACA_fnc_setStatus;
+private _analysisCombo = _display displayCtrl _analysisComboId;
+if (isNull _analysisCombo) exitWith {
+    [_display, "Preset analysis controls are not available in this screen."] call RACA_fnc_setStatus;
     false
 };
-private _analysisCombo = _display displayCtrl RACA_IDC_PRESET_TOOL;
+
 private _selection = lbCurSel _analysisCombo;
-if (_selection <= 0) exitWith {
+if (_selection < 0) exitWith {
+    [_display, "Select a preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
+    false
+};
+if (_selection isEqualTo 0) exitWith {
     [_display, "Select a preset in Preset Analysis before comparing with the draft."] call RACA_fnc_setStatus;
     false
 };
 private _selectedName = _analysisCombo lbData _selection;
+if (_selectedName isEqualTo "") exitWith {
+    [_display, "Choose a valid saved preset first."] call RACA_fnc_setStatus;
+    false
+};
 
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _selectedName};
 private _saved = if (_savedIndex >= 0) then {_library select _savedIndex} else {[]};
@@ -61,6 +70,6 @@ private _lines = [
     str _draftLimits
 ];
 forceUnicode 1;
-copyToClipboard (_lines joinString _newline);
+[(_lines joinString _newline), "Preset comparison"] call RACA_fnc_copyTextAndLog;
 [_display, format ["Compared the draft with '%1': +%2 / -%3 classes. The complete diff is on the clipboard.", _saved select 2, count _added, count _removed]] call RACA_fnc_setStatus;
 true

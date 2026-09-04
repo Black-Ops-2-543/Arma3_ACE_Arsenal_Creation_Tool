@@ -11,32 +11,30 @@ if (_className isEqualTo "") exitWith {
     false
 };
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
-if ((_catalog findIf {(_x select 1) isEqualTo _className}) < 0) exitWith {
+if ((_catalog findIf {toLowerANSI (_x select 1) isEqualTo toLowerANSI _className}) < 0) exitWith {
     (_display displayCtrl RACA_IDC_PREFLIGHT_SUMMARY) ctrlSetText format ["'%1' is unavailable in the loaded catalogue. Load its source mod, reopen the creator, and run preflight again.", _className];
     false
 };
 
+private _parent = _display getVariable ["RACA_preflightParentDisplay",displayNull];
+if (isNull _parent) exitWith {false};
+private _prior=[_parent] call RACA_fnc_captureCatalogView;
 _display closeDisplay 1;
-[_className] spawn {
+[_parent,_className,_prior] spawn {
     disableSerialization;
-    params ["_className"];
+    params ["_parent","_className","_prior"];
     uiSleep 0.1;
-    private _parent = findDisplay RACA_IDD_CREATOR;
     if (isNull _parent) exitWith {};
-    [_parent, "ASSIGNMENT"] call RACA_fnc_switchCreatorTab;
-    (_parent displayCtrl RACA_IDC_SEARCH) ctrlSetText "";
-    (_parent displayCtrl RACA_IDC_CATEGORY) lbSetCurSel 0;
-    (_parent displayCtrl RACA_IDC_SOURCE_FILTER) lbSetCurSel 0;
+    [_parent,"ASSIGNMENT"] call RACA_fnc_switchCreatorTab;
+    _parent setVariable ["RACA_navigationClasses",[_className]];
+    _parent setVariable ["RACA_diagnosticNavigationPrior",_prior];
+    (_parent displayCtrl RACA_IDC_CLEAR_MAGAZINES) ctrlSetText "Return To Previous View";
+    (_parent displayCtrl RACA_IDC_CLEAR_MAGAZINES) ctrlShow true;
     [_parent] call RACA_fnc_refreshItemList;
-    private _list = _parent displayCtrl RACA_IDC_ITEM_LIST;
-    private _targetRow = -1;
-    for "_index" from 0 to ((lnbSize _list select 0) - 1) do {
-        if ((_list lnbData [_index, 0]) isEqualTo _className) exitWith {_targetRow = _index};
-    };
-    if (_targetRow >= 0) then {
-        _list lnbSetCurSelRow _targetRow;
-        ctrlSetFocus _list;
-        [_parent, format ["Selected preflight item '%1'.", _className]] call RACA_fnc_setStatus;
-    };
+    _parent setVariable ["RACA_highlighted",createHashMapFromArray [[_className,true]]];
+    _parent setVariable ["RACA_focusedClass",_className];
+    [_parent] call RACA_fnc_refreshItemList;
+    ctrlSetFocus (_parent displayCtrl RACA_IDC_ITEM_LIST);
+    [_parent,format ["Showing diagnostic class '%1'. Return restores every previous filter and selection.",_className]] call RACA_fnc_setStatus;
 };
 true

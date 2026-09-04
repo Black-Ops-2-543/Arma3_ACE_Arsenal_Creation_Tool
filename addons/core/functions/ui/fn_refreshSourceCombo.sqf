@@ -1,7 +1,10 @@
 #include "..\..\script_component.hpp"
 params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {};
+private _wasSuppressed = _display getVariable ["RACA_refreshSuppressed", false];
+_display setVariable ["RACA_refreshSuppressed", true];
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
+private _availableByControl = createHashMap;
 private _populate = {
     params ["_combo", "_values", "_allLabel"];
     if (isNull _combo) exitWith {};
@@ -15,6 +18,7 @@ private _populate = {
     } forEach _values;
     private _keys = keys _counts;
     _keys sort true;
+    _availableByControl set [str ctrlIDC _combo, createHashMapFromArray (_keys apply {[_x, true]})];
     lbClear _combo;
     private _all = _combo lbAdd format ["%1 (%2)", _allLabel, count _catalog];
     _combo lbSetData [_all, ""];
@@ -24,6 +28,10 @@ private _populate = {
         _combo lbSetData [_index, _x];
         if (_x isEqualTo _previous) then {_selected = _index};
     } forEach _keys;
+    if (_previous isNotEqualTo "" && {_selected isEqualTo 0}) then {
+        _selected = _combo lbAdd ("Missing: " + _previous);
+        _combo lbSetData [_selected, _previous];
+    };
     _combo lbSetCurSel _selected;
 };
 
@@ -48,10 +56,18 @@ private _tagValues = [];
 {
     {
         _tagValues pushBack _x;
-    } forEach (_tagIndex getOrDefault [_x param [1, "", [""]], []]);
+    } forEach (_tagIndex getOrDefault [toLowerANSI (_x param [1, "", [""]]), []]);
 } forEach _catalog;
 [
     _display displayCtrl RACA_IDC_TAG_FILTER,
     _tagValues,
     "All tags"
 ] call _populate;
+private _remainingUnresolved = [];
+{
+    _x params ["_idc", "_value"];
+    private _available = _availableByControl getOrDefault [str _idc, createHashMap];
+    if !(_available getOrDefault [_value, false]) then {_remainingUnresolved pushBack _x};
+} forEach (_display getVariable ["RACA_unresolvedFilters", []]);
+_display setVariable ["RACA_unresolvedFilters", _remainingUnresolved];
+_display setVariable ["RACA_refreshSuppressed", _wasSuppressed];

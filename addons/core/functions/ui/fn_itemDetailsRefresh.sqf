@@ -5,9 +5,10 @@ if (isNull _display) exitWith {false};
 
 private _className = _display getVariable ["RACA_itemDetailsClassName", ""];
 private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
-private _index = _catalog findIf {(_x select 1) isEqualTo _className};
+private _catalogIndex = [_catalog] call RACA_fnc_indexCatalog;
+private _index = (_catalogIndex get "class") getOrDefault [toLowerANSI _className, -1];
 if (_className isEqualTo "" || {_index < 0}) exitWith {
-    (_display displayCtrl RACA_IDC_ITEM_DETAILS_TITLE) ctrlSetText "ITEM DETAILS UNAVAILABLE";
+    (_display displayCtrl RACA_IDC_ITEM_DETAILS_TITLE) ctrlSetText "Item Details Unavailable";
     (_display displayCtrl RACA_IDC_ITEM_DETAILS_TEXT) ctrlSetText "The selected class is no longer present in the active ACE Arsenal catalogue.";
     (_display displayCtrl RACA_IDC_ITEM_DETAILS_INCLUDE) ctrlEnable false;
     (_display displayCtrl RACA_IDC_ITEM_DETAILS_FAVORITE) ctrlEnable false;
@@ -64,7 +65,7 @@ private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 private _selected = _selectedMap getOrDefault [_className, false];
 private _inherited = _inheritedMap getOrDefault [_className, false];
 private _favorite = _favoriteMap getOrDefault [_className, false];
-private _tags = (uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap]) getOrDefault [_className, []];
+private _tags = (uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap]) getOrDefault [toLowerANSI _className, []];
 private _selectionState = if (_inherited) then {
     ["Inherited from the source preset but explicitly removed", "Inherited from the source preset and included"] select _selected
 } else {
@@ -72,14 +73,18 @@ private _selectionState = if (_inherited) then {
 };
 private _limit = _limits getOrDefault [_className, []];
 private _categoryLimit = _limits getOrDefault [format ["category:%1", _category], []];
-private _limitText = "Unlimited";
-if (_limit isNotEqualTo []) then {
-    _limitText = format ["Exact: %1 | Scope: %2 | Reset: %3", _limit select 1, _limit select 2, _limit select 3];
-} else {
-    if (_categoryLimit isNotEqualTo []) then {
-        _limitText = format ["Category: %1 | Scope: %2 | Reset: %3", _categoryLimit select 1, _categoryLimit select 2, _categoryLimit select 3];
-    };
-};
+private _policyLines = [];
+{
+    _x params ["_label","_policy"];
+    if (_policy isNotEqualTo []) then {_policyLines pushBack format ["%1: %2 | Scope: %3 | Reset: %4",_label,_policy select 1,_policy select 2,_policy select 3]};
+} forEach [["Exact item limit",_limit],["Shared category limit",_categoryLimit]];
+if (_policyLines isEqualTo []) then {_policyLines pushBack "No authored quantity policies."};
+_policyLines pushBack "All applicable policies apply together. These are authored limits, not live remaining quotas.";
+private _limitText = _policyLines joinString toString [10];
+private _resolvedMags = [_className] call RACA_fnc_getCompatibleMagazines;
+(_display displayCtrl RACA_IDC_SHOW_MAGAZINES) ctrlShow (_resolvedMags isNotEqualTo []);
+(_display displayCtrl RACA_IDC_SHOW_MAGAZINES) ctrlEnable (_resolvedMags isNotEqualTo []);
+if (_bucket isEqualTo 1) then {_compatibility pushBack format ["Loaded compatible magazines (all muzzles and wells): %1",count _resolvedMags]};
 
 private _lines = [
     format ["Display name: %1", _displayName],
@@ -94,19 +99,24 @@ private _lines = [
     format ["ACE catalogue availability: Yes — present in this running Arma session"],
     format ["Draft state: %1 | Favorite: %2", _selectionState, ["No", "Yes"] select _favorite],
     format ["Catalogue tags: %1", if (_tags isEqualTo []) then {"None"} else {_tags joinString ", "}],
-    format ["Effective quantity policy: %1", _limitText],
+    format ["Authored quantity policies: %1", _limitText],
     "Compatibility details:",
     _compatibility joinString (toString [10])
 ];
 private _report = _lines joinString (toString [10]);
 _display setVariable ["RACA_itemDetailsReport", _report];
 
-(_display displayCtrl RACA_IDC_ITEM_DETAILS_TITLE) ctrlSetText format ["ITEM DETAILS — %1", toUpperANSI _displayName];
+(_display displayCtrl RACA_IDC_ITEM_DETAILS_TITLE) ctrlSetText format ["Item Details — %1", _displayName];
 private _pictureControl = _display displayCtrl RACA_IDC_ITEM_DETAILS_PICTURE;
 _pictureControl ctrlSetText _picture;
 _pictureControl ctrlShow (_picture isNotEqualTo "");
-(_display displayCtrl RACA_IDC_ITEM_DETAILS_TEXT) ctrlSetText _report;
-(_display displayCtrl RACA_IDC_ITEM_DETAILS_INCLUDE) ctrlSetText (["INCLUDE ITEM", "EXCLUDE ITEM"] select _selected);
-(_display displayCtrl RACA_IDC_ITEM_DETAILS_FAVORITE) ctrlSetText (["ADD FAVORITE", "REMOVE FAVORITE"] select _favorite);
+private _textControl = _display displayCtrl RACA_IDC_ITEM_DETAILS_TEXT;
+_textControl ctrlSetText _report;
+private _pos = ctrlPosition _textControl;
+_pos set [3, (ctrlTextHeight _textControl + 0.04 * safeZoneH) max (0.46 * safeZoneH)];
+_textControl ctrlSetPosition _pos;
+_textControl ctrlCommit 0;
+(_display displayCtrl RACA_IDC_ITEM_DETAILS_INCLUDE) ctrlSetText (["Include Item", "Exclude Item"] select _selected);
+(_display displayCtrl RACA_IDC_ITEM_DETAILS_FAVORITE) ctrlSetText (["Add Favorite", "Remove Favorite"] select _favorite);
 (_display displayCtrl RACA_IDC_ITEM_DETAILS_STATUS) ctrlSetText "Details reflect the currently running Arma mod set and the unsaved creator draft.";
 true

@@ -61,6 +61,7 @@ if (_baseSelection > 0) then {
             } forEach (_validatedParent select 3);
             _removals sort true;
 
+            _preset = _preset select {(_forEachIndex < 4) || {!((_x param [0, ""]) in ["RACA_INHERITANCE", "RACA_ADOPTION", "RACA_COMPOSITION"])}};
             _preset pushBack [
                 "RACA_INHERITANCE",
                 1,
@@ -100,6 +101,8 @@ uiNamespace setVariable ["RACA_builderComposition", [_preset] call RACA_fnc_getC
 private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
 private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
 _combo lbSetCurSel (_savedIndex + 1);
+uiNamespace setVariable ["RACA_builderRawPreset", +_preset];
+uiNamespace setVariable ["RACA_builderOrigin", _name];
 uiNamespace setVariable ["RACA_creatorDirty", false];
 call RACA_fnc_clearDraftRecovery;
 [_display] call RACA_fnc_refreshHistoryButtons;

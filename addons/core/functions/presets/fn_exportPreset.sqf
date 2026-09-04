@@ -61,7 +61,7 @@ if (_output isEqualTo "") exitWith {
 };
 
 forceUnicode 1;
-copyToClipboard _output;
+[_output, _formatLabel] call RACA_fnc_copyTextAndLog;
 
 private _warningSuffix = if (_warnings isEqualTo []) then {""} else {
     format [" %1 validation warning(s) were included.", count _warnings]

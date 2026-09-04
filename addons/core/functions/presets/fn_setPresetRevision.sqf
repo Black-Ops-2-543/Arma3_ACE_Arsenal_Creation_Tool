@@ -10,13 +10,18 @@ private _existing = [_preset] call RACA_fnc_getRuntimePolicy;
 private _nextRevision = if (_revision < 0) then {(_existing select 4) + 1} else {_revision max 0};
 private _included = createHashMap;
 {{_included set [_x, true]} forEach _x} forEach (_preset select 3);
-private _requirements = [];
+private _requirementMap = createHashMap;
+{
+    private _class = _x param [0, "", [""]];
+    if (_included getOrDefault [_class, false]) then {_requirementMap set [toLowerANSI _class, +_x]};
+} forEach (_existing select 7);
 {
     _x params ["", "_className", "", "", "_modName", "", "", "", ["_sourceAddon", ""]];
     if (_included getOrDefault [_className, false]) then {
-        _requirements pushBack [_className, _modName, _sourceAddon, false];
+        _requirementMap set [toLowerANSI _className, [_className, _modName, _sourceAddon, false]];
     };
 } forEach _catalog;
+private _requirements = (keys _requirementMap) apply {_requirementMap get _x};
 _requirements sort true;
 
 private _runtime = [

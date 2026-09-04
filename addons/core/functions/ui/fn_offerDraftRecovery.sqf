@@ -16,7 +16,7 @@ private _rawName = _record param [2, "", [""]];
 private _rawPreset = _record param [3, [], [[]]];
 private _rawComposition = _record param [4, [], [[]]];
 private _candidate = +_rawPreset;
-if (_rawComposition isNotEqualTo []) then {_candidate pushBack _rawComposition};
+if (_rawComposition isNotEqualTo [] && {([_candidate] call RACA_fnc_getComposition) isEqualTo []}) then {_candidate pushBack _rawComposition};
 ([_candidate] call RACA_fnc_validatePreset) params ["_preset", "_warnings"];
 if (_preset isEqualTo []) exitWith {
     call RACA_fnc_clearDraftRecovery;
@@ -58,11 +58,14 @@ private _missing = [];
         if (_available getOrDefault [_x, false]) then {
             _selected set [_x, true];
         } else {
-            _missing pushBackUnique _x;
+            _missing pushBack _x;
+            _selected set [_x, true];
         };
     } forEach _x;
 } forEach (_preset select 3);
 uiNamespace setVariable ["RACA_builderSelected", _selected];
+uiNamespace setVariable ["RACA_builderRawPreset", +_preset];
+uiNamespace setVariable ["RACA_builderOrigin", _record param [6, "", [""]]];
 
 private _composition = [_preset] call RACA_fnc_getComposition;
 uiNamespace setVariable ["RACA_builderComposition", _composition];
@@ -97,10 +100,10 @@ uiNamespace setVariable ["RACA_creatorDiscarding", false];
 [_display] call RACA_fnc_refreshHistoryButtons;
 [_display] call RACA_fnc_saveDraftRecovery;
 private _missingSuffix = if (_missing isEqualTo []) then {""} else {
-    format [" %1 class(es) from unloaded mods were omitted.", count _missing]
+    format [" %1 class(es) from unloaded mods were preserved as unavailable.", count _missing]
 };
 private _noticeSuffix = if (_warnings isEqualTo []) then {""} else {
     format [" %1 validation notice(s) were handled.", count _warnings]
 };
-[_display, format ["Restored the unsaved draft with %1 available item(s).%2%3", count _selected, _missingSuffix, _noticeSuffix]] call RACA_fnc_setStatus;
+[_display, format ["Restored the unsaved draft with %1 authored item(s).%2%3", count _selected, _missingSuffix, _noticeSuffix]] call RACA_fnc_setStatus;
 true

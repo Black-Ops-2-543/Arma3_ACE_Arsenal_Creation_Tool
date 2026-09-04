@@ -1,7 +1,8 @@
 #include "..\..\script_component.hpp"
 params [
     ["_display", displayNull, [displayNull]],
-    ["_requested", "", [""]]
+    ["_requested", "", [""]],
+    ["_persist", true, [true]]
 ];
 if (isNull _display) exitWith {};
 
@@ -10,8 +11,7 @@ if !(_mode in ["BASIC", "ADVANCED"]) then {
     _mode = ["ADVANCED", "BASIC"] select ((uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]) isEqualTo "ADVANCED");
 };
 uiNamespace setVariable ["RACA_catalogSearchMode", _mode];
-profileNamespace setVariable ["RACA_catalogSearchMode_v1", _mode];
-saveProfileNamespace;
+if (_persist) then {profileNamespace setVariable ["RACA_catalogSearchMode_v1", _mode]; saveProfileNamespace};
 
 private _assignmentOpen = (uiNamespace getVariable ["RACA_creatorTab", "PRESETS"]) isEqualTo "ASSIGNMENT";
 private _showAdvanced = _assignmentOpen && {_mode isEqualTo "ADVANCED"};

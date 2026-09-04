@@ -9,6 +9,7 @@ private _visible = uiNamespace getVariable ["RACA_visibleClasses", []];
 private _sourceItems = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
 private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
 private _favorites = uiNamespace getVariable ["RACA_catalogFavorites", createHashMap];
+private _availableCount = {(([_x] call RACA_fnc_classifyCached) select 0) >= 0} count keys _selected;
 private _summary = format ["%1 included | %2 visible / %3 available | %4 limits | %5 favorites", count _selected, count _visible, count _catalog, count _limits, count _favorites];
 
 if ((count _sourceItems) > 0) then {
@@ -29,6 +30,7 @@ if ((count _sourceItems) > 0) then {
     ];
 };
 
+_summary = _summary + format [" | authored %1 / available %2 / unavailable %3", count _selected, _availableCount, (count _selected) - _availableCount];
 _summary = _summary + ([" | SAVED", " | UNSAVED DRAFT"] select (uiNamespace getVariable ["RACA_creatorDirty", false]));
 
 (_display displayCtrl RACA_IDC_SUMMARY) ctrlSetText _summary;

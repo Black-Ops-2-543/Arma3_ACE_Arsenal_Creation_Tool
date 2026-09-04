@@ -1,5 +1,5 @@
 /* Returns [validatedPreset, warnings]. Invalid presets return an empty preset. */
-params [["_preset", [], [[]]]];
+params [["_preset", [], [[]]], ["_operation", [], [[]]]];
 
 private _warnings = [];
 ([_preset] call RACA_fnc_migratePreset) params ["_migrated", "_migrationNotices", "_futureUntouched"];
@@ -16,6 +16,8 @@ private _sourceBuckets = _preset param [3, [], [[]]];
 if ((count _sourceBuckets) isNotEqualTo 4) exitWith {[[], ["Preset cargo buckets are malformed."]]};
 
 private _cleanBuckets = [[], [], [], []];
+private _seen = createHashMap;
+private _cancelled = false;
 
 {
     private _classes = _x;
@@ -24,17 +26,22 @@ private _cleanBuckets = [[], [], [], []];
         _warnings pushBack format ["Bucket %1 was not an array and was ignored.", _forEachIndex];
     } else {
         {
+            if ((_forEachIndex mod 256) isEqualTo 0 && {!([_operation, "Validating classes", _forEachIndex, count _classes] call RACA_fnc_importCheckpoint)}) exitWith {_cancelled = true};
             if (_x isEqualType "") then {
                 private _className = _x;
                 if ([_className] call RACA_fnc_isSafeClassName) then {
-                    ([_className] call RACA_fnc_classifyClass) params ["_actualBucket"];
+                    private _key = toLowerANSI _className;
+                    if !(_seen getOrDefault [_key, false]) then {
+                    _seen set [_key, true];
+                    ([_className] call RACA_fnc_classifyCached) params ["_actualBucket"];
 
                     if (_actualBucket < 0) then {
-                        _warnings pushBackUnique format ["Missing item: %1", _className];
-                        (_cleanBuckets select _sourceBucketIndex) pushBackUnique _className;
+                        _warnings pushBack format ["Missing item: %1", _className];
+                        (_cleanBuckets select _sourceBucketIndex) pushBack _className;
                     } else {
-                        (_cleanBuckets select _actualBucket) pushBackUnique _className;
+                        (_cleanBuckets select _actualBucket) pushBack _className;
                     };
+                };
                 } else {
                     _warnings pushBackUnique "An unsafe class name was rejected.";
                 };
@@ -44,6 +51,7 @@ private _cleanBuckets = [[], [], [], []];
         } forEach _classes;
     };
 } forEach _sourceBuckets;
+if (_cancelled) exitWith {[[], ["Import cancelled."]]};
 
 {_x sort true} forEach _cleanBuckets;
 private _validatedPreset = ["RACA_PRESET", 1, _name, _cleanBuckets];
@@ -83,9 +91,13 @@ for "_metadataIndex" from 4 to ((count _preset) - 1) do {
                 _warnings pushBack "Malformed inheritance additions were ignored with the source link.";
             } else {
                 private _cleanRemovals = [];
+                private _removalSet = createHashMap;
                 {
                     if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {
-                        _cleanRemovals pushBackUnique _x;
+                        if !(_removalSet getOrDefault [toLowerANSI _x, false]) then {
+                            _removalSet set [toLowerANSI _x, true];
+                            _cleanRemovals pushBack _x;
+                        };
                     } else {
                         _warnings pushBackUnique "An unsafe inheritance removal was rejected.";
                     };

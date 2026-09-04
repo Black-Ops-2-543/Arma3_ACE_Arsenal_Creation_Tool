@@ -82,6 +82,10 @@ if ((count _buckets) isNotEqualTo 4) then {
     } forEach _buckets;
 };
 
+if ((count keys _seen) isEqualTo 0 && {(count _buckets) isEqualTo 4}) then {
+    _entries pushBack ["ERROR", "EMPTY_PRESET", "The draft contains no authored arsenal items.", "", "", ""];
+};
+
 private _errorCount = {(_x select 0) isEqualTo "ERROR"} count _entries;
 private _warningCount = {(_x select 0) isEqualTo "WARNING"} count _entries;
 private _infoCount = {(_x select 0) isEqualTo "INFO"} count _entries;

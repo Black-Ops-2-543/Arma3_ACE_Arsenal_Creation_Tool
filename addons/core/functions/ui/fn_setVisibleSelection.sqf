@@ -9,6 +9,9 @@ private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashM
 private _visible = uiNamespace getVariable ["RACA_visibleClasses", []];
 
 if (_visible isEqualTo []) exitWith {[_display, "No visible items match the current filters."] call RACA_fnc_setStatus};
+if ((_display getVariable ["RACA_unresolvedFilters", []]) isNotEqualTo []) exitWith {[_display, "Resolve or explicitly clear missing filters before bulk inclusion."] call RACA_fnc_setStatus};
+_visible = _visible select {(_selected getOrDefault [_x, false]) isNotEqualTo _include};
+if (_visible isEqualTo []) exitWith {};
 [_display] call RACA_fnc_pushCreatorHistory;
 
 {

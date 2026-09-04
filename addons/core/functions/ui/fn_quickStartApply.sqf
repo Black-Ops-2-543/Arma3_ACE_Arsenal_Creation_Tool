@@ -13,6 +13,8 @@ if ((count _name) > 128) exitWith {
     false
 };
 [_parent] call RACA_fnc_pushCreatorHistory;
+uiNamespace setVariable ["RACA_builderRawPreset", []];
+uiNamespace setVariable ["RACA_builderOrigin", ""];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_builderComposition", []];

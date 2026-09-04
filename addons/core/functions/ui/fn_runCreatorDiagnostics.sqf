@@ -14,7 +14,8 @@ _summary = [
 _ok = (_summary select 0) isEqualTo 0;
 _analysis = [_ok, _entries, _summary];
 private _report = [_preset param [2, "Current selection"], _entries, _summary] call RACA_fnc_formatDiagnosticReport;
-uiNamespace setVariable ["RACA_creatorDiagnostics", [_analysis, _report]];
+private _fingerprint = [[_preset] call RACA_fnc_fingerprintPreset, count _catalog, (_catalog param [0,[]]) param [1,""], (_catalog param [(count _catalog)-1,[]]) param [1,""]];
+uiNamespace setVariable ["RACA_creatorDiagnostics", [_analysis, _report, _fingerprint]];
 private _diagnostics = _display displayCtrl RACA_IDC_DIAGNOSTICS;
 _diagnostics ctrlSetText ((_report splitString toString [13, 10]) select [0, 4] joinString (toString [10]));
 _diagnostics ctrlSetBackgroundColor (

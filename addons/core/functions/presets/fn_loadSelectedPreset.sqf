@@ -17,6 +17,8 @@ if (_preset isEqualTo []) exitWith {
 };
 
 [_display] call RACA_fnc_pushCreatorHistory;
+uiNamespace setVariable ["RACA_builderRawPreset", +_preset];
+uiNamespace setVariable ["RACA_builderOrigin", _preset select 2];
 
 private _selected = createHashMap;
 {

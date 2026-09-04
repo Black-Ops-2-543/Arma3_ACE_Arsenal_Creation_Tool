@@ -21,7 +21,7 @@ private _readCombo = {
 };
 private _record = [
     "RACA_CATALOG_VIEW",
-    2,
+    3,
     _name,
     (ctrlText (_parent displayCtrl RACA_IDC_SEARCH)) select [0, 256],
     [_parent displayCtrl RACA_IDC_CATEGORY] call _readCombo,
@@ -30,7 +30,8 @@ private _record = [
     [_parent displayCtrl RACA_IDC_AUTHOR_FILTER] call _readCombo,
     [_parent displayCtrl RACA_IDC_TAG_FILTER] call _readCombo,
     (uiNamespace getVariable ["RACA_catalogSort", ["item", true]]) select 0,
-    (uiNamespace getVariable ["RACA_catalogSort", ["item", true]]) select 1
+    (uiNamespace getVariable ["RACA_catalogSort", ["item", true]]) select 1,
+    uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]
 ];
 private _views = call RACA_fnc_getSavedCatalogViews;
 private _existing = _views findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};

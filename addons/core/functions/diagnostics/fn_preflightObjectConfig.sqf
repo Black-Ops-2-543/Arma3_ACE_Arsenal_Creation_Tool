@@ -5,7 +5,8 @@ params [
 
 private _entries = [];
 private _rawSlotCount = -1;
-if ((_rawConfig param [0, "", [""]]) isEqualTo "RACA_OBJECT_CONFIG") then {
+private _rawSignature = _rawConfig param [0, ""];
+if (_rawSignature isEqualType "" && {_rawSignature isEqualTo "RACA_OBJECT_CONFIG"}) then {
     if ((count _rawConfig) > 2 && {!((_rawConfig select 2) isEqualType [])}) then {
         _entries pushBack ["ERROR", "INVALID_SLOT_CONTAINER", "The object configuration's slot collection is not an array.", "", "", ""];
     };

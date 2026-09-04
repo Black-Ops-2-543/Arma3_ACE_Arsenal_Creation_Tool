@@ -1,16 +1,16 @@
 /*
  * Parses portable JSON without compile/call. Returns
- * [availablePreset, metadata, warnings]. Invalid input returns an empty preset.
+ * [authoredPreset, metadata, warnings]. Invalid input returns an empty preset.
  */
-params [["_text", "", [""]]];
+params [["_text", "", [""]], ["_operation", [], [[]]]];
 
 private _warnings = [];
 if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
-if ((count _text) > 2000000) exitWith {
-    [[], [], ["The JSON exceeds the 2,000,000-character import safety limit."]]
-};
 
+private _parseStarted = diag_tickTime;
 private _decoded = fromJSON _text;
+diag_log format ["[RACA][IMPORT] native fromJSON seconds=%1 characters=%2 (non-cancellable native call)", diag_tickTime - _parseStarted, count _text];
+if !([_operation, "Validating JSON", 0, 1] call RACA_fnc_importCheckpoint) exitWith {[[], [], ["Import cancelled."]]};
 if (isNil "_decoded") exitWith {[[], [], ["The clipboard does not contain valid JSON."]]};
 if !(_decoded isEqualType []) exitWith {[[], [], ["The JSON root must be an array."]]};
 
@@ -55,40 +55,6 @@ if (_signature isEqualTo "RACA_PORTABLE_PRESET") then {
 
 if (_rawPreset isEqualTo []) exitWith {[[], [], _warnings]};
 if ((count _rawPreset) < 4) exitWith {[[], [], _warnings + ["Preset data is incomplete."]]};
-if ((count _rawPreset) > 68) exitWith {
-    [[], [], _warnings + ["Preset data exceeds the 64-record metadata safety limit."]]
-};
-if ((count _metadata) > 256) exitWith {
-    [[], [], _warnings + ["Portable metadata exceeds the 256-record safety limit."]]
-};
-
-private _rawBuckets = _rawPreset param [3, [], [[]]];
-if ((count _rawBuckets) isNotEqualTo 4) exitWith {
-    [[], [], _warnings + ["Preset cargo buckets are malformed."]]
-};
-private _referenceCount = 0;
-{
-    if (_x isEqualType []) then {_referenceCount = _referenceCount + count _x};
-} forEach _rawBuckets;
-for "_metadataIndex" from 4 to ((count _rawPreset) - 1) do {
-    private _candidate = _rawPreset param [_metadataIndex, [], [[]]];
-    private _tag = _candidate param [0, "", [""]];
-    if (_tag in ["RACA_INHERITANCE", "RACA_ADOPTION", "RACA_COMPOSITION"]) then {
-        private _additions = _candidate param [4, [], [[]]];
-        {
-            if (_x isEqualType []) then {_referenceCount = _referenceCount + count _x};
-        } forEach _additions;
-        private _removals = _candidate param [5, [], [[]]];
-        _referenceCount = _referenceCount + count _removals;
-    };
-    if (_tag isEqualTo "RACA_RUNTIME") then {
-        _referenceCount = _referenceCount + count (_candidate param [2, [], [[]]]);
-    };
-};
-if (_referenceCount > 20000) exitWith {
-    [[], [], _warnings + ["Preset data exceeds the 20,000-reference safety limit."]]
-};
-
 private _rawName = _rawPreset select 2;
 if !(_rawName isEqualType "") exitWith {[[], [], _warnings + ["Preset name must be text."]]};
 if (_rawName isEqualTo "" || {(count _rawName) > 128}) exitWith {
@@ -98,38 +64,11 @@ if (({_x < 32 || {_x isEqualTo 127}} count toArray _rawName) > 0) exitWith {
     [[], [], _warnings + ["Preset name contains unsupported control characters."]]
 };
 
-([_rawPreset] call RACA_fnc_validatePreset) params ["_validated", "_validationWarnings"];
+([_rawPreset, _operation] call RACA_fnc_validatePreset) params ["_validated", "_validationWarnings"];
 _warnings append _validationWarnings;
 if (_validated isEqualTo []) exitWith {[[], [], _warnings]};
+if ((_warnings findIf {_x find "unsafe class" >= 0 || {_x find "non-text class" >= 0}}) >= 0) exitWith {[[], [], _warnings + ["Unsafe or non-text cargo was rejected; no preset was imported."]]};
 
-private _availableBuckets = [[], [], [], []];
-{
-    {
-        private _className = _x;
-        if ([_className] call RACA_fnc_isSafeClassName) then {
-            ([_className] call RACA_fnc_classifyClass) params ["_bucket"];
-            if (_bucket >= 0) then {
-                (_availableBuckets select _bucket) pushBackUnique _className;
-            } else {
-                _warnings pushBackUnique format ["Missing item: %1", _className];
-            };
-        } else {
-            _warnings pushBackUnique "An unsafe class name was rejected.";
-        };
-    } forEach _x;
-} forEach (_validated select 3);
-
-{_x sort true} forEach _availableBuckets;
-private _availableCount = 0;
-{_availableCount = _availableCount + count _x} forEach _availableBuckets;
-if (_availableCount isEqualTo 0) exitWith {
-    [[], [], _warnings + ["The import contains no available arsenal items."]]
-};
-
-private _availablePreset = ["RACA_PRESET", 1, _validated select 2, _availableBuckets];
-private _composition = [_validated] call RACA_fnc_getComposition;
-if (_composition isNotEqualTo []) then {
-    _availablePreset pushBack _composition;
-};
-
-[_availablePreset, _metadata, _warnings]
+// Validation preserves authored unavailable entries and all supported metadata.
+// Decoding never stamps a local revision or mutates the profile library.
+[_validated, _metadata, _warnings]

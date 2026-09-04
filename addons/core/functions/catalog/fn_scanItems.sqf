@@ -29,6 +29,41 @@ private _catalog = [];
 private _modCache = createHashMap;
 private _total = count _classNames;
 
+/*
+ * configSourceMod can report "A3" for community PBOs whose mod metadata is
+ * supplied only by the surrounding mod folder. Arma exposes an authoritative
+ * PBO-prefix -> loaded-mod index through allAddonsInfo, so build a fallback
+ * lookup keyed by the final prefix segment (normally the CfgPatches name).
+ */
+private _loadedMods = getLoadedModsInfo;
+private _addonOwners = createHashMap;
+{
+    private _prefix = _x param [0, "", [""]];
+    private _modIndex = _x param [3, -1, [0]];
+    if (_prefix isNotEqualTo "" && {_modIndex >= 0} && {_modIndex < count _loadedMods}) then {
+        private _segments = _prefix splitString "\/";
+        if (_segments isNotEqualTo []) then {
+            private _key = toLowerANSI (_segments select ((count _segments) - 1));
+            private _modInfo = _loadedMods select _modIndex;
+            private _friendlyName = _modInfo param [0, "", [""]];
+            private _modDir = _modInfo param [1, "", [""]];
+            private _isOfficial = _modInfo param [3, false, [false]];
+            if (_friendlyName isEqualTo "") then {_friendlyName = _modDir};
+
+            private _owner = [_friendlyName, _modDir, _isOfficial];
+            private _knownOwner = _addonOwners getOrDefault [_key, []];
+            if (_knownOwner isEqualTo []) then {
+                _addonOwners set [_key, _owner];
+            } else {
+                if (_knownOwner isNotEqualTo _owner) then {
+                    // An ambiguous prefix tail is not safe attribution evidence.
+                    _addonOwners set [_key, ["", "", false]];
+                };
+            };
+        };
+    };
+} forEach allAddonsInfo;
+
 {
     private _className = _x;
     ([_className] call RACA_fnc_classifyClass) params ["_bucket", "_category", "_config"];
@@ -40,8 +75,7 @@ private _total = count _classNames;
         private _picture = getText (_config >> "picture");
         private _author = getText (_config >> "author");
         private _sourceAddons = configSourceAddonList _config;
-        private _addon = _config call ace_common_fnc_getAddon;
-        private _sourceAddon = _addon;
+        private _sourceAddon = _sourceAddons param [0, ""];
 
         /*
          * configSourceMod on the item class can still be "A3" for a class
@@ -60,22 +94,30 @@ private _total = count _classNames;
             };
         } forEach _sourceAddons;
         if (_declaringAddon isNotEqualTo "") then {_sourceAddon = _declaringAddon};
-        if (_sourceAddon isEqualTo "") then {_sourceAddon = _sourceAddons param [0, ""]};
 
         private _sourcePatch = configFile >> "CfgPatches" >> _sourceAddon;
-        private _sourceMod = if (isClass _sourcePatch) then {configSourceMod _sourcePatch} else {""};
+        private _sourceMod = configSourceMod _config;
+        private _patchSourceMod = if (isClass _sourcePatch) then {configSourceMod _sourcePatch} else {""};
+        if (_patchSourceMod isNotEqualTo "") then {_sourceMod = _patchSourceMod};
         private _modName = "Arma 3";
 
-        if (_sourceMod isNotEqualTo "" && {_sourceMod isNotEqualTo "A3"}) then {
-            private _cachedMod = _modCache getOrDefault [_sourceMod, []];
-            if (_cachedMod isEqualTo []) then {
-                private _params = modParams [_sourceMod, ["name"]];
-                _modName = _params param [0, _sourceMod];
-                if (_modName isEqualTo "") then {_modName = _sourceMod};
-                _cachedMod = [_modName];
-                _modCache set [_sourceMod, _cachedMod];
-            } else {
-                _cachedMod params ["_modName"];
+        private _owner = _addonOwners getOrDefault [toLowerANSI _sourceAddon, []];
+        if (_owner isNotEqualTo [] && {(_owner select 0) isNotEqualTo ""}) then {
+            _owner params ["_ownerName", "_ownerDir"];
+            _modName = _ownerName;
+            if (_ownerDir isNotEqualTo "") then {_sourceMod = _ownerDir};
+        } else {
+            if (_sourceMod isNotEqualTo "" && {_sourceMod isNotEqualTo "A3"}) then {
+                private _cachedMod = _modCache getOrDefault [_sourceMod, []];
+                if (_cachedMod isEqualTo []) then {
+                    private _params = modParams [_sourceMod, ["name"]];
+                    _modName = _params param [0, _sourceMod];
+                    if (_modName isEqualTo "") then {_modName = _sourceMod};
+                    _cachedMod = [_modName];
+                    _modCache set [_sourceMod, _cachedMod];
+                } else {
+                    _cachedMod params ["_modName"];
+                };
             };
         };
 
@@ -95,7 +137,6 @@ private _total = count _classNames;
             _modName,
             _author,
             _sourceMod,
-            _addon,
             _sourceAddon,
             _itemType joinString " "
         ];

@@ -6,7 +6,10 @@ private _seenNames = [];
 {
     if (_x isEqualType [] && {(count _x) >= 10} && {(_x param [0, "", [""]]) isEqualTo "RACA_CATALOG_VIEW"}) then {
         private _version = _x param [1, -1, [0]];
-        if (_version in [1, 2] && {_version isEqualTo 1 || {(count _x) >= 11}}) then {
+        private _shapeValid = (_version isEqualTo 1 && {(count _x) >= 10}) ||
+            {_version isEqualTo 2 && {(count _x) >= 11}} ||
+            {_version isEqualTo 3 && {(count _x) >= 12}};
+        if (_version in [1, 2, 3] && {_shapeValid}) then {
             private _name = _x param [2, "", [""]];
             private _search = _x param [3, "", [""]];
             private _category = _x param [4, "All", [""]];
@@ -27,7 +30,7 @@ private _seenNames = [];
                 {(count _views) < 50}
             ) then {
                 _seenNames pushBack _nameKey;
-                _views pushBack ["RACA_CATALOG_VIEW", 2, _name, _search, _category, _source, _addon, _author, _tag, _sortField, _ascending];
+                _views pushBack ["RACA_CATALOG_VIEW", 3, _name, _search, _category, _source, _addon, _author, _tag, _sortField, _ascending, if (_version >= 3) then {_x param [11, "ADVANCED", [""]]} else {"ADVANCED"}];
             };
         };
     };

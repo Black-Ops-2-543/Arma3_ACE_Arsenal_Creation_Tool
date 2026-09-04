@@ -4,6 +4,11 @@ params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {};
 
 uiNamespace setVariable ["RACA_builderDisplay", _display];
+_display setVariable ["RACA_generation", (uiNamespace getVariable ["RACA_creatorGeneration", 0]) + 1];
+uiNamespace setVariable ["RACA_creatorGeneration", _display getVariable "RACA_generation"];
+uiNamespace setVariable ["RACA_builderRawPreset", []];
+uiNamespace setVariable ["RACA_builderOrigin", ""];
+uiNamespace setVariable ["RACA_magazineFilterContext", []];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
@@ -42,15 +47,16 @@ call RACA_fnc_refreshCatalogTagIndex;
 private _exportFormat = _display displayCtrl RACA_IDC_EXPORT_FORMAT;
 lbClear _exportFormat;
 {
-    _x params ["_label", "_data"];
+    _x params ["_label", "_data", "_tooltip"];
     private _index = _exportFormat lbAdd _label;
     _exportFormat lbSetData [_index, _data];
+    _exportFormat lbSetTooltip [_index, _tooltip];
 } forEach [
-    ["JSON preset", "JSON"],
-    ["Reusable SQF", "SQF"],
-    ["Class list", "LIST"],
-    ["Required-mod manifest", "MANIFEST"],
-    ["Support bundle", "SUPPORT"]
+    ["JSON preset", "JSON", "Choose JSON to back up or share a complete RACA preset and guarantee a lossless RACA re-import."],
+    ["Reusable SQF", "SQF", "Choose reusable SQF for a mission-folder script that multiple Eden objects can call and RACA can conservatively re-import."],
+    ["Class list", "LIST", "Choose Class list when another script or setting only needs a quick comma-separated list of class names."],
+    ["Required-mod manifest", "MANIFEST", "Choose Required-mod manifest to audit which mods and add-ons a preset depends on before mission deployment."],
+    ["Support bundle", "SUPPORT", "Choose Support bundle when reporting a problem; it packages the preset with diagnostic context for troubleshooting."]
 ];
 _exportFormat lbSetCurSel 0;
 
@@ -76,14 +82,6 @@ _scopeCombo lbSetCurSel 4;
 [_display] call RACA_fnc_syncLimitPolicy;
 
 [_display] call RACA_fnc_refreshRoleTemplateCombo;
-private _quickStartPulseSeen = profileNamespace getVariable ["RACA_quickStartPulseSeen_v2", false];
-if (!(_quickStartPulseSeen isEqualType true)) then {_quickStartPulseSeen = false;};
-private _quickStartPulseSession = missionNamespace getVariable ["RACA_quickStartPulseSeenSession", false];
-if (!(_quickStartPulseSession isEqualType true)) then {_quickStartPulseSession = false;};
-if (!(_quickStartPulseSeen || _quickStartPulseSession)) then {
-    missionNamespace setVariable ["RACA_quickStartPulseSeenSession", true];
-    [_display] spawn RACA_fnc_pulseQuickStartButton;
-};
 
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_updateSummary;
@@ -103,6 +101,8 @@ _list lnbSetTooltip [[_loadingRow, 1], "You can continue using Preset Management
         [_display, "Reading all ACE Arsenal-compatible items from loaded mods..."] call RACA_fnc_setStatus;
         _catalog = [_display] call RACA_fnc_scanItems;
         uiNamespace setVariable ["RACA_itemCatalog", _catalog];
+        uiNamespace setVariable ["RACA_catalogGeneration", (uiNamespace getVariable ["RACA_catalogGeneration", 0]) + 1];
+        uiNamespace setVariable ["RACA_catalogIndex", createHashMap];
     };
 
     if (isNull _display) exitWith {};

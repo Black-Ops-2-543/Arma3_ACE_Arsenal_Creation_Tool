@@ -21,7 +21,8 @@ profileNamespace setVariable [
         _safeName,
         _preset,
         +(uiNamespace getVariable ["RACA_builderComposition", []]),
-        systemTimeUTC
+        systemTimeUTC,
+        uiNamespace getVariable ["RACA_builderOrigin", ""]
     ]
 ];
 saveProfileNamespace;

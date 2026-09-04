@@ -46,6 +46,8 @@ class CfgRemoteExec {
         class RACA_fnc_receiveRehearsalProbe {allowedTargets = 2;};
         class RACA_fnc_receiveRehearsalSnapshot {allowedTargets = 1;};
         class RACA_fnc_registerActions {allowedTargets = 0; jip = 1;};
+        class RACA_fnc_handleZeusModuleRequest {allowedTargets = 2;};
+        class RACA_fnc_receiveZeusModuleResult {allowedTargets = 1;};
     };
 };
 
@@ -74,8 +76,8 @@ class CfgVehicles {
         curatorInfoType = "RscDisplayAttributeModuleNuke";
         class Attributes: AttributesBase {
             class PresetName {
-                displayName = "Preset name";
-                tooltip = "Saved profile preset name used by this module";
+                displayName = "Mission configuration";
+                tooltip = "Mission configuration ID or name. Embedded mission data is preferred; server-profile fallback is disabled by default.";
                 property = "RACA_ModulePresetName";
                 control = "Edit";
                 expression = "_this setVariable ['RACA_presetName', _value, true]";
@@ -141,6 +143,9 @@ class RscListNBox;
 class RscFrame;
 class RscPicture;
 class RscControlsGroupNoScrollbars;
+class RscControlsGroup;
 
+#include "ui\StaticControls.hpp"
+#include "ui\ImportDialog.hpp"
 #include "ui\RscDisplayCreator.hpp"
 #include "RscDisplayMain.hpp"

@@ -8,6 +8,6 @@ if (_report isEqualTo "") exitWith {
     (_display displayCtrl RACA_IDC_REHEARSAL_STATUS) ctrlSetText "Start a rehearsal before copying its report.";
     false
 };
-copyToClipboard _report;
+[_report, "Rehearsal report"] call RACA_fnc_copyTextAndLog;
 (_display displayCtrl RACA_IDC_REHEARSAL_STATUS) ctrlSetText "Copied the complete multiplayer rehearsal report to the clipboard.";
 true

@@ -9,7 +9,8 @@ if (_row < 0) exitWith {
     [_display, "Select a catalogue row before opening item details."] call RACA_fnc_setStatus;
     false
 };
-private _className = _list lnbData [_row, 0];
+private _classes = [_display] call RACA_fnc_resolveCreatorSelection;
+private _className = _display getVariable ["RACA_focusedClass", _classes param [0, ""]];
 if (_className isEqualTo "") exitWith {false};
 
 uiNamespace setVariable ["RACA_itemDetailsParent", _display];

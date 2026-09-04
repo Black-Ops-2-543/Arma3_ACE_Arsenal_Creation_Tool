@@ -13,15 +13,7 @@ if (_source isEqualTo []) exitWith {
     false
 };
 
-private _selected = keys (uiNamespace getVariable ["RACA_builderSelected", createHashMap]);
-private _inherited = keys (uiNamespace getVariable ["RACA_builderInherited", createHashMap]);
-private _limitsMap = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
-private _limits = [];
-{_limits pushBack +(_limitsMap get _x)} forEach keys _limitsMap;
-_selected sort true;
-_inherited sort true;
-_limits sort true;
-private _current = [_selected, _limits, +(uiNamespace getVariable ["RACA_builderComposition", []]), _inherited];
+private _current = [_display] call RACA_fnc_captureCreatorState;
 private _target = uiNamespace getVariable [_targetKey, []];
 _target pushBack _current;
 private _state = _source deleteAt ((count _source) - 1);
@@ -38,6 +30,13 @@ uiNamespace setVariable ["RACA_builderSelected", _selectedMap];
 uiNamespace setVariable ["RACA_builderLimits", _nextLimits];
 uiNamespace setVariable ["RACA_builderComposition", +(_state select 2)];
 uiNamespace setVariable ["RACA_builderInherited", _inheritedMap];
+if ((_state param [4, ""]) isEqualTo "RACA_CREATOR_STATE") then {
+    (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText (_state select 6);
+    uiNamespace setVariable ["RACA_builderRawPreset", +(_state select 7)];
+    uiNamespace setVariable ["RACA_builderOrigin", _state select 8];
+};
+// History restoration is an unsaved change relative to the current library.
+// It must never silently discard a previously dirty draft's recovery record.
 [_display] call RACA_fnc_queueDraftRecovery;
 [_display] call RACA_fnc_refreshBaseCombo;
 [_display] call RACA_fnc_refreshCategoryCombo;

@@ -11,5 +11,5 @@ lbClear _filter;
     private _row = _filter lbAdd _label;
     _filter lbSetData [_row, _data];
 } forEach [["All severities", "ALL"], ["Errors", "ERROR"], ["Warnings", "WARNING"], ["Information", "INFO"]];
-_filter lbSetCurSel 0;
+_filter lbSetCurSel 1;
 [_display] call RACA_fnc_preflightRefresh;

@@ -7,6 +7,6 @@ if (_audit isEqualTo []) exitWith {(_display displayCtrl RACA_IDC_ADMIN_STATUS) 
 private _lines = ["RACA runtime audit export", format ["Exported: %1", systemTimeUTC]];
 {_lines pushBack str _x} forEach _audit;
 forceUnicode 1;
-copyToClipboard (_lines joinString toString [13, 10]);
+[(_lines joinString toString [13, 10]), "Runtime audit"] call RACA_fnc_copyTextAndLog;
 (_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Copied %1 recent audit records to the clipboard.", count _audit];
 true

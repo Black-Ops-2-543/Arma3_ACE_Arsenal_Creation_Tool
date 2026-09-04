@@ -1,108 +1,84 @@
 #include "..\..\script_component.hpp"
 disableSerialization;
 params [["_display", displayNull, [displayNull]]];
-
-if (isNull _display) exitWith {};
-if (isMultiplayer) exitWith {
-    [_display, "Clipboard import is available from the single-player creator mission only."] call RACA_fnc_setStatus;
-};
-
-forceUnicode 1;
-private _text = copyFromClipboard;
-if ((count _text) > 2000000) exitWith {
-    [_display, "Import rejected: the clipboard exceeds RACA's 2,000,000-character safety limit. No presets were changed."] call RACA_fnc_setStatus;
-};
-([_text] call RACA_fnc_decodePortablePreset) params ["_preset", "_metadata", "_warnings"];
-private _sourceFormat = "JSON";
-
-if (_preset isEqualTo [] &&
-    {(_text find "RACA_PORTABLE_PRESET") < 0} &&
-    {(_text find "RACA_PRESET") < 0}) then {
-    private _requestedName = ctrlText (_display displayCtrl RACA_IDC_PRESET_NAME);
-    ([_text, _requestedName] call RACA_fnc_decodeSqfPreset) params ["_sqfPreset", "_sqfMetadata", "_sqfWarnings"];
-    _preset = _sqfPreset;
-    _metadata = _sqfMetadata;
-    _warnings = _sqfWarnings;
-    _sourceFormat = "SQF/class-list";
-};
-
-if (_preset isEqualTo []) exitWith {
-    private _reason = _warnings param [(count _warnings) - 1, "The clipboard import is invalid."];
-    [_display, format ["Import rejected: %1", _reason]] call RACA_fnc_setStatus;
-};
-
-private _library = call RACA_fnc_getPresetLibrary;
-private _name = _preset select 2;
-private _normalizedName = toLowerANSI _name;
-private _existingIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
-private _composition = [_preset] call RACA_fnc_getComposition;
-if (_composition isNotEqualTo [] && {[_name, _composition select 2, _library] call RACA_fnc_wouldCreateCycle}) exitWith {
-    [_display, "Import rejected because its inheritance metadata would create a circular source link."] call RACA_fnc_setStatus;
-};
-
-if (_existingIndex >= 0) then {
-    private _overwrite = [
-        format ["A preset named '%1' already exists. Overwrite it, or import a separately named copy?", _name],
-        "Duplicate preset",
-        "OVERWRITE",
-        "IMPORT COPY",
-        _display,
-        false,
-        false
-    ] call BIS_fnc_guiMessage;
-
-    if (_overwrite) then {
-        [_library select _existingIndex, "Before import overwrite"] call RACA_fnc_archivePreset;
-        _library set [_existingIndex, _preset];
-    } else {
-        private _baseName = _name select [0, 116];
-        private _candidate = _baseName + " (Imported)";
-        private _copyNumber = 2;
-        while {_library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _candidate} >= 0} do {
-            _candidate = format ["%1 (Imported %2)", _baseName select [0, 112], _copyNumber];
-            _copyNumber = _copyNumber + 1;
-        };
-        _preset set [2, _candidate];
-        _name = _candidate;
-        _normalizedName = toLowerANSI _name;
-        _library pushBack _preset;
-    };
-} else {
-    _library pushBack _preset;
-};
-
-profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
-saveProfileNamespace;
-
-private _itemCount = 0;
-{_itemCount = _itemCount + count _x} forEach (_preset select 3);
-private _missingCount = {
-    ((_x find "Missing item:") isEqualTo 0) ||
-    {(_x find "Unavailable quoted class:") isEqualTo 0}
-} count _warnings;
-private _warningText = if (_missingCount > 0) then {
-    format [" %1 unavailable class(es) were reported and excluded.", _missingCount]
-} else {
-    if (_warnings isEqualTo []) then {""} else {format [" %1 migration/validation notice(s).", count _warnings]}
-};
-uiNamespace setVariable ["RACA_creatorDirty", false];
-call RACA_fnc_clearDraftRecovery;
-
-[_normalizedName, _sourceFormat, _name, _itemCount, _warningText] spawn {
-    disableSerialization;
-    params ["_normalizedName", "_sourceFormat", "_name", "_itemCount", "_warningText"];
-    uiSleep 0.2;
-    private _display = findDisplay RACA_IDD_CREATOR;
-    if (isNull _display) exitWith {};
+if (isNull _display || {!canSuspend}) exitWith {};
+if (isMultiplayer) exitWith {[_display, "Import is available in the single-player Creator."] call RACA_fnc_setStatus};
+if (_display getVariable ["RACA_importBusy", false]) exitWith {[_display, "An import is already active. Finish or cancel it first."] call RACA_fnc_setStatus};
+_display setVariable ["RACA_importBusy", true];
+private _id = (uiNamespace getVariable ["RACA_importSerial", 0]) + 1;
+uiNamespace setVariable ["RACA_importSerial", _id];
+_display setVariable ["RACA_importId", _id];
+private _dialog = _display createDisplay "RACA_ImportDialog";
+private _operation = [_display, _display getVariable ["RACA_generation", -1], _dialog, _id];
+private _started = diag_tickTime;
+private _result = "";
+try {
+    forceUnicode 1;
+    private _text = copyFromClipboard;
+    if !([_operation, "Identifying input", count _text, count _text] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
+    private _first = (toArray _text) findIf {!(_x in [9,10,13,32])};
+    private _trimmed = if (_first < 0) then {""} else {_text select [_first]};
+    private _json = (_text find "RACA_PORTABLE_PRESET") >= 0 || {(_text find "RACA_PRESET") >= 0} || {(_trimmed select [0,1]) in ["[","{"]};
+    // An ordinary SQF array of strings is accepted by the SQF lexer unless it
+    // has a JSON transport signature. Objects are always JSON, never scripts.
+    if (_json && {(_text find "RACA_") < 0} && {(_trimmed select [0,1]) isEqualTo "["}) then {_json = false};
+    private _parseStart = diag_tickTime;
+    private _decoded = if (_json) then {[_text, _operation] call RACA_fnc_decodePortablePreset} else {[_text, ctrlText (_display displayCtrl RACA_IDC_PRESET_NAME), _operation] call RACA_fnc_decodeSqfPreset};
+    diag_log format ["[RACA][IMPORT:%1] parse seconds=%2 characters=%3 format=%4", _id, diag_tickTime - _parseStart, count _text, ["SQF/list","JSON"] select _json];
+    _decoded params ["_preset", "_metadata", "_warnings"];
+    if (_preset isEqualTo []) then {throw (_warnings param [(count _warnings)-1, "Invalid import."])};
+    if !([_operation, "Reviewing import", 1, 1] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
     private _library = call RACA_fnc_getPresetLibrary;
+    private _baseline = +_library;
+    private _name = _preset select 2;
+    private _existing = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
+    private _items = 0;
+    {_items = _items + count _x} forEach (_preset select 3);
+    private _missing = {_x find "Missing item:" isEqualTo 0} count _warnings;
+    (_dialog displayCtrl 1000) ctrlSetText format ["Review '%1': %2 authored items (%3 unavailable). %4 notice(s). %5\n%6", _name, _items, _missing, count _warnings, ["Create a new preset.", "This name already exists. Choose Overwrite, Import Copy, or Cancel."] select (_existing >= 0), (_warnings select [0,8]) joinString "\n"];
+    (_dialog displayCtrl 1600) ctrlSetText (["Import", "Overwrite"] select (_existing >= 0));
+    (_dialog displayCtrl 1600) ctrlEnable true;
+    (_dialog displayCtrl 1601) ctrlEnable (_existing >= 0);
+    waitUntil {uiSleep 0.05; isNull _dialog || {(_dialog getVariable ["RACA_choice", ""]) isNotEqualTo ""}};
+    if (isNull _dialog || {isNull _display}) then {throw "Import cancelled."};
+    private _choice = _dialog getVariable ["RACA_choice", ""];
+    if !(_choice in ["OVERWRITE","COPY"]) then {throw "Import cancelled."};
+    if (_choice isEqualTo "COPY") then {
+        private _n = 1;
+        private _candidate = "";
+        while {_candidate isEqualTo "" || {(_library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _candidate}) >= 0}} do {
+            private _suffix = format [" (Imported %1)", _n];
+            _candidate = (_name select [0,128 - count _suffix]) + _suffix;
+            _n = _n + 1;
+        };
+        _name = _candidate; _preset set [2,_name]; _existing = -1;
+    };
+    private _composition = [_preset] call RACA_fnc_getComposition;
+    if (_composition isNotEqualTo [] && {[_name, _composition select 2, _library] call RACA_fnc_wouldCreateCycle}) then {throw "The final import name would create circular inheritance."};
+    if !(_baseline isEqualTo (call RACA_fnc_getPresetLibrary)) then {throw "The preset library changed during review. Retry the import."};
+    if !([_operation, "Committing", 1, 1] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
+    private _revision = if (_existing >= 0) then {(([_library select _existing] call RACA_fnc_getRuntimePolicy) select 4) + 1} else {1};
+    _preset pushBack ["RACA_IMPORT_PROVENANCE", 1, +([_preset] call RACA_fnc_getRuntimePolicy), +_metadata];
+    _preset = [_preset, "", uiNamespace getVariable ["RACA_itemCatalog", []], _revision] call RACA_fnc_setPresetRevision;
+    // No suspension between final revision check and the one persistence call.
+    isNil {
+        if (_existing >= 0) then {
+            [_library select _existing, "Before import overwrite", false] call RACA_fnc_archivePreset;
+            _library set [_existing, _preset];
+        } else {_library pushBack _preset};
+        profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
+        saveProfileNamespace;
+    };
+    _dialog closeDisplay 1;
     [_display] call RACA_fnc_refreshPresetCombo;
-    private _savedIndex = _library findIf {toLowerANSI (_x select 2) isEqualTo _normalizedName};
-    private _combo = _display displayCtrl RACA_IDC_PRESET_LIST;
-    _combo lbSetCurSel (_savedIndex + 1);
+    private _index = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
+    (_display displayCtrl RACA_IDC_PRESET_LIST) lbSetCurSel (_index+1);
     [_display] call RACA_fnc_loadSelectedPreset;
-    [
-        _display,
-        format ["Imported %1 '%2' with %3 available items.%4", _sourceFormat, _name, _itemCount, _warningText]
-    ] call RACA_fnc_setStatus;
-    [_display] call RACA_fnc_refreshHistoryButtons;
+    _result = format ["Imported '%1': %2 authored items; %3 unavailable preserved. %4 notice(s).", _name, _items, _missing, count _warnings];
+} catch {_result = format ["%1 No uncommitted import changes were saved.", _exception]};
+if (!isNull _dialog) then {_dialog closeDisplay 2};
+if (!isNull _display) then {
+    _display setVariable ["RACA_importBusy", false];
+    [_display, _result] call RACA_fnc_setStatus;
 };
+diag_log format ["[RACA][IMPORT:%1] elapsed=%2 result=%3", _id, diag_tickTime - _started, _result];

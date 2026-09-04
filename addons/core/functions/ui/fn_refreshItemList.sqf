@@ -1,152 +1,139 @@
 #include "..\..\script_component.hpp"
+disableSerialization;
 params [["_display", displayNull, [displayNull]]];
-
-if (isNull _display) exitWith {};
-
-private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
-private _search = toLowerANSI ctrlText (_display displayCtrl RACA_IDC_SEARCH);
-private _terms = (_search splitString " ") select {_x isNotEqualTo ""};
-private _categoryControl = _display displayCtrl RACA_IDC_CATEGORY;
-private _categoryIndex = lbCurSel _categoryControl;
-private _category = if (_categoryIndex < 0) then {"All"} else {_categoryControl lbData _categoryIndex};
-private _sourceControl = _display displayCtrl RACA_IDC_SOURCE_FILTER;
-private _sourceIndex = lbCurSel _sourceControl;
-private _source = if (_sourceIndex < 0) then {""} else {_sourceControl lbData _sourceIndex};
-private _addonControl = _display displayCtrl RACA_IDC_ADDON_FILTER;
-private _addonIndex = lbCurSel _addonControl;
-private _addon = if (_addonIndex < 0) then {""} else {_addonControl lbData _addonIndex};
-private _authorControl = _display displayCtrl RACA_IDC_AUTHOR_FILTER;
-private _authorIndex = lbCurSel _authorControl;
-private _authorFilter = if (_authorIndex < 0) then {""} else {_authorControl lbData _authorIndex};
-private _tagControl = _display displayCtrl RACA_IDC_TAG_FILTER;
-private _tagIndex = lbCurSel _tagControl;
-private _tagFilter = if (_tagIndex < 0) then {""} else {_tagControl lbData _tagIndex};
-if ((uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]) isEqualTo "BASIC") then {
-    _source = "";
-    _addon = "";
-    _authorFilter = "";
-    _tagFilter = "";
-};
-private _catalog = uiNamespace getVariable ["RACA_itemCatalog", []];
-private _selected = uiNamespace getVariable ["RACA_builderSelected", createHashMap];
-private _inherited = uiNamespace getVariable ["RACA_builderInherited", createHashMap];
-private _favorites = uiNamespace getVariable ["RACA_catalogFavorites", createHashMap];
-private _tagsByClass = uiNamespace getVariable ["RACA_catalogTagIndex", createHashMap];
-private _limits = uiNamespace getVariable ["RACA_builderLimits", createHashMap];
-private _visibleClasses = [];
-private _previousRow = lnbCurSelRow _list;
-private _previousClass = if (_previousRow < 0) then {""} else {_list lnbData [_previousRow, 0]};
-private _sortMode = uiNamespace getVariable ["RACA_catalogSort", ["item", true]];
-private _sortField = _sortMode param [0, "item", [""]];
-private _ascending = _sortMode param [1, true, [true]];
-private _filtered = [];
-
-{
-    _x params ["_displayName", "_className", "_itemCategory", "", "_modName", "_author", "_picture", "_searchBlob", ["_sourceAddon", ""]];
-    private _classTags = _tagsByClass getOrDefault [_className, []];
-    private _matchesCategory =
-        _category isEqualTo "All" ||
-        {_category isEqualTo "Included" && {_selected getOrDefault [_className, false]}} ||
-        {_category isEqualTo "Favorites" && {_favorites getOrDefault [_className, false]}} ||
-        {_category isEqualTo "Inherited" && {_inherited getOrDefault [_className, false]}} ||
-        {_itemCategory isEqualTo _category};
-    private _tagSearchBlob = toLowerANSI (_classTags joinString " ");
-    private _matchesSearch = ({((_searchBlob + " " + _tagSearchBlob) find _x) >= 0} count _terms) isEqualTo count _terms;
-    private _matchesSource = _source isEqualTo "" || {_modName isEqualTo _source};
-    private _matchesAddon = _addon isEqualTo "" || {_sourceAddon isEqualTo _addon};
-    private _matchesAuthor = _authorFilter isEqualTo "" || {_author isEqualTo _authorFilter};
-    private _matchesTag = _tagFilter isEqualTo "" || {_tagFilter in _classTags};
-
-    if (_matchesCategory && _matchesSearch && _matchesSource && _matchesAddon && _matchesAuthor && _matchesTag) then {
-        _filtered pushBack _x;
-    };
-} forEach _catalog;
-
-private _decorated = _filtered apply {
-    private _displayName = toLowerANSI (_x select 0);
-    private _className = toLowerANSI (_x select 1);
-    private _key = switch (_sortField) do {
-        case "included": {
-            private _included = _selected getOrDefault [_x select 1, false];
-            private _rank = if (_ascending) then {[1, 0] select _included} else {[0, 1] select _included};
-            format ["%1|%2|%3", _rank, _displayName, _className]
+if (isNull _display || {_display getVariable ["RACA_refreshSuppressed",false]}) exitWith {};
+if (!canSuspend) exitWith {[_display] spawn RACA_fnc_refreshItemList};
+private _request = (_display getVariable ["RACA_renderRequest",0])+1;
+_display setVariable ["RACA_renderRequest",_request];
+private _started = diag_tickTime;
+private _catalog = uiNamespace getVariable ["RACA_itemCatalog",[]];
+private _index = [_catalog] call RACA_fnc_indexCatalog;
+private _read = {params ["_idc","_default"]; private _c=_display displayCtrl _idc; private _r=lbCurSel _c; if (_r<0) then {_default} else {_c lbData _r}};
+private _category = [RACA_IDC_CATEGORY,"All"] call _read;
+private _source = [RACA_IDC_SOURCE_FILTER,""] call _read;
+private _addon = [RACA_IDC_ADDON_FILTER,""] call _read;
+private _author = [RACA_IDC_AUTHOR_FILTER,""] call _read;
+private _tag = [RACA_IDC_TAG_FILTER,""] call _read;
+private _searchMode = uiNamespace getVariable ["RACA_catalogSearchMode","BASIC"];
+if (_searchMode isEqualTo "BASIC") then {_source=""; _addon=""; _author=""; _tag=""};
+private _terms = (toLowerANSI ctrlText (_display displayCtrl RACA_IDC_SEARCH)) splitString " ";
+private _sort = uiNamespace getVariable ["RACA_catalogSort",["item",true]];
+_sort params ["_sortField","_ascending"];
+private _selected = uiNamespace getVariable ["RACA_builderSelected",createHashMap];
+private _favorites = uiNamespace getVariable ["RACA_catalogFavorites",createHashMap];
+private _inherited = uiNamespace getVariable ["RACA_builderInherited",createHashMap];
+private _tags = uiNamespace getVariable ["RACA_catalogTagIndex",createHashMap];
+private _magContext = uiNamespace getVariable ["RACA_magazineFilterContext",[]];
+private _override = _display getVariable ["RACA_navigationClasses",[]];
+if (_magContext isNotEqualTo []) then {_override = _magContext select 2};
+private _dynamic = if (_category in ["Included","Favorites","Inherited"] || {_sortField isEqualTo "included"}) then {str [keys _selected,keys _favorites,keys _inherited]} else {""};
+private _unresolved = _display getVariable ["RACA_unresolvedFilters",[]];
+private _unresolvedEffective = _unresolved select {_searchMode isEqualTo "ADVANCED" || {(_x select 0) isEqualTo RACA_IDC_CATEGORY}};
+private _key = str [uiNamespace getVariable ["RACA_catalogGeneration",0],_category,_source,_addon,_author,_tag,_terms,_sort,_dynamic,uiNamespace getVariable ["RACA_tagRevision",0],_override,_unresolvedEffective];
+private _results = _display getVariable ["RACA_resultIndices",[]];
+private _newFilter = _key isNotEqualTo (_display getVariable ["RACA_resultKey",""]);
+private _stale = false;
+if (_newFilter) then {
+    [_display,"Filtering catalogue..."] call RACA_fnc_setStatus;
+    private _candidates = _index get "all";
+    {
+        _x params ["_field","_value"];
+        if (_value isNotEqualTo "" && {_value isNotEqualTo "All"} && {!(_value in ["Included","Favorites","Inherited"])}) then {
+            private _set = (_index get _field) getOrDefault [_value,[]];
+            if (count _set < count _candidates) then {_candidates = _set};
         };
-        case "class": {_className};
-        case "mod": {toLowerANSI (_x select 4)};
-        case "author": {toLowerANSI (_x select 5)};
-        default {_displayName};
+    } forEach [["category",_category],["source",_source],["addon",_addon],["author",_author]];
+    if (_override isNotEqualTo []) then {
+        _candidates = _override apply {(_index get "class") getOrDefault [toLowerANSI _x,-1]};
+        _candidates = _candidates select {_x>=0};
     };
-    [_key, _displayName, _className, _x]
-};
-_decorated sort (if (_sortField isEqualTo "included") then {true} else {_ascending});
-
-lnbClear _list;
-private _restoreRow = -1;
-{
-    private _item = _x select 3;
-    _item params ["_displayName", "_className", "_itemCategory", "", "_modName", "_author", "_picture", ""];
-    private _row = _list lnbAddRow ["", _displayName, _className, _modName, _author];
-    _list lnbSetData [[_row, 0], _className];
-    _list lnbSetPicture [
-        [_row, 0],
-        [RACA_TEXTURE_UNCHECKED, RACA_TEXTURE_CHECKED] select (_selected getOrDefault [_className, false])
-    ];
-    if (_picture isNotEqualTo "") then {
-        _list lnbSetPicture [[_row, 1], _picture];
-    };
-    private _limit = _limits getOrDefault [_className, []];
-    private _categoryLimit = _limits getOrDefault [format ["category:%1", _itemCategory], []];
-    private _limitText = if (_limit isNotEqualTo []) then {format ["Exact limit: %1 (%2)", _limit select 1, _limit select 2]} else {
-        if (_categoryLimit isNotEqualTo []) then {format ["Category limit: %1 (%2)", _categoryLimit select 1, _categoryLimit select 2]} else {"No quantity limit"}
-    };
-    private _tooltipLines = [
-        _displayName,
-        format ["Class: %1", _className],
-        format ["Category: %1", _itemCategory],
-        format ["Source: %1", _modName],
-        format ["Author: %1", _author],
-        _limitText
-    ];
-    private _classTags = _tagsByClass getOrDefault [_className, []];
-    if (_classTags isNotEqualTo []) then {_tooltipLines pushBack format ["Tags: %1", _classTags joinString ", "]};
-    if (_favorites getOrDefault [_className, false]) then {_tooltipLines pushBack "Favorite"};
-    private _tooltip = _tooltipLines joinString (toString [10]);
-    {_list lnbSetTooltip [[_row, _x], _tooltip]} forEach [0, 1, 2, 3, 4];
-    if (_inherited getOrDefault [_className, false]) then {
+    _results = [];
+    if (_unresolvedEffective isEqualTo [] || {_override isNotEqualTo []}) then {
         {
-            _list lnbSetColor [[_row, _x], [0.55, 0.82, 1, 1]];
-        } forEach [1, 2, 3, 4];
-        _list lnbSetPictureColor [[_row, 0], [0.55, 0.82, 1, 1]];
-        _list lnbSetPictureColorSelected [[_row, 0], [0.7, 0.9, 1, 1]];
+            if ((_forEachIndex mod 512) isEqualTo 0) then {
+                uiSleep 0.001;
+                _stale = isNull _display || {(_display getVariable ["RACA_renderRequest",-1]) isNotEqualTo _request};
+            };
+            if (_stale) exitWith {};
+            private _r = _catalog select _x;
+            _r params ["","_class","_cat","","_mod","_auth","","_blob",["_own",""]];
+            private _classTags = _tags getOrDefault [toLowerANSI _class,[]];
+            private _matchCat = _category isEqualTo "All" || {_cat isEqualTo _category} || {_category isEqualTo "Included" && {_selected getOrDefault [_class,false]}} || {_category isEqualTo "Favorites" && {_favorites getOrDefault [_class,false]}} || {_category isEqualTo "Inherited" && {_inherited getOrDefault [_class,false]}};
+            if (_override isNotEqualTo [] || {_matchCat && {_source isEqualTo "" || {_source isEqualTo _mod}} && {_addon isEqualTo "" || {_addon isEqualTo _own}} && {_author isEqualTo "" || {_author isEqualTo _auth}} && {_tag isEqualTo "" || {_tag in _classTags}} && {private _text = _blob + " " + toLowerANSI (_classTags joinString " "); (_terms findIf {(_text find _x)<0})<0}}) then {_results pushBack _x};
+        } forEach _candidates;
     };
-    if (_favorites getOrDefault [_className, false] && {!(_inherited getOrDefault [_className, false])}) then {
-        _list lnbSetColor [[_row, 1], [1, 0.82, 0.35, 1]];
-    };
-    if (_className isEqualTo _previousClass) then {_restoreRow = _row};
-    _visibleClasses pushBack _className;
-} forEach _decorated;
-
-if (_restoreRow >= 0) then {_list lnbSetCurSelRow _restoreRow};
-
-private _headerLabels = [
-    [RACA_IDC_INCLUDED_HEADER, "Included", "included"],
-    [RACA_IDC_ITEM_HEADER, "Item", "item"],
-    [RACA_IDC_CLASS_HEADER, "Class Name", "class"],
-    [RACA_IDC_MOD_HEADER, "Mod", "mod"],
-    [RACA_IDC_AUTHOR_HEADER, "Author", "author"]
-];
-{
-    _x params ["_idc", "_label", "_field"];
-    private _suffix = "";
-    if (_field isEqualTo _sortField) then {
-        _suffix = if (_field isEqualTo "included") then {
-            [" — excluded first", " — included first"] select _ascending
-        } else {
-            [" — Z-A", " — A-Z"] select _ascending
+    if (!_stale) then {
+        private _sortKey = str [_sort,_dynamic];
+        private _sorts = _index get "sorts";
+        private _ranks = _sorts getOrDefault [_sortKey,createHashMap];
+        if (count _ranks isEqualTo 0) then {
+            private _decorated = (_index get "all") apply {
+                private _r=_catalog select _x;
+                private _class=_r select 1;
+                private _value=switch (_sortField) do {
+                    case "class": {toLowerANSI _class};
+                    case "mod": {toLowerANSI (_r select 4)};
+                    case "author": {toLowerANSI (_r select 5)};
+                    case "included": {str ([1,0] select (_selected getOrDefault [_class,false]))};
+                    default {toLowerANSI (_r select 0)};
+                };
+                [_value,toLowerANSI (_r select 0),toLowerANSI _class,_x]
+            };
+            _decorated sort _ascending;
+            {_ranks set [str (_x select 3),_forEachIndex]} forEach _decorated;
+            if (_sortField isNotEqualTo "included") then {_sorts set [_sortKey,_ranks]};
         };
+        private _ordered = _results apply {[_ranks get str _x,_x]};
+        _ordered sort true;
+        _results = _ordered apply {_x select 1};
+        _display setVariable ["RACA_resultIndices",_results];
+        _display setVariable ["RACA_resultKey",_key];
+        _display setVariable ["RACA_page",0];
+        private _classes = _results apply {(_catalog select _x) select 1};
+        uiNamespace setVariable ["RACA_visibleClasses",_classes];
+        private _visibleSet = createHashMapFromArray (_classes apply {[_x,true]});
+        private _h = _display getVariable ["RACA_highlighted",createHashMap];
+        {if !(_visibleSet getOrDefault [_x,false]) then {_h deleteAt _x}} forEach keys _h;
+        if !(_visibleSet getOrDefault [_display getVariable ["RACA_selectionAnchor",""],false]) then {_display setVariable ["RACA_selectionAnchor",""]};
+        _display setVariable ["RACA_highlighted",_h];
     };
-    (_display displayCtrl _idc) ctrlSetText (_label + _suffix);
-} forEach _headerLabels;
-
-uiNamespace setVariable ["RACA_visibleClasses", _visibleClasses];
+};
+if (_stale || {isNull _display} || {(_display getVariable ["RACA_renderRequest",-1]) isNotEqualTo _request}) exitWith {};
+private _page = _display getVariable ["RACA_page",0];
+private _slice = _results select [_page*200,200];
+private _renderKey = str [_key,_page];
+private _rebuild = _renderKey isNotEqualTo (_display getVariable ["RACA_renderKey",""]);
+private _list = _display displayCtrl RACA_IDC_ITEM_LIST;
+private _h = _display getVariable ["RACA_highlighted",createHashMap];
+private _limits = uiNamespace getVariable ["RACA_builderLimits",createHashMap];
+_display setVariable ["RACA_rendering",true];
+if (_rebuild) then {lnbClear _list};
+private _focus = _display getVariable ["RACA_focusedClass",""];
+{
+    private _r = _catalog select _x;
+    _r params ["_name","_class","_cat","","_mod","_author","_picture"];
+    private _row = _forEachIndex;
+    if (_rebuild) then {
+        _list lnbAddRow ["",_name,_class,_mod,_author];
+        _list lnbSetData [[_row,0],_class];
+        if (_picture isNotEqualTo "") then {_list lnbSetPicture [[_row,1],_picture]};
+    };
+    _list lnbSetPicture [[_row,0],[RACA_TEXTURE_UNCHECKED,RACA_TEXTURE_CHECKED] select (_selected getOrDefault [_class,false])];
+    private _color = if (_inherited getOrDefault [_class,false]) then {[0.55,0.82,1,1]} else {if (_favorites getOrDefault [_class,false]) then {[1,0.82,0.35,1]} else {[1,1,1,1]}};
+    { _list lnbSetColor [[_row,_x],_color] } forEach [1,2,3,4];
+    private _policies = [];
+    {if (_x isNotEqualTo []) then {_policies pushBack format ["%1: %2 (%3; reset %4)",_x select 0,_x select 1,_x select 2,_x select 3]}} forEach [_limits getOrDefault [_class,[]],_limits getOrDefault ["category:"+_cat,[]]];
+    private _tooltip = ([_name,_class,_mod,"Tags: "+((_tags getOrDefault [toLowerANSI _class,[]]) joinString ", ")] + _policies) joinString toString [10];
+    {_list lnbSetTooltip [[_row,_x],_tooltip]} forEach [0,1,2,3,4];
+    if (_class isEqualTo _focus && {_rebuild}) then {_list lnbSetCurSelRow _row};
+} forEach _slice;
+{private _class=(_catalog select _x) select 1; _list lbSetSelected [_forEachIndex,_h getOrDefault [_class,false]]} forEach _slice;
+_display setVariable ["RACA_renderKey",_renderKey];
+_display setVariable ["RACA_rendering",false];
+(_display displayCtrl RACA_IDC_PAGE_LABEL) ctrlSetText format ["Page %1 / %2 | %3 matches | %4 highlighted",_page+1,(ceil (count _results/200)) max 1,count _results,count _h];
+(_display displayCtrl RACA_IDC_PAGE_PREV) ctrlEnable (_page>0);
+(_display displayCtrl RACA_IDC_PAGE_NEXT) ctrlEnable ((_page+1)*200<count _results);
+(_display displayCtrl RACA_IDC_CLEAR_MAGAZINES) ctrlShow (_magContext isNotEqualTo [] && {(uiNamespace getVariable ["RACA_creatorTab",""]) isEqualTo "ASSIGNMENT"});
+(_display displayCtrl RACA_IDC_CLEAR_MISSING_FILTERS) ctrlShow (_unresolvedEffective isNotEqualTo []);
 [_display] call RACA_fnc_updateSummary;
+diag_log format ["[RACA][PERF] catalogue refresh records=%1 matches=%2 rows=%3 filter=%4 rebuild=%5 seconds=%6",count _catalog,count _results,count _slice,_newFilter,_rebuild,diag_tickTime - _started];
