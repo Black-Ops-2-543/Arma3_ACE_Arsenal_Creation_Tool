@@ -1,6 +1,6 @@
 # Restricted Arsenal Creation Assistant — Implementation Wiki
 
-> **Documentation status:** This wiki describes the `0.10.0-dev` implementation present in this repository on September 4, 2026. The consolidated package passed static validation, a clean Core/Eden build, and 97/97 deterministic Arma assertions; a dedicated server and one initial remote client also passed the rehearsal probes. Resolution-specific visual checks, actual Curator placement, native Eden interaction matrices, and a distinct-account JIP client remain open. This wiki is an implementation reference, not a public-release certificate. Use the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [in-game release checklist](IN_GAME_TEST_CHECKLIST.md).
+> **Documentation status:** This wiki describes the `0.11.0-dev` implementation present in this repository on September 4, 2026. The consolidated package passed static validation, a clean Core/Eden build, and 97/97 deterministic Arma assertions; a dedicated server and one initial remote client also passed the rehearsal probes. Resolution-specific visual checks, actual Curator placement, native Eden interaction matrices, and a distinct-account JIP client remain open. This wiki is an implementation reference, not a public-release certificate. Use the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [in-game release checklist](IN_GAME_TEST_CHECKLIST.md).
 
 Restricted Arsenal Creation Assistant (RACA) is an Arma 3 add-on for mission makers using ACE Arsenal. It is an **authoring and control layer**, not a replacement arsenal. A mission maker builds a controlled list of equipment, turns it into a named mission-wide Arsenal Configuration, links that configuration to Eden objects, and players open it through a familiar ACE interaction. The same project can additionally enforce access rules, quantity limits, server authority, personal loadouts, audit records, administrator controls, and Zeus changes.
 
@@ -58,7 +58,7 @@ An inherited profile preset is useful while authoring, but is never a runtime de
 
 ## Current implementation and test status
 
-The current development version is `0.10.0-dev`. The September 4 source and package are complete for the consolidated diagnostic docket and passed the deterministic packaged-engine suite. This evidence does not complete the full release checklist because several requirements are inherently visual, native-editor, Curator, or distinct-client scenarios.
+The current development version is `0.11.0-dev`. The September 4 source and package are complete for the consolidated diagnostic docket and passed the deterministic packaged-engine suite. This evidence does not complete the full release checklist because several requirements are inherently visual, native-editor, Curator, or distinct-client scenarios.
 
 | Gate | Latest result | Scope |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ The current development version is `0.10.0-dev`. The September 4 source and pack
 | Consolidated Creator/Eden/Zeus implementation | **Source-complete — September 4** | All O1–O15 and F1–F15 solution packages are implemented; evidence classes remain separate below. |
 | Automated Arma acceptance | **Pass — 97/97 on September 4** | Packaged Creator dialogs, catalogue, tags, magazine navigation, interchange, Eden data/preflight, runtime, and accepted/rejected Zeus server paths. |
 | Large-import matrix | **Pass** | 19,999 through 100,000-record fixtures, including the exact 40,280 case, were processed without a hidden item ceiling. |
-| Synthetic catalogue performance | **Functional pass with measured constraint** | 100,000-record settled filter p95 was 1.558 s; initial full render was 3.646 s and missed the proposed 250 ms visible-result target. |
+| Synthetic catalogue performance | **Functional pass with measured constraint** | 100,000-record settled filter p95 was 1.473 s; initial full render was 3.549 s and missed the proposed 250 ms visible-result target. |
 | Dedicated multiplayer | **Pass for server + initial client** | Dedicated SERVER and initial remote CLIENT probes passed; the distinct JIP role remained WAITING. |
 | Distinct-identity JIP | **Not tested** | Arma rejected a second simultaneous process using the same Steam ID; a second account/machine is required. |
 | Visual/native-editor/Curator matrix | **Not tested in the final session** | The available computer-control surface exposed no native Arma image/app surface. |
@@ -82,7 +82,7 @@ The current hashes, exact timings, redacted multiplayer evidence, Zeus excerpts,
 | `RACA-TEST-003` | Compatibility Check | **Resolved in source/engine tests.** Five real columns, Errors-first display, conditional navigation, and full-report copy are implemented. Resolution-specific layout inspection remains open. |
 | `RACA-TEST-004` | Creator/Eden animation | **Resolved in source.** Changed actions use static profile-accent controls. Ten-second pixel captures remain open. |
 | `RACA-TEST-005` | Autotest staging | **Resolved.** Recursive staging runs under the tested Windows PowerShell 5.1 environment. |
-| `RACA-TEST-006` | Large catalogue | **Measured constraint.** No hidden record cap was found, but the 100,000-record initial render took 3.646 s. |
+| `RACA-TEST-006` | Large catalogue | **Measured constraint.** No hidden record cap was found, but the 100,000-record initial render took 3.549 s. |
 | `RACA-TEST-007` | Eden Dashboard assignment | **Resolved in source/engine tests.** Shared preflight, exact readback, request-owned native fallback, and cache invalidation are implemented. Manual cancel/race/Undo paths remain open. |
 | `RACA-TEST-008` | Distinct JIP | **Environment blocker.** A second local profile cannot supply a second Steam identity. |
 
@@ -520,7 +520,7 @@ RACA emits diagnostic messages using the `[RACA]` prefix. When reporting a probl
 
 Creator catalogue search uses precomputed lower-case indexes and a bounded 200-row renderer; tag membership uses class-keyed maps and independent member paging; Dashboard uses debounced filters and per-object fingerprint/preflight caches. Operations invalidate only the data they affect. Import checkpoints separate parsing/validation/commit progress and make cancellation atomic.
 
-On the September 4 target machine, the packaged engine processed class-list inputs of 20,001, 40,280, 50,001, and 100,000 records in 0.988 s, 2.012 s, 2.476 s, and 4.931 s. A 2.4 MB/100,000-record JSON fixture completed in 1.991 s. A synthetic 100,000-record catalogue indexed in 1.374 s; settled 100-result filtering measured p50 1.002 s/p95 1.558 s, but initial 100,000-match render took 3.646 s. Thus the proposed two-second settled 100,000-record computation budget passed, while the proposed 250 ms first-visible-result target did not. The actual isolated 1,534-class catalogue refreshed in 0.067 s. The fixtures are duplicate-heavy stress inputs, not claims of 100,000 unique installed classes.
+On the September 4 target machine, the final `0.11.0-dev` package processed class-list inputs of 20,001, 40,280, 50,001, and 100,000 records in 0.988 s, 1.988 s, 2.468 s, and 4.925 s. A 2.4 MB/100,000-record JSON fixture completed in 1.982 s. A synthetic 100,000-record catalogue indexed in 1.351 s; settled 100-result filtering measured p50 0.996 s/p95 1.473 s, but initial 100,000-match render took 3.549 s. Thus the proposed two-second settled 100,000-record computation budget passed, while the proposed 250 ms first-visible-result target did not. The actual isolated 1,534-class catalogue refreshed in 0.062 s. The fixtures are duplicate-heavy stress inputs, not claims of 100,000 unique installed classes.
 
 ### Developer tools
 
@@ -657,9 +657,9 @@ The source and recorded acceptance evidence demonstrate substantial implementati
 - The September 4 packaged mission passed 97/97 assertions and the dedicated SERVER/initial CLIENT probes passed.
 - A distinct Steam identity/machine for JIP was unavailable. The attempted second local client was rejected as the same Steam identity, so that gate is **Unknown**, not passed.
 - The final session could not observe native Arma pixels through its available computer-control surface. Resolution-specific no-blink/layout screenshots, full native Eden recovery/fallback/large-object flows, actual Curator placement, and final player-facing ACE content inspection remain open.
-- The 100,000-record catalogue retains complete results, but the measured 3.646 s initial render misses the proposed 250 ms visible-result target; this is a documented performance constraint rather than a hidden cap.
+- The 100,000-record catalogue retains complete results, but the measured 3.549 s initial render misses the proposed 250 ms visible-result target; this is a documented performance constraint rather than a hidden cap.
 - Content availability is inherently dependent on the active mod set. A valid preset can warn and omit content if its source mod is not loaded.
-- This is a development version (`0.10.0-dev`), so use the release process and checklist before calling a packaged build a public release.
+- This is a development version (`0.11.0-dev`), so use the release process and checklist before calling a packaged build a public release.
 
 ## Further reading
 

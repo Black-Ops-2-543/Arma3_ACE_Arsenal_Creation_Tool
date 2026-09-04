@@ -25,6 +25,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 
 ### Changed
 
+- Advanced the development package to `0.11.0-dev` for the consolidated Creator, interchange, Eden-recovery, catalogue-scaling, and server-authoritative Zeus milestone.
 - Creator authoring now uses profile-menu accents, higher-contrast surfaces, Title Case typography, aligned item columns, grouped arsenal/item/limit actions, and a simplified Quick Start with optional settings.
 - Arsenal Contents now offers persistent Basic and Advanced search modes; Saved Filters and tag editing appear only in that workspace, and preset history/comparison live beside the related save/import/export workflow.
 - Preset adoption terminology is now preset inheritance throughout the Creator, portable metadata, documentation, and diagnostics; legacy adoption metadata remains import-compatible.

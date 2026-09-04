@@ -26,15 +26,16 @@ Scope: implementation of every solution package in the parent-workspace `RACA_CO
 
 ## Final verified build
 
+- RACA `0.11.0-dev`
 - Arma 3 stable `2.22.154045`
 - CBA_A3 `3.19.0`
 - ACE3 `3.21.2.113`
-- `core.pbo`: 511,825 bytes; SHA-256 `31CA97CFE80E6DF438479AD62BBC0B7479E83D815AC254FD6413D8113EBCA396`
-- `eden.pbo`: 135,071 bytes; SHA-256 `7A365C1ECE0E86A3BA73185E5E8EB7EB047D41477210B4F0F431ED6079870BCB`
+- `core.pbo`: 511,825 bytes; SHA-256 `2027AED5701AEF1EC12828571E20E427CBFE610A098AC4319D24969E892179E8`
+- `eden.pbo`: 135,071 bytes; SHA-256 `0CDEEEF87C4E6842BA8CEB30053E92A818553624C3EB87EB4583B3B61E53736C`
 - Static validation: pass
 - Clean package build: pass
 - Isolated packaged Arma acceptance: **97 passed, 0 failed**
-- Final RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-09-04_16-22-45.rpt`
+- Final RPT: `F:\SteamLibrary\steamapps\common\Arma 3\Profiles\RACA_Autotest\arma3_x64_2026-09-04_18-40-15.rpt`
 - Error scan: no `Error in expression`, missing script, undefined variable, or RACA assertion failure.
 
 ## Measured performance
@@ -43,17 +44,17 @@ The import fixtures intentionally contain repeated records and unavailable class
 
 | Operation | Input | Engine time |
 | --- | ---: | ---: |
-| Class-list import | 19,999 records / 239,987 characters | 0.999 s |
-| Class-list import | 20,000 records / 239,999 characters | 0.996 s |
+| Class-list import | 19,999 records / 239,987 characters | 0.988 s |
+| Class-list import | 20,000 records / 239,999 characters | 0.988 s |
 | Class-list import | 20,001 records / 240,011 characters | 0.988 s |
-| Class-list import | 40,280 records / 483,359 characters | 2.012 s |
-| Class-list import | 50,001 records / 600,011 characters | 2.476 s |
-| Class-list import | 100,000 records / 1,200,000 characters | 4.931 s |
-| JSON decode, validation, and de-duplication | 100,000 records / 2,400,580 characters | 1.991 s |
-| Catalogue index | 100,000 synthetic records | 1.374 s |
-| Initial catalogue filter/render | 100,000 matches / 200 visible rows | 3.646 s |
-| Settled 100-result filters | 100,000-record index | p50 1.002 s / p95 1.558 s |
-| Real isolated catalogue refresh | 1,534 loaded ACE-compatible classes | 0.067 s |
+| Class-list import | 40,280 records / 483,359 characters | 1.988 s |
+| Class-list import | 50,001 records / 600,011 characters | 2.468 s |
+| Class-list import | 100,000 records / 1,200,000 characters | 4.925 s |
+| JSON decode, validation, and de-duplication | 100,000 records / 2,400,580 characters | 1.982 s |
+| Catalogue index | 100,000 synthetic records | 1.351 s |
+| Initial catalogue filter/render | 100,000 matches / 200 visible rows | 3.549 s |
+| Settled 100-result filters | 100,000-record index | p50 0.996 s / p95 1.473 s |
+| Real isolated catalogue refresh | 1,534 loaded ACE-compatible classes | 0.062 s |
 
 The 100,000-record settled full computation meets the proposed two-second budget, but the first synthetic render does not meet the proposed 250 ms visible-result target. RACA therefore uses an indexed catalogue and a bounded 200-row page without imposing a hidden data cap, while this measured engine/UI limitation remains documented rather than being called solved by a cosmetic progress indicator.
 

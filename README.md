@@ -6,7 +6,7 @@ RACA turns restricted-arsenal creation into an authoring workflow. Instead of ma
 
 RACA does **not** replace the ACE Arsenal interface. Players continue to use ACE Arsenal; RACA determines which items, interactions, access rules, and limits apply around it.
 
-> **Current status:** The repository contains the `0.10.0-dev` development build. It has broad automated and hands-on test coverage, but it is not yet a public release. Read [Development maturity and known limitations](#development-maturity-and-known-limitations) before adopting it for a live operation.
+> **Current status:** The repository contains the `0.11.0-dev` development build. It has broad automated and hands-on test coverage, but it is not yet a public release. Read [Development maturity and known limitations](#development-maturity-and-known-limitations) before adopting it for a live operation.
 
 ## What this README is for
 
@@ -251,7 +251,7 @@ For the schemas, persistence locations, normalization rules, and complete securi
 
 ## Development maturity and known limitations
 
-RACA is currently version `0.10.0-dev`. The **September 4, 2026** consolidated build is source-complete for the current diagnostic docket. It passed static validation, a clean Core/Eden PBO build, and 97/97 deterministic packaged-engine assertions. A dedicated server and one initial remote client also passed the rehearsal probes. That is meaningful evaluation evidence, but it is not the same as completing every release gate.
+RACA is currently version `0.11.0-dev`. The **September 4, 2026** consolidated build is source-complete for the current diagnostic docket. It passed static validation, a clean Core/Eden PBO build, and 97/97 deterministic packaged-engine assertions. A dedicated server and one initial remote client also passed the rehearsal probes. That is meaningful evaluation evidence, but it is not the same as completing every release gate.
 
 | Gate | Latest evidence |
 | --- | --- |
@@ -260,7 +260,7 @@ RACA is currently version `0.10.0-dev`. The **September 4, 2026** consolidated b
 | Automated packaged-engine acceptance | **Pass — 97/97 assertions on September 4** |
 | Large import boundaries | **Pass:** 19,999; 20,000; 20,001; 40,280; 50,001; and 100,000-record fixtures |
 | Exact Unicode clipboard/RPT reconstruction | **Pass:** 4,166 characters, including a 4,096-character line |
-| Synthetic 100,000-record catalogue | **Functional pass with measured constraint:** settled p95 1.558 s; initial full render 3.646 s, above the proposed 250 ms visible-result target |
+| Synthetic 100,000-record catalogue | **Functional pass with measured constraint:** settled p95 1.473 s; initial full render 3.549 s, above the proposed 250 ms visible-result target |
 | Dedicated server and initial remote client | **Pass — September 4** |
 | Genuine second-identity JIP | **Blocked by the single local Steam identity; not tested** |
 | Resolution-specific visual, native Eden, Curator-placement, and final ACE-content matrix | **Not yet completed** |
