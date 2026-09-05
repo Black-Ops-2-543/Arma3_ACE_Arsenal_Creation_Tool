@@ -24,6 +24,7 @@ if (!_canApply && {!_allowErrors}) exitWith {
 [_object, _config] call RACA_fnc_pruneObjectQuotas;
 _object setVariable ["RACA_objectConfig", nil, true];
 _object setVariable ["RACA_objectConfig", _config, false];
+[_object,_config] call RACA_fnc_buildRuntimeCargo;
 _object setVariable ["RACA_appliedPreset", nil, true];
 [_object, _config] call RACA_fnc_registerObject;
 private _manifest = [_config] call RACA_fnc_buildActionManifest;

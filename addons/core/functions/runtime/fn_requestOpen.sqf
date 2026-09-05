@@ -71,21 +71,27 @@ private _exhaustedCategories = createHashMap;
             if ((toLowerANSI _ruleId find "category:") isEqualTo 0) then {
                 _exhaustedCategories set [toLowerANSI (_ruleId select [9]), true];
             } else {
-                _exhaustedClasses set [_ruleId, true];
+                _exhaustedClasses set [toLowerANSI _ruleId, true];
             };
         };
     };
 } forEach _limits;
 
-private _classes = [];
-{
-    {
-        ([_x] call RACA_fnc_classifyClass) params ["_bucket", "_category"];
-        if (_bucket >= 0 && {!(_exhaustedClasses getOrDefault [_x, false])} && {!(_exhaustedCategories getOrDefault [toLowerANSI _category, false])}) then {
-            _classes pushBackUnique _x;
-        };
-    } forEach _x;
-} forEach (_preset select 3);
+private _cache = _object getVariable ["RACA_runtimeCargoCache",[]];
+private _configGeneration = _object getVariable ["RACA_runtimeConfigGeneration",0];
+private _catalogGeneration = uiNamespace getVariable ["RACA_catalogGeneration",0];
+if ((count _cache) isNotEqualTo 3 || {(_cache select 0) isNotEqualTo _configGeneration} || {(_cache select 1) isNotEqualTo _catalogGeneration}) then {
+    [_object,_config] call RACA_fnc_buildRuntimeCargo;
+    _cache = _object getVariable ["RACA_runtimeCargoCache",[]];
+};
+private _resolved = if ((count _cache) isEqualTo 3) then {(_cache select 2) getOrDefault [_slotId,[]]} else {[]};
+private _cachedClasses = _resolved param [0,[]];
+private _cachedCategories = _resolved param [1,createHashMap];
+private _classes = _cachedClasses select {
+    private _key = toLowerANSI _x;
+    !(_exhaustedClasses getOrDefault [_key,false]) &&
+    {!(_exhaustedCategories getOrDefault [_cachedCategories getOrDefault [_key,""],false])}
+};
 if (_classes isEqualTo []) exitWith {
     [_object, _unit, _slotId, _slotName, [], [], _remaining, "", false, "No compatible or non-exhausted items are available for this slot."] remoteExecCall ["RACA_fnc_openAuthorized", owner _unit];
     ["ERROR", _unit, _object, _slotId, ["No available classes"]] call RACA_fnc_logEvent;

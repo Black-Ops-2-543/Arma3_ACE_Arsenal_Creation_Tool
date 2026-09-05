@@ -190,6 +190,7 @@ class CfgFunctions {
             class applyPlayerLoadout {};
             class applyPreset {};
             class buildActionManifest {};
+            class buildRuntimeCargo {};
             class buildRehearsalSnapshot {};
             class bulkUpdateObjects {};
             class cancelObjectSessions {};
