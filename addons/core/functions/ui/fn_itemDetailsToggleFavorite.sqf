@@ -10,6 +10,7 @@ private _favorites = uiNamespace getVariable ["RACA_catalogFavorites", createHas
 private _favorite = !(_favorites getOrDefault [_className, false]);
 if (_favorite) then {_favorites set [_className, true]} else {_favorites deleteAt _className};
 uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
+uiNamespace setVariable ["RACA_favoritesRevision",(uiNamespace getVariable ["RACA_favoritesRevision",0])+1];
 private _stored = keys _favorites;
 _stored sort true;
 profileNamespace setVariable ["RACA_favoriteClasses_v1", _stored];

@@ -24,10 +24,13 @@ private _selected = uiNamespace getVariable ["RACA_builderSelected",createHashMa
 private _favorites = uiNamespace getVariable ["RACA_catalogFavorites",createHashMap];
 private _inherited = uiNamespace getVariable ["RACA_builderInherited",createHashMap];
 private _tags = uiNamespace getVariable ["RACA_catalogTagIndex",createHashMap];
+private _tagSearch = uiNamespace getVariable ["RACA_catalogTagSearch",createHashMap];
 private _magContext = uiNamespace getVariable ["RACA_magazineFilterContext",[]];
 private _override = _display getVariable ["RACA_navigationClasses",[]];
 if (_magContext isNotEqualTo []) then {_override = _magContext select 2};
-private _dynamic = if (_category in ["Included","Favorites","Inherited"] || {_sortField isEqualTo "included"}) then {str [keys _selected,keys _favorites,keys _inherited]} else {""};
+private _dynamic = if (_category in ["Included","Favorites","Inherited"] || {_sortField isEqualTo "included"}) then {
+    [uiNamespace getVariable ["RACA_selectionRevision",0],uiNamespace getVariable ["RACA_favoritesRevision",0],uiNamespace getVariable ["RACA_inheritedRevision",0]]
+} else {[]};
 private _unresolved = _display getVariable ["RACA_unresolvedFilters",[]];
 private _unresolvedEffective = _unresolved select {_searchMode isEqualTo "ADVANCED" || {(_x select 0) isEqualTo RACA_IDC_CATEGORY}};
 private _key = str [uiNamespace getVariable ["RACA_catalogGeneration",0],_category,_source,_addon,_author,_tag,_terms,_sort,_dynamic,uiNamespace getVariable ["RACA_tagRevision",0],_override,_unresolvedEffective];
@@ -41,12 +44,22 @@ if (_newFilter) then {
         _x params ["_field","_value"];
         if (_value isNotEqualTo "" && {_value isNotEqualTo "All"} && {!(_value in ["Included","Favorites","Inherited"])}) then {
             private _set = (_index get _field) getOrDefault [_value,[]];
-            if (count _set < count _candidates) then {_candidates = _set};
+            if (count _set < count _candidates) then {
+                private _allowed = createHashMapFromArray (_set apply {[str _x,true]});
+                _candidates = _candidates select {_allowed getOrDefault [str _x,false]};
+            } else {
+                private _current = createHashMapFromArray (_candidates apply {[str _x,true]});
+                _candidates = _set select {_current getOrDefault [str _x,false]};
+            };
         };
     } forEach [["category",_category],["source",_source],["addon",_addon],["author",_author]];
     if (_override isNotEqualTo []) then {
         _candidates = _override apply {(_index get "class") getOrDefault [toLowerANSI _x,-1]};
         _candidates = _candidates select {_x>=0};
+    };
+    if (_tag isNotEqualTo "") then {
+        private _tagMembers = (uiNamespace getVariable ["RACA_catalogClassesByTag",createHashMap]) getOrDefault [_tag,createHashMap];
+        _candidates = _candidates select {_tagMembers getOrDefault [toLowerANSI ((_catalog select _x) select 1),false]};
     };
     _results = [];
     if (_unresolvedEffective isEqualTo [] || {_override isNotEqualTo []}) then {
@@ -58,9 +71,10 @@ if (_newFilter) then {
             if (_stale) exitWith {};
             private _r = _catalog select _x;
             _r params ["","_class","_cat","","_mod","_auth","","_blob",["_own",""]];
-            private _classTags = _tags getOrDefault [toLowerANSI _class,[]];
+            private _classKey = toLowerANSI _class;
+            private _classTags = _tags getOrDefault [_classKey,[]];
             private _matchCat = _category isEqualTo "All" || {_cat isEqualTo _category} || {_category isEqualTo "Included" && {_selected getOrDefault [_class,false]}} || {_category isEqualTo "Favorites" && {_favorites getOrDefault [_class,false]}} || {_category isEqualTo "Inherited" && {_inherited getOrDefault [_class,false]}};
-            if (_override isNotEqualTo [] || {_matchCat && {_source isEqualTo "" || {_source isEqualTo _mod}} && {_addon isEqualTo "" || {_addon isEqualTo _own}} && {_author isEqualTo "" || {_author isEqualTo _auth}} && {_tag isEqualTo "" || {_tag in _classTags}} && {private _text = _blob + " " + toLowerANSI (_classTags joinString " "); (_terms findIf {(_text find _x)<0})<0}}) then {_results pushBack _x};
+            if (_override isNotEqualTo [] || {_matchCat && {_source isEqualTo "" || {_source isEqualTo _mod}} && {_addon isEqualTo "" || {_addon isEqualTo _own}} && {_author isEqualTo "" || {_author isEqualTo _auth}} && {_tag isEqualTo "" || {_tag in _classTags}} && {private _text = ((_index get "search") select _x) + " " + (_tagSearch getOrDefault [_classKey,""]); (_terms findIf {(_text find _x)<0})<0}}) then {_results pushBack _x};
         } forEach _candidates;
     };
     if (!_stale) then {

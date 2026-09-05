@@ -27,9 +27,11 @@ private _nextLimits = createHashMap;
 private _inheritedMap = createHashMap;
 {_inheritedMap set [_x, true]} forEach (_state select 3);
 uiNamespace setVariable ["RACA_builderSelected", _selectedMap];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderLimits", _nextLimits];
 uiNamespace setVariable ["RACA_builderComposition", +(_state select 2)];
 uiNamespace setVariable ["RACA_builderInherited", _inheritedMap];
+uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];
 if ((_state param [4, ""]) isEqualTo "RACA_CREATOR_STATE") then {
     (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText (_state select 6);
     uiNamespace setVariable ["RACA_builderRawPreset", +(_state select 7)];

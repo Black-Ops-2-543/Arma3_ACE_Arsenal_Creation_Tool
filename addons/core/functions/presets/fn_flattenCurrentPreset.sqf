@@ -34,6 +34,7 @@ profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
 saveProfileNamespace;
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
+uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];
 [_display] call RACA_fnc_refreshPresetCombo;
 [_display] call RACA_fnc_refreshCategoryCombo;
 

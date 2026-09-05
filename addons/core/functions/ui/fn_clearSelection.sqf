@@ -6,6 +6,7 @@ if ((count (uiNamespace getVariable ["RACA_builderSelected", createHashMap])) is
 };
 [_display] call RACA_fnc_pushCreatorHistory;
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 [_display] call RACA_fnc_refreshItemList;
 [_display, "Cleared all included items."] call RACA_fnc_setStatus;

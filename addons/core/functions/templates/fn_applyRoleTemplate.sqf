@@ -33,4 +33,5 @@ if ((_template param [4, "RULES", [""]]) isEqualTo "PACK") then {
     } forEach _rules;
 };
 uiNamespace setVariable ["RACA_builderSelected", _selected];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 [_selected, _warnings, _template]

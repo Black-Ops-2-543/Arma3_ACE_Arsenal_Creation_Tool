@@ -40,6 +40,7 @@ if (_keyboard || {_checkbox && {!_ctrl} && {!_shift}}) then {
         [_display] call RACA_fnc_pushCreatorHistory;
         {if (_include) then {_selected set [_x,true]} else {_selected deleteAt _x}} forEach _changed;
         uiNamespace setVariable ["RACA_builderSelected",_selected];
+        uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
         [_display,format ["%1 %2 item(s).",["Excluded","Included"] select _include,count _changed]] call RACA_fnc_setStatus;
     };
 };

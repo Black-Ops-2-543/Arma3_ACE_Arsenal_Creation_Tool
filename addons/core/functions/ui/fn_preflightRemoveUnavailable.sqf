@@ -26,6 +26,7 @@ if (!_confirmed || {isNull _parent} || {isNull _display}) exitWith {false};
 [_parent] call RACA_fnc_pushCreatorHistory;
 {_selected deleteAt _x} forEach _selectedKeys;
 uiNamespace setVariable ["RACA_builderSelected", _selected];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 [_parent] call RACA_fnc_refreshItemList;
 [_parent] call RACA_fnc_runCreatorDiagnostics;
 [_display] call RACA_fnc_preflightRefresh;

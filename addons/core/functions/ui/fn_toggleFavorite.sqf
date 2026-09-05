@@ -10,6 +10,7 @@ _classes = _classes select {(_favorites getOrDefault [_x, false]) isNotEqualTo _
     if (_favorite) then {_favorites set [_x, true]} else {_favorites deleteAt _x};
 } forEach _classes;
 uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
+uiNamespace setVariable ["RACA_favoritesRevision",(uiNamespace getVariable ["RACA_favoritesRevision",0])+1];
 private _stored = keys _favorites;
 _stored sort true;
 profileNamespace setVariable ["RACA_favoriteClasses_v1", _stored];

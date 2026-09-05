@@ -10,8 +10,10 @@ uiNamespace setVariable ["RACA_builderRawPreset", []];
 uiNamespace setVariable ["RACA_builderOrigin", ""];
 uiNamespace setVariable ["RACA_magazineFilterContext", []];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+uiNamespace setVariable ["RACA_selectionRevision",0];
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
+uiNamespace setVariable ["RACA_inheritedRevision",0];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_catalogShowIcons", true];
 uiNamespace setVariable ["RACA_catalogDensity", "comfortable"];
@@ -41,6 +43,7 @@ private _favorites = createHashMap;
     if (_x isEqualType "" && {[_x] call RACA_fnc_isSafeClassName}) then {_favorites set [_x, true]};
 } forEach _favoriteClasses;
 uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
+uiNamespace setVariable ["RACA_favoritesRevision",0];
 call RACA_fnc_refreshCatalogTagIndex;
 
 [_display] call RACA_fnc_refreshCategoryCombo;

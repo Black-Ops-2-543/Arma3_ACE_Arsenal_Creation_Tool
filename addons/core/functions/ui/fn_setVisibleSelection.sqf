@@ -23,5 +23,6 @@ if (_visible isEqualTo []) exitWith {};
 } forEach _visible;
 
 uiNamespace setVariable ["RACA_builderSelected", _selected];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 [_display] call RACA_fnc_refreshItemList;
 [_display, format ["%1 %2 visible items.", ["Excluded", "Included"] select _include, count _visible]] call RACA_fnc_setStatus;

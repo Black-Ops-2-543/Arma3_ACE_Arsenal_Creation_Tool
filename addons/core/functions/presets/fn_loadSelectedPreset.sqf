@@ -40,6 +40,8 @@ if (_inheritance isNotEqualTo []) then {
     {_sourceItems set [_x, true]} forEach (_inheritance select 5);
 };
 uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
+uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];
 private _limitsMap = createHashMap;
 {
     _limitsMap set [_x select 0, +_x];

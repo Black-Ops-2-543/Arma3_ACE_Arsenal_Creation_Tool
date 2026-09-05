@@ -63,7 +63,8 @@ private _missing = [];
         };
     } forEach _x;
 } forEach (_preset select 3);
-uiNamespace setVariable ["RACA_builderSelected", _selected];
+    uiNamespace setVariable ["RACA_builderSelected", _selected];
+    uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderRawPreset", +_preset];
 uiNamespace setVariable ["RACA_builderOrigin", _record param [6, "", [""]]];
 
@@ -75,7 +76,8 @@ if (_composition isNotEqualTo []) then {
     {{_sourceItems deleteAt _x} forEach _x} forEach (_composition select 4);
     {_sourceItems set [_x, true]} forEach (_composition select 5);
 };
-uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
+    uiNamespace setVariable ["RACA_builderInherited", _sourceItems];
+    uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];
 
 private _limits = createHashMap;
 {

@@ -16,9 +16,11 @@ if ((count _name) > 128) exitWith {
 uiNamespace setVariable ["RACA_builderRawPreset", []];
 uiNamespace setVariable ["RACA_builderOrigin", ""];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
+uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];
 private _roleCombo = _display displayCtrl RACA_IDC_QUICK_ROLE;
 private _settingsOpen = _display getVariable ["RACA_quickSettingsOpen", false];
 private _templateSetting = _roleCombo lbData (lbCurSel _roleCombo);
@@ -58,6 +60,7 @@ private _parameterResult = [
     _medicalPolicy
 ] call RACA_fnc_applyTemplateParameters;
 uiNamespace setVariable ["RACA_builderSelected", _parameterResult select 0];
+uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 _warnings append (_parameterResult select 1);
 private _parameterActions = _parameterResult select 2;
 profileNamespace setVariable [
