@@ -39,7 +39,7 @@ private _consume = {
         _cancelled = true;
     };
     private _resolutionStarted = diag_tickTime;
-    private _bucket = ([_candidate] call RACA_fnc_classifyCached) select 0;
+    private _bucket = ([_candidate] call RACA_fnc_resolveCatalogClass) select 0;
     _resolutionSeconds = _resolutionSeconds + (diag_tickTime - _resolutionStarted);
     if (_bucket >= 0) then {
         (_buckets select _bucket) pushBack _candidate;

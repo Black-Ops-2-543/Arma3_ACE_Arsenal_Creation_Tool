@@ -51,6 +51,7 @@ class CfgFunctions {
             class migratePreset {};
             class refreshBaseCombo {};
             class refreshPresetCombo {};
+            class resolveCatalogClass {};
             class removePresetFromLibrary {};
             class presetDeletionOnLoad {};
             class saveCurrentPreset {};

@@ -56,7 +56,7 @@ private _missingCount = 0;
 {
     if ((_forEachIndex mod 256) isEqualTo 0 && {!([_operation, "Resolving catalogue classes", _forEachIndex, count _candidates] call RACA_fnc_importCheckpoint)}) exitWith {_cancelled = true};
     _x params ["_className", "_sourceBucketIndex"];
-    ([_className] call RACA_fnc_classifyCached) params ["_actualBucket"];
+    ([_className] call RACA_fnc_resolveCatalogClass) params ["_actualBucket"];
     if (_actualBucket < 0) then {
         _missingCount = _missingCount + 1;
         _warnings pushBack format ["Missing item: %1", _className];

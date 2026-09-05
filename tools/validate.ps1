@@ -667,7 +667,7 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
         $sqfImport -notmatch 'RACA_fnc_importCheckpoint' -or
         $sqfImport -notmatch 'LINECOMMENT' -or
         $sqfImport -notmatch 'BLOCKCOMMENT' -or
-        $sqfImport -notmatch '\bRACA_fnc_classifyCached\b') {
+        $sqfImport -notmatch '\bRACA_fnc_resolveCatalogClass\b') {
         $failures.Add("Legacy SQF import must use a comment-aware, measured, cancellable lexer without obsolete arbitrary size ceilings.")
     }
     if ($sqfImport -notmatch '_isSqfIdentifier' -or $sqfImport -notmatch '\(_candidate find "_fnc_"\)') {
@@ -681,6 +681,19 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
         $sqfImport -notmatch '_missingSamples' -or
         $sqfImport -notmatch '_missingCount') {
         $failures.Add('Generic SQF recovery must consume completed strings immediately and retain only bounded unavailable samples.')
+    }
+}
+
+$catalogImportResolverPath = Join-Path $addonsDirectory 'core\functions\presets\fn_resolveCatalogClass.sqf'
+if (-not (Test-Path -LiteralPath $catalogImportResolverPath -PathType Leaf)) {
+    $failures.Add('Import resolution must use the current catalogue index.')
+} else {
+    $catalogImportResolver = Get-Content -Raw -LiteralPath $catalogImportResolverPath
+    if ($catalogImportResolver -notmatch 'RACA_fnc_indexCatalog' -or
+        $catalogImportResolver -notmatch 'getOrDefault \["class"' -or
+        $catalogImportResolver -notmatch 'RACA_fnc_classifyCached' -or
+        $catalogImportResolver -notmatch '\[-1, -1, _fallbackBucket\]') {
+        $failures.Add('Import resolver must prefer the indexed ACE catalogue and keep absent classes unavailable.')
     }
 }
 
