@@ -18,6 +18,7 @@ uiNamespace setVariable ["RACA_builderOrigin", ""];
 uiNamespace setVariable ["RACA_builderSelected", createHashMap];
 uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
+uiNamespace setVariable ["RACA_limitsRevision",(uiNamespace getVariable ["RACA_limitsRevision",0])+1];
 uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];

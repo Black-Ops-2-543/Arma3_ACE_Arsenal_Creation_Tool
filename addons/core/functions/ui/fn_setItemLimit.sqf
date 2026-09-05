@@ -13,5 +13,6 @@ if (_classes isEqualTo []) exitWith {[_display, "These policies are already set.
     _limits set [_x, [_x, _limit, _scope, _reset]];
 } forEach _classes;
 uiNamespace setVariable ["RACA_builderLimits", _limits];
+uiNamespace setVariable ["RACA_limitsRevision",(uiNamespace getVariable ["RACA_limitsRevision",0])+1];
 [_display] call RACA_fnc_refreshItemList;
 [_display, format ["%1 limit set to %2 for %3 selected class(es); reset: %4.", _scope, _limit, count _classes, _reset]] call RACA_fnc_setStatus;

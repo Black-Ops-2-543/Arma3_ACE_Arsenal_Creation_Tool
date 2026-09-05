@@ -87,6 +87,7 @@ private _limits = createHashMap;
     };
 } forEach (([_preset] call RACA_fnc_getRuntimePolicy) select 2);
 uiNamespace setVariable ["RACA_builderLimits", _limits];
+uiNamespace setVariable ["RACA_limitsRevision",(uiNamespace getVariable ["RACA_limitsRevision",0])+1];
 
 (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText _rawName;
 uiNamespace setVariable ["RACA_creatorUndo", []];

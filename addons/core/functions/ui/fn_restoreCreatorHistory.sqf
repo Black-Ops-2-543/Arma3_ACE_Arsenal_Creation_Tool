@@ -29,6 +29,7 @@ private _inheritedMap = createHashMap;
 uiNamespace setVariable ["RACA_builderSelected", _selectedMap];
 uiNamespace setVariable ["RACA_selectionRevision",(uiNamespace getVariable ["RACA_selectionRevision",0])+1];
 uiNamespace setVariable ["RACA_builderLimits", _nextLimits];
+uiNamespace setVariable ["RACA_limitsRevision",(uiNamespace getVariable ["RACA_limitsRevision",0])+1];
 uiNamespace setVariable ["RACA_builderComposition", +(_state select 2)];
 uiNamespace setVariable ["RACA_builderInherited", _inheritedMap];
 uiNamespace setVariable ["RACA_inheritedRevision",(uiNamespace getVariable ["RACA_inheritedRevision",0])+1];

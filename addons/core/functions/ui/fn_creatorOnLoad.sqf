@@ -15,6 +15,7 @@ uiNamespace setVariable ["RACA_builderComposition", []];
 uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 uiNamespace setVariable ["RACA_inheritedRevision",0];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
+uiNamespace setVariable ["RACA_limitsRevision",0];
 uiNamespace setVariable ["RACA_catalogShowIcons", true];
 uiNamespace setVariable ["RACA_catalogDensity", "comfortable"];
 // Recovered/saved/navigation states are applied through restoreCatalogView.

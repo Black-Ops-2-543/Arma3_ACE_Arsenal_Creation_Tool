@@ -47,6 +47,7 @@ private _limitsMap = createHashMap;
     _limitsMap set [_x select 0, +_x];
 } forEach (([_preset] call RACA_fnc_getRuntimePolicy) select 2);
 uiNamespace setVariable ["RACA_builderLimits", _limitsMap];
+uiNamespace setVariable ["RACA_limitsRevision",(uiNamespace getVariable ["RACA_limitsRevision",0])+1];
 
 (_display displayCtrl RACA_IDC_PRESET_NAME) ctrlSetText (_preset select 2);
 [_display] call RACA_fnc_refreshBaseCombo;
