@@ -21,6 +21,8 @@ class CfgFunctions {
 
         class Settings {
             file = "\x\raca\addons\core\functions\settings";
+            class dispatchSettingChange {};
+            class getSetting {};
             class registerSettings {preInit = 1;};
         };
 

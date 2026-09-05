@@ -621,13 +621,36 @@ if (-not (Test-Path -LiteralPath $settingsRegistrationPath -PathType Leaf)) {
         'RACA_openItemDetailsOnSelection', 'RACA_draftRecoveryEnabled', 'RACA_showOnboardingGuidance',
         'RACA_statusVerbosity', 'RACA_enableZeusModules', 'RACA_allowZeusProfilePresetFallback'
     )) {
-        if (([regex]::Matches($settingsRegistration, [regex]::Escape('"' + $settingName + '"'))).Count -ne 1) {
+        $registrationPattern = [regex]::Escape('"' + $settingName + '"') + '\s*,\s*"(?:LIST|CHECKBOX)"'
+        if (([regex]::Matches($settingsRegistration, $registrationPattern)).Count -ne 1) {
             $failures.Add("CBA setting '$settingName' must be registered exactly once.")
         }
     }
     if ($settingsRegistration -notmatch 'CBA_fnc_addSetting' -or
         $settingsRegistration -match 'RACA_fnc_scanItems|createDisplay|saveProfileNamespace|remoteExec') {
         $failures.Add('Settings preInit registration must be side-effect free outside CBA registration.')
+    }
+    if ($settingsRegistration -notmatch 'RACA_fnc_dispatchSettingChange') {
+        $failures.Add('Every CBA callback must route through the centralized setting dispatcher.')
+    }
+}
+$settingsAccessorPath = Join-Path $addonsDirectory 'core\functions\settings\fn_getSetting.sqf'
+$settingsDispatcherPath = Join-Path $addonsDirectory 'core\functions\settings\fn_dispatchSettingChange.sqf'
+if (-not (Test-Path -LiteralPath $settingsAccessorPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $settingsDispatcherPath -PathType Leaf)) {
+    $failures.Add('CBA consumers require a typed accessor and centralized callback dispatcher.')
+} else {
+    $settingsAccessor = Get-Content -Raw -LiteralPath $settingsAccessorPath
+    $settingsDispatcher = Get-Content -Raw -LiteralPath $settingsDispatcherPath
+    if ($settingsAccessor -notmatch 'missionNamespace getVariable' -or
+        $settingsAccessor -notmatch '\[50, 100, 200, 400\]' -or
+        $settingsAccessor -notmatch 'isEqualType') {
+        $failures.Add('Settings accessor must normalize types, ranges, and defaults.')
+    }
+    if ($settingsDispatcher -notmatch 'RACA_settingDispatchRevisions' -or
+        $settingsDispatcher -notmatch 'isNull _display' -or
+        $settingsDispatcher -notmatch 'RACA_generation') {
+        $failures.Add('Settings callbacks must be coalesced and reject closed or stale Creator displays.')
     }
 }
 if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
