@@ -2049,7 +2049,7 @@ class RACA_RscDisplayCatalogTags {
     movingEnable = 0;
     enableSimulation = 1;
     onLoad = "(_this select 0) call RACA_fnc_catalogTagsOnLoad";
-    onUnload = "uiNamespace setVariable ['RACA_catalogTagsParent', displayNull]; uiNamespace setVariable ['RACA_catalogTagsSelection', []]";
+    onUnload = "uiNamespace setVariable ['RACA_catalogTagsParent', displayNull]; uiNamespace setVariable ['RACA_catalogTagsSelection', []]; uiNamespace setVariable ['RACA_catalogTagsDisplay', displayNull]";
 
     class controlsBackground {
         class Background: RscText {

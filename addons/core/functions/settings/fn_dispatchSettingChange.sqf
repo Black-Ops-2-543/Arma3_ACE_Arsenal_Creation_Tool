@@ -18,5 +18,9 @@ private _generation = if (isNull _display) then {-1} else {_display getVariable 
 
     // Consumer-specific transitions are added at their owning implementation
     // task. Page size already has a normal, state-preserving refresh path.
-    if (_name isEqualTo "RACA_catalogPageSize") then {[_display] call RACA_fnc_queueRefresh};
+    if (_name isEqualTo "RACA_catalogPageSize") then {
+        [_display] call RACA_fnc_queueRefresh;
+        private _tagDisplay = uiNamespace getVariable ["RACA_catalogTagsDisplay", displayNull];
+        if (!isNull _tagDisplay) then {[_tagDisplay] call RACA_fnc_catalogTagMembersRefresh};
+    };
 };

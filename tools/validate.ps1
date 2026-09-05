@@ -653,6 +653,22 @@ if (-not (Test-Path -LiteralPath $settingsAccessorPath -PathType Leaf) -or
         $failures.Add('Settings callbacks must be coalesced and reject closed or stale Creator displays.')
     }
 }
+
+$catalogPagingPaths = @(
+    'core\functions\ui\fn_refreshItemList.sqf',
+    'core\functions\ui\fn_catalogPage.sqf',
+    'core\functions\ui\fn_restoreCatalogView.sqf',
+    'core\functions\ui\fn_catalogTagMembersRefresh.sqf'
+)
+foreach ($relativePath in $catalogPagingPaths) {
+    $pagingPath = Join-Path $addonsDirectory $relativePath
+    if (Test-Path -LiteralPath $pagingPath -PathType Leaf) {
+        $pagingSource = Get-Content -Raw -LiteralPath $pagingPath
+        if ($pagingSource -match '(?<![0-9])200(?![0-9])' -or $pagingSource -notmatch 'RACA_catalogPageSize') {
+            $failures.Add("Catalogue paging in '$relativePath' must use the validated CBA page-size setting.")
+        }
+    }
+}
 if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
     $failures.Add('CBA setting labels and tooltips require a localization resource.')
 } else {

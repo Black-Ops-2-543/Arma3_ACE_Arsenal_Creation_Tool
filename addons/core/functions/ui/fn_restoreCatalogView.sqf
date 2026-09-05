@@ -28,7 +28,8 @@ _display setVariable ["RACA_refreshSuppressed",false];
     params ["_display","_page"];
     [_display] call RACA_fnc_refreshItemList;
     if (!isNull _display) then {
-        _display setVariable ["RACA_page",_page min ((ceil ((count (uiNamespace getVariable ["RACA_visibleClasses",[]]))/200)-1) max 0)];
+        private _pageSize = ["RACA_catalogPageSize"] call RACA_fnc_getSetting;
+        _display setVariable ["RACA_page",_page min ((ceil ((count (uiNamespace getVariable ["RACA_visibleClasses",[]]))/_pageSize)-1) max 0)];
         [_display] call RACA_fnc_refreshItemList;
         private _diagnosticPrior = _display getVariable ["RACA_diagnosticNavigationPrior", []];
         if (_diagnosticPrior isNotEqualTo []) then {
