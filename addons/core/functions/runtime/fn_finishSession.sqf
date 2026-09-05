@@ -2,7 +2,8 @@
 params [
     ["_sessionId", "", [""]],
     ["_unit", objNull, [objNull]],
-    ["_reportedAfter", [], [[]]]
+    ["_reportedAfter", [], [[]]],
+    ["_reconcileAttempt", 0, [0]]
 ];
 if (!isServer || {_sessionId isEqualTo ""} || {isNull _unit}) exitWith {false};
 private _sessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
@@ -11,21 +12,55 @@ if (_session isEqualTo []) exitWith {false};
 _session params ["_object", "_sessionUnit", "_slot", "_before", "_expectedOwner", "_startedAt"];
 if (_sessionUnit isNotEqualTo _unit) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo _expectedOwner}) exitWith {false};
-if ((_session param [6,"opened"]) isNotEqualTo "opened") exitWith {false};
+private _state = _session param [6,"opened"];
+if (_reconcileAttempt isEqualTo 0 && {_state isNotEqualTo "opened"}) exitWith {false};
+if (_reconcileAttempt > 0 && {_state isNotEqualTo "reconciling"}) exitWith {false};
+private _reportedSerialized = str _reportedAfter;
+if ((count _reportedSerialized) > 100000) exitWith {
+    [_unit,_session select 3,"The reported final loadout exceeded the reconciliation safety limit; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout",owner _unit];
+    _sessions deleteAt _sessionId;
+    missionNamespace setVariable ["RACA_openSessions",_sessions];
+    ["RECONCILE_REJECTED",_unit,_session select 0,(_session select 2) select 0,[_sessionId,"oversize client snapshot"]] call RACA_fnc_logEvent;
+    false
+};
+if (_reconcileAttempt > 0 && {(_session param [8,""]) isNotEqualTo _reportedSerialized}) exitWith {false};
+if (_reconcileAttempt isEqualTo 0) then {
+    _session set [6,"reconciling"];
+    _session set [8,_reportedSerialized];
+    _sessions set [_sessionId,_session];
+    missionNamespace setVariable ["RACA_openSessions",_sessions];
+};
 if (isNull _object) exitWith {
     [_unit, _before, "The arsenal object no longer exists; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];
+    ["SESSION_CANCELLED",_unit,objNull,(_slot select 0),[_sessionId,"object deleted"]] call RACA_fnc_logEvent;
     false
 };
 if (diag_tickTime > (_session param [7,_startedAt + 900])) exitWith {
     [_unit, _before, "The arsenal session expired; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];
+    ["SESSION_EXPIRED",_unit,_object,(_slot select 0),[_sessionId]] call RACA_fnc_logEvent;
     false
 };
 
 private _after = getUnitLoadout _unit;
+if ((str _after) isNotEqualTo _reportedSerialized) exitWith {
+    if (_reconcileAttempt < 20) then {
+        [_sessionId,_unit,+_reportedAfter,_reconcileAttempt] spawn {
+            params ["_sessionId","_unit","_reportedAfter","_attempt"];
+            uiSleep 0.1;
+            [_sessionId,_unit,_reportedAfter,_attempt+1] call RACA_fnc_finishSession;
+        };
+    } else {
+        [_unit,_before,"The server could not confirm the final arsenal loadout in time; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout",owner _unit];
+        _sessions deleteAt _sessionId;
+        missionNamespace setVariable ["RACA_openSessions",_sessions];
+        ["RECONCILE_TIMEOUT",_unit,_object,_slot select 0,[_sessionId,_reconcileAttempt]] call RACA_fnc_logEvent;
+    };
+    false
+};
 private _beforeCounts = [_before] call RACA_fnc_countLoadout;
 private _afterCounts = [_after] call RACA_fnc_countLoadout;
 private _preset = _slot select 2;
@@ -124,6 +159,7 @@ if (!_accepted) then {
     missionNamespace setVariable ["RACA_quotaState", _quota];
     if (_issued isNotEqualTo []) then {["ISSUE", _unit, _object, _slotId, _issued] call RACA_fnc_logEvent};
     if (_returned isNotEqualTo []) then {["RETURN", _unit, _object, _slotId, _returned] call RACA_fnc_logEvent};
+    ["SESSION_ACCEPTED",_unit,_object,_slotId,[_sessionId,count _issued,count _returned]] call RACA_fnc_logEvent;
 };
 
 _sessions deleteAt _sessionId;
