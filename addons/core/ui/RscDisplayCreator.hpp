@@ -2147,13 +2147,13 @@ class RACA_RscDisplayCatalogTags {
             y = "safeZoneY + 0.34 * safeZoneH";
             w = "0.25 * safeZoneW";
             h = "0.035 * safeZoneH";
-            onKeyUp = "ctrlParent (_this select 0) call RACA_fnc_catalogTagsRefresh";
+            onKeyUp = "[ctrlParent (_this select 0),'TAGS'] call RACA_fnc_queueCatalogTagRefresh";
         };
         class MemberSearch: TagSearch {
             idc = RACA_IDC_CATALOG_MEMBER_SEARCH;
             x = "safeZoneX + 0.37 * safeZoneW";
             w = "0.53 * safeZoneW";
-            onKeyUp = "private _d=ctrlParent (_this select 0); _d setVariable ['RACA_memberPage',0]; _d call RACA_fnc_catalogTagMembersRefresh";
+            onKeyUp = "[ctrlParent (_this select 0),'MEMBERS'] call RACA_fnc_queueCatalogTagRefresh";
         };
         class Members: RscListNBox {
             idc = RACA_IDC_CATALOG_TAG_MEMBERS;

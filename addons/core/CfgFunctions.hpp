@@ -92,6 +92,7 @@ class CfgFunctions {
             class catalogTagsSelect {};
             class catalogTagMembersRefresh {};
             class catalogTagMembersSelect {};
+            class queueCatalogTagRefresh {};
             class catalogTagsPage {};
             class clearSelection {};
             class clearDraftRecovery {};

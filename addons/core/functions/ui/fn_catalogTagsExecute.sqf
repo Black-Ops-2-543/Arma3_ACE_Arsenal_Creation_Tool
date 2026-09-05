@@ -22,7 +22,7 @@ private _setStatus = {
     (_display displayCtrl RACA_IDC_CATALOG_TAG_DETAILS) ctrlSetText _message;
 };
 private _save = {
-    params ["_records", ["_recordHistory", true, [true]]];
+    params ["_records", ["_recordHistory", true, [true]], ["_delta",[],[[]]]];
     if !((profileNamespace getVariable ["RACA_catalogTags_v1", []]) isEqualTo _baselineRaw) exitWith {
         ["Tags changed while the confirmation was open. Nothing was saved; retry the operation."] call _setStatus;
         false
@@ -44,7 +44,7 @@ private _save = {
     profileNamespace setVariable ["RACA_catalogTagsRevision_v1", (profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0]) + 1];
     saveProfileNamespace;
     uiNamespace setVariable ["RACA_catalogTagsCacheRevision", -1];
-    call RACA_fnc_refreshCatalogTagIndex;
+    [_delta] call RACA_fnc_refreshCatalogTagIndex;
     if (!isNull _parent) then {
         [_parent] call RACA_fnc_refreshSourceCombo;
         [_parent] call RACA_fnc_refreshItemList;
@@ -93,10 +93,11 @@ switch (_operationKey) do {
         private _classes = +((_tags select _index) select 3);
         private _classSet = createHashMapFromArray (_classes apply {[(toLowerANSI _x),true]});
         private _added = 0;
-        {if !(_classSet getOrDefault [toLowerANSI _x,false]) then {_classSet set [toLowerANSI _x,true]; _classes pushBack _x; _added=_added+1}} forEach _selectedClasses;
+        private _addedClasses = [];
+        {if !(_classSet getOrDefault [toLowerANSI _x,false]) then {_classSet set [toLowerANSI _x,true]; _classes pushBack _x; _addedClasses pushBack _x; _added=_added+1}} forEach _selectedClasses;
         _classes sort true;
         _tags set [_index, ["RACA_CATALOG_TAG", 1, _name, _classes]];
-        if !([_tags] call _save) exitWith {};
+        if !([_tags,true,["ADD",_name,_addedClasses]] call _save) exitWith {};
         _display setVariable ["RACA_catalogTagRestore", _name];
         [_display] call RACA_fnc_catalogTagsRefresh;
         [format ["Added %1 of %2 captured Creator class(es) to '%3'; %4 already belonged.", _added, count _selectedClasses, _name, (count _selectedClasses)-_added]] call _setStatus;
@@ -119,7 +120,7 @@ switch (_operationKey) do {
         if (!_confirmed) exitWith {};
         _classes = _classes select {!(_removeSet getOrDefault [toLowerANSI _x,false])};
         _tags set [_index, ["RACA_CATALOG_TAG", 1, (_tags select _index) select 2, _classes]];
-        if !([_tags] call _save) exitWith {};
+        if !([_tags,true,["REMOVE",_selectedName,_memberClasses]] call _save) exitWith {};
         _display setVariable ["RACA_catalogTagRestore", _selectedName];
         [_display] call RACA_fnc_catalogTagsRefresh;
         [format ["Removed '%1' from %2 selected class(es).", _selectedName, _removeCount]] call _setStatus;
@@ -137,8 +138,9 @@ switch (_operationKey) do {
             _display
         ] call BIS_fnc_guiMessage;
         if (!_confirmed) exitWith {};
+        private _deletedClasses = +((_tags select _index) select 3);
         _tags deleteAt _index;
-        if !([_tags] call _save) exitWith {};
+        if !([_tags,true,["DELETE",_selectedName,_deletedClasses]] call _save) exitWith {};
         [_display] call RACA_fnc_catalogTagsRefresh;
         [format ["Deleted catalogue tag '%1'.", _selectedName]] call _setStatus;
     };
