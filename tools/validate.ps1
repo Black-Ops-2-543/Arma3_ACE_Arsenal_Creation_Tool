@@ -723,6 +723,15 @@ if ((Test-Path -LiteralPath $toggleRowPath -PathType Leaf) -and (Test-Path -Lite
         $failures.Add('Item Details opening must validate Creator generation and enforce one live details display.')
     }
 }
+
+$saveDraftRecoveryPath = Join-Path $addonsDirectory 'core\functions\ui\fn_saveDraftRecovery.sqf'
+if (Test-Path -LiteralPath $saveDraftRecoveryPath -PathType Leaf) {
+    $saveDraftRecovery = Get-Content -Raw -LiteralPath $saveDraftRecoveryPath
+    if ($saveDraftRecovery -notmatch '\["RACA_draftRecoveryEnabled"\] call RACA_fnc_getSetting' -or
+        $saveDraftRecovery -match 'RACA_draftRecoveryEnabled[\s\S]{0,300}(?:setVariable \["RACA_creatorDraftRecovery_v1", nil\]|RACA_fnc_clearDraftRecovery)') {
+        $failures.Add('Draft recovery opt-out must block only new writes and must not erase an existing record.')
+    }
+}
 if (-not (Test-Path -LiteralPath $itemDetailsUnloadPath -PathType Leaf) -or
     (Get-Content -Raw -LiteralPath $itemDetailsUnloadPath) -notmatch 'ctrlSetFocus') {
     $failures.Add('Closing Item Details must restore focus to the Creator list without opening another display.')

@@ -6,6 +6,9 @@ if (isNull _display) then {
     _display = uiNamespace getVariable ["RACA_builderDisplay", displayNull];
 };
 if (isNull _display || {!(uiNamespace getVariable ["RACA_creatorDirty", false])}) exitWith {false};
+// Opt-out controls only new writes. Existing recovery remains available until
+// an explicit save/discard/close path calls clearDraftRecovery.
+if !(["RACA_draftRecoveryEnabled"] call RACA_fnc_getSetting) exitWith {false};
 
 private _rawName = ctrlText (_display displayCtrl RACA_IDC_PRESET_NAME);
 private _nameCharacters = (toArray _rawName) select {_x >= 32 && {_x isNotEqualTo 127}};
