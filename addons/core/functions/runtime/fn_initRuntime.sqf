@@ -36,8 +36,8 @@ if (isServer) then {
                 private _record = _sessions get _x;
                 private _object = _record param [0, objNull];
                 private _unit = _record param [1, objNull];
-                private _startedAt = _record param [5, 0];
-                if (isNull _object || {isNull _unit} || {(diag_tickTime - _startedAt) > 1200}) then {
+                private _expiresAt = _record param [7, (_record param [5,0]) + 1200];
+                if (isNull _object || {isNull _unit} || {diag_tickTime > _expiresAt}) then {
                     if (!isNull _unit) then {
                         [_unit, _record param [3, []], "A stale restricted arsenal session was closed; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
                     };

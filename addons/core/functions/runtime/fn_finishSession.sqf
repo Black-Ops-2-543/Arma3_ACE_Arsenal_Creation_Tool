@@ -11,13 +11,14 @@ if (_session isEqualTo []) exitWith {false};
 _session params ["_object", "_sessionUnit", "_slot", "_before", "_expectedOwner", "_startedAt"];
 if (_sessionUnit isNotEqualTo _unit) exitWith {false};
 if (isRemoteExecuted && {remoteExecutedOwner isNotEqualTo _expectedOwner}) exitWith {false};
+if ((_session param [6,"opened"]) isNotEqualTo "opened") exitWith {false};
 if (isNull _object) exitWith {
     [_unit, _before, "The arsenal object no longer exists; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];
     false
 };
-if ((diag_tickTime - _startedAt) > 900) exitWith {
+if (diag_tickTime > (_session param [7,_startedAt + 900])) exitWith {
     [_unit, _before, "The arsenal session expired; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];

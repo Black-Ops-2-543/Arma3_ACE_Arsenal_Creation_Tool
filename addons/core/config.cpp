@@ -30,6 +30,7 @@ class CfgRemoteExec {
         class RACA_fnc_requestOpen {allowedTargets = 2;};
         class RACA_fnc_openAuthorized {allowedTargets = 1;};
         class RACA_fnc_finishSession {allowedTargets = 2;};
+        class RACA_fnc_acknowledgeSession {allowedTargets = 2;};
         class RACA_fnc_applyCorrectedLoadout {allowedTargets = 1;};
         class RACA_fnc_applyAuthorizedLoadout {allowedTargets = 1;};
         class RACA_fnc_requestLoadoutApply {allowedTargets = 2;};

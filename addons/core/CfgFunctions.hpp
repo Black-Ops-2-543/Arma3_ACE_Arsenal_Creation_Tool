@@ -198,6 +198,7 @@ class CfgFunctions {
             class deletePlayerLoadout {};
             class evaluateAccess {};
             class finishSession {};
+            class acknowledgeSession {};
             class getMissionRegistry {};
             class getRuntimeObjectId {};
             class initRuntime {preInit = 1;};

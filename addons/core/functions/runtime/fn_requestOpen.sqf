@@ -98,7 +98,7 @@ if (_classes isEqualTo []) exitWith {
     false
 };
 
-_sessions set [_sessionId, [_object, _unit, _slot, getUnitLoadout _unit, owner _unit, diag_tickTime]];
+_sessions set [_sessionId, [_object, _unit, _slot, getUnitLoadout _unit, owner _unit, diag_tickTime,"opening",diag_tickTime + 60]];
 missionNamespace setVariable ["RACA_openSessions", _sessions];
 [_object, _unit, _slotId, _slotName, _classes, _limits, _remaining, _sessionId, true, ""] remoteExecCall ["RACA_fnc_openAuthorized", owner _unit];
 ["OPEN", _unit, _object, _slotId, [count _classes]] call RACA_fnc_logEvent;

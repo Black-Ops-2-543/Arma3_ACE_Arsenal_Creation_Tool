@@ -32,10 +32,22 @@ _holder enableSimulation false;
 
 [_holder, _unit, _object, _slotId, _sessionId] spawn {
     params ["_holder", "_unit", "_object", "_slotId", "_sessionId"];
-    private _deadline = diag_tickTime + 8;
+    private _deadline = diag_tickTime + 60;
     waitUntil {uiSleep 0.05; !isNull (findDisplay 1127001) || {diag_tickTime > _deadline}};
-    if (!isNull (findDisplay 1127001)) then {
-        waitUntil {uiSleep 0.1; isNull (findDisplay 1127001)};
+    if (isNull (findDisplay 1127001)) exitWith {
+        deleteVehicle _holder;
+        systemChat "RACA: ACE Arsenal did not open before the authorized session expired.";
+        [_sessionId,_unit,"failed"] remoteExecCall ["RACA_fnc_acknowledgeSession",2];
+    };
+    [_sessionId,_unit,"opened"] remoteExecCall ["RACA_fnc_acknowledgeSession",2];
+    private _heartbeat = diag_tickTime + 30;
+    waitUntil {
+        uiSleep 0.1;
+        if (diag_tickTime >= _heartbeat) then {
+            [_sessionId,_unit,"heartbeat"] remoteExecCall ["RACA_fnc_acknowledgeSession",2];
+            _heartbeat = diag_tickTime + 30;
+        };
+        isNull (findDisplay 1127001) || {isNull _holder} || {isNull _unit}
     };
     private _after = getUnitLoadout _unit;
     deleteVehicle _holder;
