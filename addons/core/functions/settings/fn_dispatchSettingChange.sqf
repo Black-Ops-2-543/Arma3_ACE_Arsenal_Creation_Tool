@@ -23,4 +23,7 @@ private _generation = if (isNull _display) then {-1} else {_display getVariable 
         private _tagDisplay = uiNamespace getVariable ["RACA_catalogTagsDisplay", displayNull];
         if (!isNull _tagDisplay) then {[_tagDisplay] call RACA_fnc_catalogTagMembersRefresh};
     };
+    if (_name isEqualTo "RACA_defaultSearchMode") then {
+        [_display, [_name] call RACA_fnc_getSetting, false] call RACA_fnc_setSearchMode;
+    };
 };

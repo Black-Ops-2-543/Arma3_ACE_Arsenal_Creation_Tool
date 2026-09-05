@@ -15,8 +15,9 @@ uiNamespace setVariable ["RACA_builderInherited", createHashMap];
 uiNamespace setVariable ["RACA_builderLimits", createHashMap];
 uiNamespace setVariable ["RACA_catalogShowIcons", true];
 uiNamespace setVariable ["RACA_catalogDensity", "comfortable"];
-private _searchMode = toUpperANSI (profileNamespace getVariable ["RACA_catalogSearchMode_v1", "BASIC"]);
-if !(_searchMode in ["BASIC", "ADVANCED"]) then {_searchMode = "BASIC"};
+// Recovered/saved/navigation states are applied through restoreCatalogView.
+// Until one exists, a new Creator session starts from the typed preference.
+private _searchMode = ["RACA_defaultSearchMode"] call RACA_fnc_getSetting;
 uiNamespace setVariable ["RACA_catalogSearchMode", _searchMode];
 private _sortMode = profileNamespace getVariable ["RACA_catalogSort_v1", ["item", true]];
 if !(_sortMode isEqualType [] && {(count _sortMode) >= 2}) then {_sortMode = ["item", true]};

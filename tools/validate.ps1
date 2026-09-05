@@ -669,6 +669,24 @@ foreach ($relativePath in $catalogPagingPaths) {
         }
     }
 }
+
+$creatorOnLoadPath = Join-Path $addonsDirectory 'core\functions\ui\fn_creatorOnLoad.sqf'
+$searchModePath = Join-Path $addonsDirectory 'core\functions\ui\fn_setSearchMode.sqf'
+if ((Test-Path -LiteralPath $creatorOnLoadPath -PathType Leaf) -and (Test-Path -LiteralPath $searchModePath -PathType Leaf)) {
+    $creatorOnLoad = Get-Content -Raw -LiteralPath $creatorOnLoadPath
+    $searchModeSource = Get-Content -Raw -LiteralPath $searchModePath
+    if ($creatorOnLoad -notmatch '\["RACA_defaultSearchMode"\] call RACA_fnc_getSetting' -or
+        $creatorOnLoad -match 'profileNamespace getVariable \["RACA_catalogSearchMode_v1"') {
+        $failures.Add('A new Creator must use the typed default Search Mode preference, not stale profile view state.')
+    }
+    if ($settingsDispatcher -notmatch 'RACA_defaultSearchMode' -or
+        $settingsDispatcher -notmatch 'RACA_fnc_setSearchMode') {
+        $failures.Add('Live Search Mode preference changes must use the normal mode transition.')
+    }
+    if ($searchModeSource -notmatch 'RACA_fnc_refreshItemList') {
+        $failures.Add('Search Mode transitions must finish through the normal catalogue refresh path.')
+    }
+}
 if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
     $failures.Add('CBA setting labels and tooltips require a localization resource.')
 } else {
