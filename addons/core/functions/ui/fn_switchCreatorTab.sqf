@@ -107,6 +107,7 @@ private _inactiveColor = [0.16, 0.17, 0.19, 0.98];
 (_display displayCtrl RACA_IDC_TAB_ASSIGNMENT_INDICATOR) ctrlCommit 0;
 
 uiNamespace setVariable ["RACA_creatorTab", ["ASSIGNMENT", "PRESETS"] select _showPresets];
+[_display] call RACA_fnc_applyGuidancePreference;
 if (!_showPresets) then {
     [_display, uiNamespace getVariable ["RACA_catalogSearchMode", "BASIC"]] call RACA_fnc_setSearchMode;
     [_display] call RACA_fnc_refreshCategoryCombo;

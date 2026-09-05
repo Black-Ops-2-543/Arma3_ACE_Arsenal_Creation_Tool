@@ -113,6 +113,7 @@ _list lnbSetTooltip [[_loadingRow, 1], "You can continue using Preset Management
     private _recoveryHandled = [_display] call RACA_fnc_offerDraftRecovery;
     if (!_recoveryHandled &&
         {(call RACA_fnc_getPresetLibrary) isEqualTo []} &&
+        {["RACA_showOnboardingGuidance"] call RACA_fnc_getSetting} &&
         {!(profileNamespace getVariable ["RACA_onboardingSeen_v1", false])}) then {
         uiSleep 0.1;
         if (!isNull _display) then {[_display] call RACA_fnc_openQuickStart};

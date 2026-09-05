@@ -732,6 +732,27 @@ if (Test-Path -LiteralPath $saveDraftRecoveryPath -PathType Leaf) {
         $failures.Add('Draft recovery opt-out must block only new writes and must not erase an existing record.')
     }
 }
+
+$statusFormatterPath = Join-Path $addonsDirectory 'core\functions\settings\fn_formatStatus.sqf'
+$guidancePath = Join-Path $addonsDirectory 'core\functions\ui\fn_applyGuidancePreference.sqf'
+if (-not (Test-Path -LiteralPath $statusFormatterPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $guidancePath -PathType Leaf)) {
+    $failures.Add('Guidance and status preferences require centralized format/apply functions.')
+} else {
+    $statusFormatter = Get-Content -Raw -LiteralPath $statusFormatterPath
+    $guidanceSource = Get-Content -Raw -LiteralPath $guidancePath
+    if ($statusFormatter -notmatch 'RACA_statusVerbosity' -or
+        $statusFormatter -notmatch 'critical' -or $statusFormatter -match 'exitWith \{\s*""\s*\}') {
+        $failures.Add('Status verbosity must select wording without hiding critical messages.')
+    }
+    if ($guidanceSource -notmatch 'RACA_showOnboardingGuidance' -or
+        $guidanceSource -match 'RACA_IDC_QUICK_START|RACA_fnc_refreshItemList') {
+        $failures.Add('Guidance preference may hide optional copy only and must not hide Quick Start or redraw the catalogue.')
+    }
+    if ($settingsDispatcher -notmatch 'RACA_fnc_applyGuidancePreference') {
+        $failures.Add('Live guidance changes must update optional controls through the centralized dispatcher.')
+    }
+}
 if (-not (Test-Path -LiteralPath $itemDetailsUnloadPath -PathType Leaf) -or
     (Get-Content -Raw -LiteralPath $itemDetailsUnloadPath) -notmatch 'ctrlSetFocus') {
     $failures.Add('Closing Item Details must restore focus to the Creator list without opening another display.')

@@ -45,4 +45,7 @@ private _generation = if (isNull _display) then {-1} else {_display getVariable 
             [_preflight] call RACA_fnc_preflightRefresh;
         };
     };
+    if (_name isEqualTo "RACA_showOnboardingGuidance") then {
+        [_display] call RACA_fnc_applyGuidancePreference;
+    };
 };

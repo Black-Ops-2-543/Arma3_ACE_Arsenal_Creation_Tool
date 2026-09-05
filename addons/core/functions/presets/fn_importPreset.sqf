@@ -108,7 +108,7 @@ try {
 if (!isNull _dialog) then {_dialog closeDisplay 2};
 if (!isNull _display) then {
     _display setVariable ["RACA_importBusy", false];
-    [_display, _result] call RACA_fnc_setStatus;
+    [_display, _result, ["critical", "standard"] select (_resultCode isEqualTo "SUCCESS")] call RACA_fnc_setStatus;
 };
 private _terminalPhase = if (_resultCode isEqualTo "CANCELLED") then {_telemetry getOrDefault ["cancelPhase", "unknown"]} else {"complete"};
 [_operation, _terminalPhase, _started, [

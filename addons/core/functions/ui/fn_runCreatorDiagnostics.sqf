@@ -24,5 +24,5 @@ _diagnostics ctrlSetBackgroundColor (
     }
 );
 (_display displayCtrl RACA_IDC_OPEN_DIAGNOSTICS) ctrlEnable true;
-[_display, format ["Preflight %1 — %2 errors, %3 warnings, %4 information entries.", ["blocked", "passed"] select _ok, _summary select 0, _summary select 1, _summary select 2]] call RACA_fnc_setStatus;
+[_display, format ["Preflight %1 — %2 errors, %3 warnings, %4 information entries.", ["blocked", "passed"] select _ok, _summary select 0, _summary select 1, _summary select 2], ["critical", "standard"] select _ok] call RACA_fnc_setStatus;
 _analysis

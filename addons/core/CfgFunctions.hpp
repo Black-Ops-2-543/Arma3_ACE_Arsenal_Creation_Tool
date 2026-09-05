@@ -22,6 +22,7 @@ class CfgFunctions {
         class Settings {
             file = "\x\raca\addons\core\functions\settings";
             class dispatchSettingChange {};
+            class formatStatus {};
             class getSetting {};
             class registerSettings {preInit = 1;};
         };
@@ -111,6 +112,7 @@ class CfgFunctions {
             class itemDetailsRefresh {};
             class itemDetailsToggleFavorite {};
             class itemDetailsToggleIncluded {};
+            class applyGuidancePreference {};
             class openPresetHistory {};
             class openCreatorDiagnostics {};
             class openCatalogTags {};
