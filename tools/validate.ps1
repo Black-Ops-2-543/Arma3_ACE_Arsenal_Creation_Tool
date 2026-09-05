@@ -673,6 +673,9 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     if ($sqfImport -notmatch '_isSqfIdentifier' -or $sqfImport -notmatch '\(_candidate find "_fnc_"\)') {
         $failures.Add("Legacy SQF import must ignore quoted local variables and function identifiers.")
     }
+    if ($sqfImport -notmatch 'RACA_fnc_decodeGeneratedSqfLiteral') {
+        $failures.Add('SQF import must try the strict generated-export fast path before generic recovery.')
+    }
 }
 
 $importCoordinatorPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importPreset.sqf'
@@ -704,6 +707,7 @@ $sqfExportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatSqf
 if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
     $sqfExport = Get-Content -Raw -LiteralPath $sqfExportPath
     foreach ($requiredPattern in @(
+        'RACA_REUSABLE_SQF_FORMAT:2',
         'params \[\["_box"',
         'if \(!isServer\)',
         'private _arsenalItems',
@@ -715,6 +719,19 @@ if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
         if ($sqfExport -notmatch $requiredPattern) {
             $failures.Add("Reusable SQF export is missing required mission behavior matching '$requiredPattern'.")
         }
+    }
+}
+
+$generatedSqfDecoderPath = Join-Path $addonsDirectory 'core\functions\presets\fn_decodeGeneratedSqfLiteral.sqf'
+if (-not (Test-Path -LiteralPath $generatedSqfDecoderPath -PathType Leaf)) {
+    $failures.Add('Generated reusable SQF requires its strict data-only literal decoder.')
+} else {
+    $generatedSqfDecoder = Get-Content -Raw -LiteralPath $generatedSqfDecoderPath
+    if ($generatedSqfDecoder -match '(?i)\b(?:compile|compileFinal|execVM|preprocessFile|loadFile)\b' -or
+        $generatedSqfDecoder -notmatch 'RACA_REUSABLE_SQF_FORMAT:2' -or
+        $generatedSqfDecoder -notmatch 'private _arsenalItems = \[' -or
+        $generatedSqfDecoder -notmatch 'RACA_fnc_importCheckpoint') {
+        $failures.Add('Generated SQF fast path must require the known envelope and parse it as cancellable data only.')
     }
 }
 

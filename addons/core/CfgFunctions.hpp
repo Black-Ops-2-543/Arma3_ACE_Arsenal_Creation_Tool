@@ -28,6 +28,7 @@ class CfgFunctions {
             class archivePreset {};
             class buildPreset {};
             class decodePortablePreset {};
+            class decodeGeneratedSqfLiteral {};
             class decodeSqfPreset {};
             class confirmPresetDeletion {};
             class deletePreset {};

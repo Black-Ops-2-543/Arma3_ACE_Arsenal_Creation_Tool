@@ -6,8 +6,11 @@ params [["_text", "", [""]], ["_requestedName", "", [""]], ["_operation", [], [[
 if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
 private _telemetry = _operation param [4, createHashMap, [createHashMap]];
 private _phaseStarted = diag_tickTime;
-private _characters = toArray _text;
-private _plain = (_characters findIf {!(_x in [9,10,13,32,44] || {_x >= 48 && {_x <= 57}} || {_x >= 65 && {_x <= 90}} || {_x >= 97 && {_x <= 122}} || {_x isEqualTo 95})}) < 0;
+private _generated = [_text, _operation] call RACA_fnc_decodeGeneratedSqfLiteral;
+_generated params ["_generatedMatched", "_generatedMalformed", "_generatedValues", "_generatedNotice"];
+if (_generatedMalformed) exitWith {[[], [], [_generatedNotice]]};
+private _characters = [];
+private _plain = false;
 private _values = [];
 private _state = "NORMAL";
 private _quote = 0;
@@ -15,11 +18,16 @@ private _buffer = [];
 private _start = 0;
 private _cancelled = false;
 private _error = "";
-if (_plain) then {
-    _values = _text splitString (toString [9,10,13,32,44]);
+if (_generatedMatched) then {
+    _values = _generatedValues;
 } else {
-    private _i = 0;
-    while {_i < count _characters && {_error isEqualTo ""} && {!_cancelled}} do {
+    _characters = toArray _text;
+    _plain = (_characters findIf {!(_x in [9,10,13,32,44] || {_x >= 48 && {_x <= 57}} || {_x >= 65 && {_x <= 90}} || {_x >= 97 && {_x <= 122}} || {_x isEqualTo 95})}) < 0;
+    if (_plain) then {
+        _values = _text splitString (toString [9,10,13,32,44]);
+    } else {
+      private _i = 0;
+      while {_i < count _characters && {_error isEqualTo ""} && {!_cancelled}} do {
         if ((_i mod 4096) isEqualTo 0) then {
             _cancelled = !([_operation, "Reading SQF", _i, count _characters] call RACA_fnc_importCheckpoint);
         };
@@ -46,7 +54,8 @@ if (_plain) then {
                 } else {_buffer pushBack _c};
             };
         };
-        _i = _i + 1;
+          _i = _i + 1;
+      };
     };
 };
 if (_cancelled) exitWith {[[], [], ["Import cancelled."]]};
@@ -100,7 +109,11 @@ _phaseStarted = diag_tickTime;
 private _count = 0;
 {_count = _count + count _x} forEach _buckets;
 if (_count isEqualTo 0) exitWith {[[], [], ["No available arsenal classes were recovered. Use JSON to retain known unavailable cargo and metadata."]]};
-if (!_plain) then {_warnings pushBack "Review recovered SQF strings: dynamic conditions and variable flow cannot be inferred. Comments are excluded."};
+if (_generatedMatched) then {
+    _warnings pushBack _generatedNotice;
+} else {
+    if (!_plain) then {_warnings pushBack "Review recovered SQF strings: dynamic conditions and variable flow cannot be inferred. Comments are excluded."};
+};
 _warnings pushBack format ["Read %1 values; recovered %2 unique available classes; %3 unavailable candidates; %4 non-cargo values ignored.", count _values, _count, count _missing, _ignored];
 {_warnings pushBack format ["Unavailable quoted class: %1", _x]} forEach _missing;
 [_operation, "preset_validation", diag_tickTime, [["available", _count], ["unavailable", count _missing], ["warnings", count _warnings]]] call RACA_fnc_importTelemetry;

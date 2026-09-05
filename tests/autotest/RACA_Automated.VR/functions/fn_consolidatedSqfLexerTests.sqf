@@ -31,4 +31,23 @@ private _malformedString = [_malformedStringText, "Malformed String"] call RACA_
     (_malformedBlock select 0) isEqualTo [] && {(_malformedString select 0) isEqualTo []},
     "SQF lexer rejects unterminated comments and strings atomically"
 ] call _record;
+
+private _generatedRaw = ["RACA_PRESET", 1, "Fast Path Fixture", [["arifle_MX_F"], ["30Rnd_65x39_caseless_mag"], [], []]];
+private _generatedText = [_generatedRaw] call RACA_fnc_formatSqfExport;
+private _generatedDecode = [_generatedText, "Fast Path Import"] call RACA_fnc_decodeSqfPreset;
+private _generatedWarnings = _generatedDecode select 2;
+[
+    (_generatedDecode select 0) isNotEqualTo [] &&
+    {((_generatedWarnings findIf {(_x find "Recognized RACA reusable SQF format 2") isEqualTo 0}) >= 0)} &&
+    {((_generatedWarnings findIf {(_x find "raca_arsenal.sqf") >= 0}) < 0)},
+    "Versioned RACA SQF uses the strict literal-array fast path"
+] call _record;
+
+private _brokenGenerated = _generatedText regexReplace ["private _arsenalItems = \\[", "private _arsenalItems = call {"];
+private _brokenDecode = [_brokenGenerated, "Broken Fast Path"] call RACA_fnc_decodeSqfPreset;
+[
+    (_brokenDecode select 0) isEqualTo [] &&
+    {(((_brokenDecode select 2) param [0, ""]) find "structural envelope") >= 0},
+    "A marked but modified generated SQF envelope fails without generic guessing"
+] call _record;
 true
