@@ -44,3 +44,7 @@ if (_keyboard || {_checkbox && {!_ctrl} && {!_shift}}) then {
     };
 };
 [_display] call RACA_fnc_refreshItemList;
+if (!_keyboard && {!_shift} && {!_ctrl} && {!_alt} &&
+    {["RACA_openItemDetailsOnSelection"] call RACA_fnc_getSetting}) then {
+    [_display, _display getVariable ["RACA_generation", -1]] call RACA_fnc_openItemDetails;
+};

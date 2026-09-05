@@ -705,6 +705,28 @@ if ((Test-Path -LiteralPath $preflightOnLoadPath -PathType Leaf) -and (Test-Path
         $failures.Add('Compatibility filtering must revalidate selected-row action state after every refresh.')
     }
 }
+
+$toggleRowPath = Join-Path $addonsDirectory 'core\functions\ui\fn_toggleRow.sqf'
+$openItemDetailsPath = Join-Path $addonsDirectory 'core\functions\ui\fn_openItemDetails.sqf'
+$itemDetailsUnloadPath = Join-Path $addonsDirectory 'core\functions\ui\fn_itemDetailsOnUnload.sqf'
+if ((Test-Path -LiteralPath $toggleRowPath -PathType Leaf) -and (Test-Path -LiteralPath $openItemDetailsPath -PathType Leaf)) {
+    $toggleRow = Get-Content -Raw -LiteralPath $toggleRowPath
+    $openItemDetails = Get-Content -Raw -LiteralPath $openItemDetailsPath
+    if ($toggleRow -notmatch 'RACA_openItemDetailsOnSelection' -or
+        $toggleRow -notmatch '!_keyboard' -or $toggleRow -notmatch '!_shift' -or
+        $toggleRow -notmatch '!_ctrl' -or $toggleRow -notmatch '!_alt') {
+        $failures.Add('Selection-driven Item Details must be gated to an unmodified primary mouse selection.')
+    }
+    if ($openItemDetails -notmatch '_expectedGeneration' -or
+        $openItemDetails -notmatch 'RACA_itemDetailsOpening' -or
+        $openItemDetails -notmatch 'RACA_itemDetailsDisplay') {
+        $failures.Add('Item Details opening must validate Creator generation and enforce one live details display.')
+    }
+}
+if (-not (Test-Path -LiteralPath $itemDetailsUnloadPath -PathType Leaf) -or
+    (Get-Content -Raw -LiteralPath $itemDetailsUnloadPath) -notmatch 'ctrlSetFocus') {
+    $failures.Add('Closing Item Details must restore focus to the Creator list without opening another display.')
+}
 if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
     $failures.Add('CBA setting labels and tooltips require a localization resource.')
 } else {

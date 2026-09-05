@@ -1638,7 +1638,7 @@ class RACA_RscDisplayItemDetails {
     movingEnable = 0;
     enableSimulation = 1;
     onLoad = "(_this select 0) call RACA_fnc_itemDetailsOnLoad";
-    onUnload = "uiNamespace setVariable ['RACA_itemDetailsParent', displayNull]; uiNamespace setVariable ['RACA_itemDetailsClass', '']";
+    onUnload = "(_this select 0) call RACA_fnc_itemDetailsOnUnload";
 
     class controlsBackground {
         class Background: RscText {

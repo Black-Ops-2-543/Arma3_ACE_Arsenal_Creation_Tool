@@ -107,6 +107,7 @@ class CfgFunctions {
             class getCatalogTags {};
             class itemDetailsCopy {};
             class itemDetailsOnLoad {};
+            class itemDetailsOnUnload {};
             class itemDetailsRefresh {};
             class itemDetailsToggleFavorite {};
             class itemDetailsToggleIncluded {};
