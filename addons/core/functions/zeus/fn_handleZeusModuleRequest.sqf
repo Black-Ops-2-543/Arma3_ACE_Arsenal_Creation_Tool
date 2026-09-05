@@ -38,14 +38,13 @@ if (_reason isEqualTo "" && {
     _reason = "Module identity did not match the requested operation.";
 };
 if (_reason isEqualTo "" && {
-    !(missionNamespace getVariable ["RACA_allowZeusModules", true])
+    !(["RACA_enableZeusModules"] call RACA_fnc_getSetting)
 }) then {
-    _reason = "Zeus modules are disabled by the mission.";
+    _reason = "Zeus modules are disabled by the authoritative server or mission setting.";
 };
 if (_reason isEqualTo "" && {_logic getVariable ["RACA_serverHandled", false]}) then {
     _reason = "This module placement was already handled."
 };
-if (_reason isEqualTo "") then {_logic setVariable ["RACA_serverHandled", true, true]};
 
 private _linkedTargets = if (isNull _logic) then {[]} else {
     synchronizedObjects _logic select {!(_x isKindOf "Module_F")}
@@ -69,7 +68,13 @@ if (_reason isEqualTo "" && {_validTargets isEqualTo []}) then {
 };
 
 private _changed = 0;
+// Re-read the authoritative setting at the final mutation boundary. A client
+// UI or a setting value captured earlier in the request cannot authorize work.
+if (_reason isEqualTo "" && {!(["RACA_enableZeusModules"] call RACA_fnc_getSetting)}) then {
+    _reason = "Zeus modules were disabled by the server before the operation committed.";
+};
 if (_reason isEqualTo "") then {
+    _logic setVariable ["RACA_serverHandled", true, true];
     switch _op do {
         case "CLEAR": {
             _changed = [_validTargets, "clear", [], true] call RACA_fnc_bulkUpdateObjects
@@ -143,7 +148,7 @@ if (_reason isEqualTo "") then {
                 } forEach call RACA_fnc_getMissionRegistry;
             };
             if (_config isEqualTo [] && {
-                missionNamespace getVariable ["RACA_allowZeusProfileFallback", false]
+                ["RACA_allowZeusProfilePresetFallback"] call RACA_fnc_getSetting
             }) then {
                 private _library = call RACA_fnc_getPresetLibrary;
                 private _presetIndex = _library findIf {

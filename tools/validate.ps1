@@ -753,6 +753,23 @@ if (-not (Test-Path -LiteralPath $statusFormatterPath -PathType Leaf) -or
         $failures.Add('Live guidance changes must update optional controls through the centralized dispatcher.')
     }
 }
+
+$zeusHandlerPath = Join-Path $addonsDirectory 'core\functions\zeus\fn_handleZeusModuleRequest.sqf'
+if (Test-Path -LiteralPath $zeusHandlerPath -PathType Leaf) {
+    $zeusHandler = Get-Content -Raw -LiteralPath $zeusHandlerPath
+    if (([regex]::Matches($zeusHandler, '\["RACA_enableZeusModules"\] call RACA_fnc_getSetting')).Count -lt 2 -or
+        $zeusHandler -notmatch '\["RACA_allowZeusProfilePresetFallback"\] call RACA_fnc_getSetting') {
+        $failures.Add('The server Zeus handler must use typed authoritative settings and re-check enablement at commit time.')
+    }
+    if ($zeusHandler -match 'RACA_allowZeusModules|RACA_allowZeusProfileFallback') {
+        $failures.Add('Legacy missionNamespace Zeus toggles must not bypass authoritative CBA settings.')
+    }
+    $embeddedLookup = $zeusHandler.IndexOf('RACA_missionArsenalConfigurations')
+    $fallbackLookup = $zeusHandler.IndexOf('RACA_allowZeusProfilePresetFallback')
+    if ($embeddedLookup -lt 0 -or $fallbackLookup -le $embeddedLookup) {
+        $failures.Add('Zeus assignment must resolve embedded mission configurations before profile fallback.')
+    }
+}
 if (-not (Test-Path -LiteralPath $itemDetailsUnloadPath -PathType Leaf) -or
     (Get-Content -Raw -LiteralPath $itemDetailsUnloadPath) -notmatch 'ctrlSetFocus') {
     $failures.Add('Closing Item Details must restore focus to the Creator list without opening another display.')
