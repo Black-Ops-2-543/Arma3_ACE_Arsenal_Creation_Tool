@@ -133,6 +133,6 @@ Copy the line and choose **Import Automatically**. RACA tokenizes the plain list
 
 ## Clipboard and RPT recovery
 
-All Creator exports and copyable reports use the same Unicode-safe helper. It sends the exact text to the clipboard and also writes chunked, ordered RPT records with a copy ID, code-point length, and checksum. If clipboard contents are lost, use `tools\reconstruct-rpt-copy.ps1` with the RPT path and copy ID. The reconstructed file is accepted only when the recorded chunks, length, and checksum agree.
+All Creator exports and copyable reports use the same Unicode-safe helper. It sends the exact text to the clipboard and also writes versioned, ordered RPT records with a copy ID, code-point length, and order-sensitive `P24X2` digest. If clipboard contents are lost, use `tools\reconstruct-rpt-copy.ps1` with the RPT path and copy ID. The v2 reader rejects missing, duplicate, conflicting, reordered, or substituted chunks unless the exact length and dual digest agree. Existing v1 additive-checksum records remain readable with an explicit weaker-integrity warning.
 
 Arma restricts `copyFromClipboard` to non-multiplayer use, so imports remain a single-player Creator operation. Exports/copy reports still provide RPT recovery evidence when the clipboard path is unavailable.

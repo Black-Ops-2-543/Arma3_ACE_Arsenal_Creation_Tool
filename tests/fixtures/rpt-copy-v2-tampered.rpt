@@ -1,0 +1,3 @@
+[RACA][COPY:43] BEGIN version=2 context="tampered" units=4 chunks=1 encoding=CODEPOINTS digest=P24X2-5225729-9989239
+[RACA][COPY:43] CHUNK 1/1 [65,938,13,10]
+[RACA][COPY:43] END version=2 units=4 chunks=1 digest=P24X2-5225729-9989239

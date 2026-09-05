@@ -814,6 +814,16 @@ $clipboardRecoveryPath = Join-Path $repositoryRoot 'tools\reconstruct-rpt-copy.p
 if (-not (Test-Path -LiteralPath $clipboardRecoveryPath -PathType Leaf)) {
     $failures.Add("The RPT clipboard archive must include its integrity-checking reconstruction utility.")
 }
+else {
+    $copyFixture = Join-Path $repositoryRoot 'tests\fixtures\rpt-copy-v2-sample.rpt'
+    $tamperedCopyFixture = Join-Path $repositoryRoot 'tests\fixtures\rpt-copy-v2-tampered.rpt'
+    $reconstructorSource = Get-Content -Raw -LiteralPath $clipboardRecoveryPath
+    if (-not (Test-Path -LiteralPath $copyFixture) -or -not (Test-Path -LiteralPath $tamperedCopyFixture) -or
+        $reconstructorSource -notmatch 'P24X2' -or $reconstructorSource -notmatch 'Duplicate' -or
+        $reconstructorSource -notmatch 'legacy additive checksum') {
+        $failures.Add("The RPT reconstruction utility must retain v2 valid/tampered fixtures, strong digest checks, duplicate rejection, and a legacy-integrity warning.")
+    }
+}
 $directClipboardUse = Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File -Filter '*.sqf' |
     Where-Object {$_.Name -ne 'fn_copyTextAndLog.sqf'} |
     Select-String -Pattern '\bcopyToClipboard\b'

@@ -549,7 +549,7 @@ On the September 4 target machine, the final `0.11.0-dev` package processed clas
 | `tools/validate.ps1` | Static/configuration/SQF validation. Run before calling a build/release valid. |
 | `tools/build.ps1` | Builds Core and Eden PBOs, verifies `x\\raca\\addons\\<name>\\` PBO prefixes, copies metadata, and writes SHA-256 checksums. Its clean target is guarded to remain under the repository build directory. |
 | `tools/prepare-autotest.ps1` | Recursively stages the isolated automatic mission, profile, and required CBA/ACE/RACA launch arguments. It supports the tested Windows PowerShell 5.1 environment. |
-| `tools/reconstruct-rpt-copy.ps1` | Reconstructs one exact clipboard payload from chunked Unicode-safe RPT records and verifies length/checksum evidence. |
+| `tools/reconstruct-rpt-copy.ps1` | Reconstructs one exact clipboard payload from versioned Unicode-safe RPT records, rejects malformed v2 chunk sets, and reports weaker legacy integrity explicitly. |
 | `tools/prepare-multiplayer-smoke.ps1` | Stages server/client profiles, rehearsal mission, server configuration, and launch arguments for a local smoke test. |
 | `tools/release.ps1` | Requires a clean tree, matching version metadata, validation, PBO checksums, and release archive/report generation. Development versions need the explicit `-AllowDevelopmentVersion` switch. |
 
