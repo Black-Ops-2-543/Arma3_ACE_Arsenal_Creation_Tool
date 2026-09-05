@@ -25,6 +25,11 @@ try {
     private _text = copyFromClipboard;
     _characters = count _text;
     [_operation, "clipboard_acquisition", _phaseStarted, [["characters", _characters]]] call RACA_fnc_importTelemetry;
+    private _resourcePolicy = call RACA_fnc_getImportResourcePolicy;
+    private _maxInputCharacters = _resourcePolicy get "maxInputCharacters";
+    if (_characters > _maxInputCharacters) then {
+        throw format ["Import input resource exceeded: %1 characters is above the %2-character parsing budget. Use portable JSON, a plain class list, or a narrowed migration source.", _characters, _maxInputCharacters];
+    };
     if !([_operation, "Identifying input", count _text, count _text] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
     _phaseStarted = diag_tickTime;
     private _first = (toArray _text) findIf {!(_x in [9,10,13,32])};
@@ -46,7 +51,7 @@ try {
     private _existing = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
     private _items = 0;
     {_items = _items + count _x} forEach (_preset select 3);
-    private _missing = {_x find "Missing item:" isEqualTo 0} count _warnings;
+    private _missing = _telemetry getOrDefault ["unavailable", {_x find "Missing item:" isEqualTo 0} count _warnings];
     _available = _items;
     _unavailable = _missing;
     _candidates = _telemetry getOrDefault ["candidates", _available + _unavailable];

@@ -40,6 +40,7 @@ class CfgFunctions {
             class formatPortableJson {};
             class formatSqfExport {};
             class getComposition {};
+            class getImportResourcePolicy {};
             class getPresetHistory {};
             class getPresetLibrary {};
             class importPreset {};

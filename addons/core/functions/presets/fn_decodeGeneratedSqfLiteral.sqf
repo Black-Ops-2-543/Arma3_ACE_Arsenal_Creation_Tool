@@ -29,6 +29,7 @@ if (_relativeFinish < 0) exitWith {
 private _finish = _start + _relativeFinish;
 
 private _literal = _text select [_start, _finish - _start];
+private _maxLiteralCharacters = (call RACA_fnc_getImportResourcePolicy) get "maxLiteralCharacters";
 private _characters = toArray _literal;
 private _values = [];
 private _buffer = [];
@@ -48,7 +49,10 @@ while {_i < count _characters && {!_cancelled} && {!_malformed}} do {
             };
         };
         case "STRING": {
-            if (_c isEqualTo 34) then {_state = "AFTER"; _values pushBack (toString _buffer)} else {_buffer pushBack _c};
+            if (_c isEqualTo 34) then {_state = "AFTER"; _values pushBack (toString _buffer)} else {
+                _buffer pushBack _c;
+                if ((count _buffer) > _maxLiteralCharacters) then {_malformed = true};
+            };
         };
         case "AFTER": {
             if (_c in [9,10,13,32]) then {} else {
@@ -61,6 +65,6 @@ while {_i < count _characters && {!_cancelled} && {!_malformed}} do {
 
 if (_cancelled) exitWith {[true, true, [], "Import cancelled."]};
 if (_malformed || {_state isEqualTo "STRING"} || {_state isEqualTo "BETWEEN" && {_values isNotEqualTo []}}) exitWith {
-    [true, true, [], "The RACA reusable SQF literal contains non-literal syntax or malformed separators. Nothing was imported."]
+    [true, true, [], format ["The RACA reusable SQF literal is malformed or exceeds the %1-character single-literal safeguard. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters]]
 };
 [true, false, _values, "Recognized RACA reusable SQF format 2; only the _arsenalItems literal was read."]

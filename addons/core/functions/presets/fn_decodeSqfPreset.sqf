@@ -6,6 +6,11 @@ params [["_text", "", [""]], ["_requestedName", "", [""]], ["_operation", [], [[
 if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
 
 private _telemetry = _operation param [4, createHashMap, [createHashMap]];
+private _resourcePolicy = call RACA_fnc_getImportResourcePolicy;
+private _maxLiteralCharacters = _resourcePolicy get "maxLiteralCharacters";
+private _maxGenericCandidates = _resourcePolicy get "maxGenericCandidates";
+private _maxUnavailableSamples = _resourcePolicy get "maxUnavailableSamples";
+private _maxWarningRows = _resourcePolicy get "maxWarningRows";
 private _phaseStarted = diag_tickTime;
 private _generated = [_text, _operation] call RACA_fnc_decodeGeneratedSqfLiteral;
 _generated params ["_generatedMatched", "_generatedMalformed", "_generatedValues", "_generatedNotice"];
@@ -21,10 +26,14 @@ private _ignored = 0;
 private _cancelled = false;
 private _filterSeconds = 0;
 private _resolutionSeconds = 0;
+private _resourceError = "";
 
 private _consume = {
     params ["_candidate"];
     _readCount = _readCount + 1;
+    if (!_generatedMatched && {!_plain} && {_readCount > _maxGenericCandidates}) exitWith {
+        _resourceError = format ["Generic recovery candidate resource exceeded: more than %1 quoted/list values were scanned. Use portable JSON, a plain class list, or a narrowed migration source.", _maxGenericCandidates];
+    };
     private _filterStarted = diag_tickTime;
     private _isSqfIdentifier = (_candidate select [0,1]) isEqualTo "_" || {(_candidate find "_fnc_") >= 0};
     private _safe = [_candidate] call RACA_fnc_isSafeClassName && {!_isSqfIdentifier};
@@ -45,7 +54,7 @@ private _consume = {
         (_buckets select _bucket) pushBack _candidate;
     } else {
         _missingCount = _missingCount + 1;
-        if ((count _missingSamples) < 64) then {_missingSamples pushBack _candidate};
+        if ((count _missingSamples) < _maxUnavailableSamples) then {_missingSamples pushBack _candidate};
     };
 };
 
@@ -53,7 +62,7 @@ private _plain = false;
 private _state = "NORMAL";
 private _start = 0;
 if (_generatedMatched) then {
-    {if (!_cancelled) then {[_x] call _consume}} forEach _generatedValues;
+    {if (!_cancelled && {_resourceError isEqualTo ""}) then {[_x] call _consume}} forEach _generatedValues;
     _generatedValues = [];
 } else {
     private _characters = toArray _text;
@@ -61,13 +70,14 @@ if (_generatedMatched) then {
     if (_plain) then {
         {
             if ((_forEachIndex mod 256) isEqualTo 0 && {!([_operation, "Reading class list", _forEachIndex, count _characters] call RACA_fnc_importCheckpoint)}) exitWith {_cancelled = true};
+            if (_resourceError isNotEqualTo "") exitWith {};
             if (!_cancelled) then {[_x] call _consume};
         } forEach (_text splitString (toString [9,10,13,32,44]));
     } else {
         private _quote = 0;
         private _buffer = [];
         private _i = 0;
-        while {_i < count _characters && {!_cancelled}} do {
+        while {_i < count _characters && {!_cancelled} && {_resourceError isEqualTo ""}} do {
             if ((_i mod 4096) isEqualTo 0) then {
                 _cancelled = !([_operation, "Reading SQF", _i, count _characters] call RACA_fnc_importCheckpoint);
             };
@@ -93,7 +103,12 @@ if (_generatedMatched) then {
                             _buffer = [];
                             _state = "NORMAL";
                         };
-                    } else {_buffer pushBack _c};
+                    } else {
+                        _buffer pushBack _c;
+                        if ((count _buffer) > _maxLiteralCharacters) then {
+                            _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
+                        };
+                    };
                 };
             };
             _i = _i + 1;
@@ -103,11 +118,13 @@ if (_generatedMatched) then {
 };
 
 if (_cancelled) exitWith {[[], [], ["Import cancelled."]]};
+if (_resourceError isNotEqualTo "") exitWith {[[], [], [_resourceError]]};
 if (_state in ["SINGLE", "DOUBLE", "BLOCKCOMMENT"]) exitWith {
     [[], [], [format ["Unterminated %1 beginning at character %2. Nothing was imported.", _state, _start]]]
 };
 
 _telemetry set ["candidates", _candidateCount];
+_telemetry set ["unavailable", _missingCount];
 [_operation, "lexical_scan", _phaseStarted, [["candidates", _readCount]]] call RACA_fnc_importTelemetry;
 [_operation, "candidate_filtering", diag_tickTime - _filterSeconds, [["candidates", _candidateCount]]] call RACA_fnc_importTelemetry;
 private _available = 0;
@@ -127,6 +144,9 @@ _warnings pushBack format ["Read %1 values; recovered %2 unique available classe
 {_warnings pushBack format ["Unavailable quoted class: %1", _x]} forEach _missingSamples;
 if (_missingCount > count _missingSamples) then {
     _warnings pushBack format ["%1 additional unavailable candidates were omitted from this bounded review.", _missingCount - count _missingSamples];
+};
+if ((count _warnings) > _maxWarningRows) then {
+    _warnings = (_warnings select [0, _maxWarningRows - 1]) + [format ["Additional notices were omitted at the %1-row review-output safeguard.", _maxWarningRows]];
 };
 [_operation, "preset_validation", diag_tickTime, [["available", _available], ["unavailable", _missingCount], ["warnings", count _warnings]]] call RACA_fnc_importTelemetry;
 

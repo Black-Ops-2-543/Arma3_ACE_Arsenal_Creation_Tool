@@ -697,6 +697,20 @@ if (-not (Test-Path -LiteralPath $catalogImportResolverPath -PathType Leaf)) {
     }
 }
 
+$importResourcePolicyPath = Join-Path $addonsDirectory 'core\functions\presets\fn_getImportResourcePolicy.sqf'
+if (-not (Test-Path -LiteralPath $importResourcePolicyPath -PathType Leaf)) {
+    $failures.Add('Large imports require named resource safeguards.')
+} else {
+    $importResourcePolicy = Get-Content -Raw -LiteralPath $importResourcePolicyPath
+    foreach ($resourceName in @('maxInputCharacters', 'maxLiteralCharacters', 'maxGenericCandidates', 'maxUnavailableSamples', 'maxWarningRows')) {
+        if ($importResourcePolicy -notmatch $resourceName) {$failures.Add("Import resource policy is missing '$resourceName'.")}
+    }
+    if ($sqfImport -notmatch 'RACA_fnc_getImportResourcePolicy' -or
+        $sqfImport -notmatch 'Use portable JSON, a plain class list, or a narrowed migration source') {
+        $failures.Add('SQF resource failures must be bounded and provide actionable migration guidance.')
+    }
+}
+
 $importCoordinatorPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importPreset.sqf'
 $importTelemetryPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importTelemetry.sqf'
 $presetValidationPath = Join-Path $addonsDirectory 'core\functions\presets\fn_validatePreset.sqf'

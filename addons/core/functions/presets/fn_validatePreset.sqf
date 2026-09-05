@@ -19,6 +19,9 @@ private _cleanBuckets = [[], [], [], []];
 private _seen = createHashMap;
 private _cancelled = false;
 private _telemetry = _operation param [4, createHashMap, [createHashMap]];
+private _resourcePolicy = call RACA_fnc_getImportResourcePolicy;
+private _maxUnavailableSamples = _resourcePolicy get "maxUnavailableSamples";
+private _maxWarningRows = _resourcePolicy get "maxWarningRows";
 private _phaseStarted = diag_tickTime;
 private _candidates = [];
 
@@ -53,20 +56,26 @@ _telemetry set ["candidates", count _candidates];
 
 _phaseStarted = diag_tickTime;
 private _missingCount = 0;
+private _missingSamples = [];
 {
     if ((_forEachIndex mod 256) isEqualTo 0 && {!([_operation, "Resolving catalogue classes", _forEachIndex, count _candidates] call RACA_fnc_importCheckpoint)}) exitWith {_cancelled = true};
     _x params ["_className", "_sourceBucketIndex"];
     ([_className] call RACA_fnc_resolveCatalogClass) params ["_actualBucket"];
     if (_actualBucket < 0) then {
         _missingCount = _missingCount + 1;
-        _warnings pushBack format ["Missing item: %1", _className];
+        if ((count _missingSamples) < _maxUnavailableSamples) then {_missingSamples pushBack _className};
         (_cleanBuckets select _sourceBucketIndex) pushBack _className;
     } else {
         (_cleanBuckets select _actualBucket) pushBack _className;
     };
 } forEach _candidates;
 if (_cancelled) exitWith {[[], ["Import cancelled."]]};
+{_warnings pushBack format ["Missing item: %1", _x]} forEach _missingSamples;
+if (_missingCount > count _missingSamples) then {
+    _warnings pushBack format ["%1 additional unavailable classes were omitted from this bounded review.", _missingCount - count _missingSamples];
+};
 private _availableCount = (count _candidates) - _missingCount;
+_telemetry set ["unavailable", _missingCount];
 [_operation, "catalogue_resolution", _phaseStarted, [["candidates", count _candidates], ["available", _availableCount], ["unavailable", _missingCount]]] call RACA_fnc_importTelemetry;
 [_operation, "unavailable_handling", diag_tickTime, [["unavailable", _missingCount]]] call RACA_fnc_importTelemetry;
 
@@ -161,4 +170,7 @@ for "_metadataIndex" from 4 to ((count _preset) - 1) do {
     };
 };
 
+if ((count _warnings) > _maxWarningRows) then {
+    _warnings = (_warnings select [0, _maxWarningRows - 1]) + [format ["Additional notices were omitted at the %1-row review-output safeguard.", _maxWarningRows]];
+};
 [_validatedPreset, _warnings]

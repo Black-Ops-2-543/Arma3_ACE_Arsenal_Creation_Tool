@@ -32,6 +32,17 @@ private _malformedString = [_malformedStringText, "Malformed String"] call RACA_
     "SQF lexer rejects unterminated comments and strings atomically"
 ] call _record;
 
+private _literalCharacters = [];
+_literalCharacters resize 4097;
+_literalCharacters = _literalCharacters apply {120};
+private _oversizedLiteral = 'private _items = ["' + (toString _literalCharacters) + '"];';
+private _oversizedResult = [_oversizedLiteral, "Resource Fixture"] call RACA_fnc_decodeSqfPreset;
+[
+    (_oversizedResult select 0) isEqualTo [] &&
+    {(((_oversizedResult select 2) param [0, ""]) find "literal resource exceeded") >= 0},
+    "Pathological generic SQF stops at the named literal resource safeguard"
+] call _record;
+
 private _generatedRaw = ["RACA_PRESET", 1, "Fast Path Fixture", [["arifle_MX_F"], ["30Rnd_65x39_caseless_mag"], [], []]];
 private _generatedText = [_generatedRaw] call RACA_fnc_formatSqfExport;
 private _generatedDecode = [_generatedText, "Fast Path Import"] call RACA_fnc_decodeSqfPreset;
