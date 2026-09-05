@@ -31,17 +31,23 @@ private _save = {
         private _history = profileNamespace getVariable ["RACA_catalogTagHistory_v1", []];
         if !(_history isEqualType []) then {_history = []};
         _history = _history select {
-            _x isEqualType [] &&
-            {(_x param [0, "", [""]]) isEqualTo "RACA_TAG_HISTORY"} &&
-            {(_x param [1, -1, [0]]) isEqualTo 1} &&
-            {(_x param [3, [], [[]]]) isEqualType []}
+            if !(_x isEqualType []) exitWith {false};
+            private _kind = _x param [0,"",[""]];
+            private _version = _x param [1,-1,[0]];
+            (_kind isEqualTo "RACA_TAG_DELTA" && {_version isEqualTo 2}) ||
+            {_kind isEqualTo "RACA_TAG_HISTORY" && {_version isEqualTo 1}}
         };
-        _history pushBack ["RACA_TAG_HISTORY", 1, systemTimeUTC, +_baselineRaw];
+        _history pushBack ["RACA_TAG_DELTA", 2, systemTimeUTC, +_delta];
         if ((count _history) > 20) then {_history deleteRange [0, (count _history) - 20]};
         profileNamespace setVariable ["RACA_catalogTagHistory_v1", _history];
+        profileNamespace setVariable ["RACA_catalogTagRedo_v2", []];
     };
     profileNamespace setVariable ["RACA_catalogTags_v1", _records];
-    profileNamespace setVariable ["RACA_catalogTagsRevision_v1", (profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0]) + 1];
+    private _nextRevision = (profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0]) + 1;
+    profileNamespace setVariable ["RACA_catalogTagsRevision_v1", _nextRevision];
+    private _nextHistory = +(profileNamespace getVariable ["RACA_catalogTagHistory_v1",[]]);
+    private _nextRedo = +(profileNamespace getVariable ["RACA_catalogTagRedo_v2",[]]);
+    profileNamespace setVariable ["RACA_catalogTagState_v2", ["RACA_TAG_STATE",2,_nextRevision,+_records,_nextHistory,_nextRedo]];
     saveProfileNamespace;
     uiNamespace setVariable ["RACA_catalogTagsCacheRevision", -1];
     [_delta] call RACA_fnc_refreshCatalogTagIndex;
@@ -61,15 +67,22 @@ switch (_operationKey) do {
         private _history = profileNamespace getVariable ["RACA_catalogTagHistory_v1", []];
         _history = _history select {
             _x isEqualType [] &&
-            {(_x param [0, "", [""]]) isEqualTo "RACA_TAG_HISTORY"} &&
-            {(_x param [1, -1, [0]]) isEqualTo 1} &&
-            {(_x param [3, [], [[]]]) isEqualType []}
+            {["RACA_TAG_DELTA","RACA_TAG_HISTORY"] find (_x param [0,"",[""]]) >= 0}
         };
         if (_history isEqualTo []) exitWith {["No catalogue-tag edit is available to undo."] call _setStatus};
         private _entry = _history deleteAt ((count _history) - 1);
-        profileNamespace setVariable ["RACA_catalogTags_v1", +(_entry select 3)];
+        private _next = +_tags;
+        if ((_entry select 0) isEqualTo "RACA_TAG_DELTA") then {
+            _next = [_next,_entry select 3,true] call RACA_fnc_applyCatalogTagDelta;
+            private _redo = profileNamespace getVariable ["RACA_catalogTagRedo_v2",[]];
+            _redo pushBack _entry;
+            if ((count _redo)>20) then {_redo deleteAt 0};
+            profileNamespace setVariable ["RACA_catalogTagRedo_v2",_redo];
+        } else {_next = +(_entry select 3)};
+        profileNamespace setVariable ["RACA_catalogTags_v1", _next];
         profileNamespace setVariable ["RACA_catalogTagHistory_v1", _history];
         profileNamespace setVariable ["RACA_catalogTagsRevision_v1", (profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0]) + 1];
+        profileNamespace setVariable ["RACA_catalogTagState_v2", ["RACA_TAG_STATE",2,profileNamespace getVariable ["RACA_catalogTagsRevision_v1",0],+_next,+_history,+(profileNamespace getVariable ["RACA_catalogTagRedo_v2",[]])]];
         saveProfileNamespace;
         uiNamespace setVariable ["RACA_catalogTagsCacheRevision", -1];
         call RACA_fnc_refreshCatalogTagIndex;
@@ -79,6 +92,25 @@ switch (_operationKey) do {
         };
         [_display] call RACA_fnc_catalogTagsRefresh;
         ["Restored the catalogue tags from before the last committed tag edit."] call _setStatus;
+    };
+    case "REDO": {
+        private _redo = profileNamespace getVariable ["RACA_catalogTagRedo_v2",[]];
+        if (_redo isEqualTo []) exitWith {["No catalogue-tag edit is available to redo."] call _setStatus};
+        private _entry = _redo deleteAt ((count _redo)-1);
+        private _next = [+_tags,_entry select 3,false] call RACA_fnc_applyCatalogTagDelta;
+        private _history = profileNamespace getVariable ["RACA_catalogTagHistory_v1",[]];
+        _history pushBack _entry;
+        private _revision = (profileNamespace getVariable ["RACA_catalogTagsRevision_v1",0])+1;
+        profileNamespace setVariable ["RACA_catalogTags_v1",_next];
+        profileNamespace setVariable ["RACA_catalogTagHistory_v1",_history];
+        profileNamespace setVariable ["RACA_catalogTagRedo_v2",_redo];
+        profileNamespace setVariable ["RACA_catalogTagsRevision_v1",_revision];
+        profileNamespace setVariable ["RACA_catalogTagState_v2",["RACA_TAG_STATE",2,_revision,+_next,+_history,+_redo]];
+        saveProfileNamespace;
+        uiNamespace setVariable ["RACA_catalogTagsCacheRevision",-1];
+        call RACA_fnc_refreshCatalogTagIndex;
+        [_display] call RACA_fnc_catalogTagsRefresh;
+        ["Reapplied the last undone catalogue-tag edit."] call _setStatus;
     };
     case "ASSIGN": {
         if (_selectedClasses isEqualTo []) exitWith {["Select one or more catalogue rows before assigning a tag."] call _setStatus};

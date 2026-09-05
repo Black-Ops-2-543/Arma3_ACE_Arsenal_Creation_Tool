@@ -2255,12 +2255,19 @@ class RACA_RscDisplayCatalogTags {
             w = "0.10 * safeZoneW";
             onButtonClick = "[ctrlParent (_this select 0), 'UNDO'] spawn RACA_fnc_catalogTagsExecute";
         };
+        class RedoEdit: UndoEdit {
+            idc = RACA_IDC_CATALOG_TAG_REDO;
+            text = "Redo Tag Edit";
+            tooltip = "Reapply the most recently undone catalogue-tag edit";
+            x = "safeZoneX + 0.63 * safeZoneW";
+            onButtonClick = "[ctrlParent (_this select 0), 'REDO'] spawn RACA_fnc_catalogTagsExecute";
+        };
         class Delete: Filter {
             idc = RACA_IDC_CATALOG_TAG_DELETE;
             text = "Delete Tag";
             tooltip = "Delete only this catalogue tag after confirmation; presets and mission objects are unaffected";
-            x = "safeZoneX + 0.63 * safeZoneW";
-            w = "0.12 * safeZoneW";
+            x = "safeZoneX + 0.74 * safeZoneW";
+            w = "0.08 * safeZoneW";
             colorBackground[] = {0.45, 0.12, 0.12, 0.9};
             colorBackground2[] = {0.45, 0.12, 0.12, 0.9};
             onButtonClick = "[ctrlParent (_this select 0), 'DELETE'] spawn RACA_fnc_catalogTagsExecute";
@@ -2268,8 +2275,8 @@ class RACA_RscDisplayCatalogTags {
         class Close: Filter {
             idc = 2;
             text = "Close";
-            x = "safeZoneX + 0.76 * safeZoneW";
-            w = "0.14 * safeZoneW";
+            x = "safeZoneX + 0.83 * safeZoneW";
+            w = "0.07 * safeZoneW";
             colorBackground[] = {0.12, 0.13, 0.14, 0.95};
             colorBackground2[] = {0.12, 0.13, 0.14, 0.95};
             onButtonClick = "ctrlParent (_this select 0) closeDisplay 2";

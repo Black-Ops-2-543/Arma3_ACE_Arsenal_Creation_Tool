@@ -7,3 +7,4 @@ _display setVariable ["RACA_catalogTagsParentDisplay", uiNamespace getVariable [
 _display setVariable ["RACA_catalogTagsSelectedClasses", uiNamespace getVariable ["RACA_catalogTagsSelection", []]];
 [_display] call RACA_fnc_catalogTagsRefresh;
 (_display displayCtrl RACA_IDC_CATALOG_TAG_UNDO) ctrlEnable ((profileNamespace getVariable ["RACA_catalogTagHistory_v1", []]) isNotEqualTo []);
+(_display displayCtrl RACA_IDC_CATALOG_TAG_REDO) ctrlEnable ((profileNamespace getVariable ["RACA_catalogTagRedo_v2", []]) isNotEqualTo []);

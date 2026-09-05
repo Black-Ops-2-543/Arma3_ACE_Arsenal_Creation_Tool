@@ -80,6 +80,7 @@ class CfgFunctions {
         class UI {
             file = "\x\raca\addons\core\functions\ui";
             class catalogTagsExecute {};
+            class applyCatalogTagDelta {};
             class catalogPage {};
             class captureCatalogView {};
             class restoreCatalogView {};

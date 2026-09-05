@@ -1,7 +1,19 @@
 /* Returns normalized profile-wide catalogue tags sorted by name. */
 private _raw = profileNamespace getVariable ["RACA_catalogTags_v1", []];
+private _state = profileNamespace getVariable ["RACA_catalogTagState_v2",[]];
+if (
+    _state isEqualType [] && {(count _state) isEqualTo 6} &&
+    {(_state param [0,"",[""]]) isEqualTo "RACA_TAG_STATE"} &&
+    {(_state param [1,-1,[0]]) isEqualTo 2} &&
+    {(_state param [3,[],[[]]]) isEqualType []}
+) then {
+    _raw = +(_state select 3);
+    uiNamespace setVariable ["RACA_catalogTagRecoveryResult","Loaded the coherent v2 catalogue-tag transaction."];
+} else {
+    uiNamespace setVariable ["RACA_catalogTagRecoveryResult","Using readable legacy catalogue-tag storage; the next edit will migrate it to bounded delta history."];
+};
 if !(_raw isEqualType []) exitWith {[]};
-private _revision = profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0];
+private _revision = if (_state isEqualType [] && {(count _state) isEqualTo 6} && {(_state param [1,-1,[0]]) isEqualTo 2}) then {_state select 2} else {profileNamespace getVariable ["RACA_catalogTagsRevision_v1", 0]};
 if ((uiNamespace getVariable ["RACA_catalogTagsCacheRevision", -1]) isEqualTo _revision) exitWith {
     +(uiNamespace getVariable ["RACA_catalogTagsCache", []])
 };

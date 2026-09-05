@@ -52,6 +52,7 @@ _display setVariable ["RACA_tagMemberHighlights",createHashMap];
 (_display displayCtrl RACA_IDC_CATALOG_TAG_DELETE) ctrlEnable (_tags isNotEqualTo []);
 (_display displayCtrl RACA_IDC_CATALOG_TAG_CLEAR_FILTER) ctrlEnable (_activeFilter isNotEqualTo "");
 (_display displayCtrl RACA_IDC_CATALOG_TAG_UNDO) ctrlEnable ((profileNamespace getVariable ["RACA_catalogTagHistory_v1", []]) isNotEqualTo []);
+(_display displayCtrl RACA_IDC_CATALOG_TAG_REDO) ctrlEnable ((profileNamespace getVariable ["RACA_catalogTagRedo_v2", []]) isNotEqualTo []);
 
 if (_tags isEqualTo []) then {
     (_display displayCtrl RACA_IDC_CATALOG_TAG_NAME) ctrlSetText "";
