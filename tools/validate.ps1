@@ -676,6 +676,12 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     if ($sqfImport -notmatch 'RACA_fnc_decodeGeneratedSqfLiteral') {
         $failures.Add('SQF import must try the strict generated-export fast path before generic recovery.')
     }
+    if ($sqfImport -match 'private\s+_values\s*=\s*\[' -or
+        $sqfImport -notmatch '\[toString _buffer\] call _consume' -or
+        $sqfImport -notmatch '_missingSamples' -or
+        $sqfImport -notmatch '_missingCount') {
+        $failures.Add('Generic SQF recovery must consume completed strings immediately and retain only bounded unavailable samples.')
+    }
 }
 
 $importCoordinatorPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importPreset.sqf'

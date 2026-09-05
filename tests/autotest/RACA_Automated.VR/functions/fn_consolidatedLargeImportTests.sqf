@@ -34,6 +34,25 @@ private _runLargeClassListFixture = {
 };
 {[_x] call _runLargeClassListFixture} forEach [19999, 20000, 20001, 40280, 50001, 100000];
 
+private _quotedDuplicateRecords = [];
+_quotedDuplicateRecords resize 100000;
+for "_recordIndex" from 0 to 99999 do {_quotedDuplicateRecords set [_recordIndex, '"arifle_MX_F"']};
+private _genericDuplicateText = "private _legacyCargo = [" + (_quotedDuplicateRecords joinString ",") + "];";
+_quotedDuplicateRecords = [];
+private _genericStarted = diag_tickTime;
+private _genericDuplicateResult = [_genericDuplicateText, "Generic Duplicate Stress"] call RACA_fnc_decodeSqfPreset;
+diag_log format [
+    "[RACA AUTOTEST][PERF] GENERIC_SQF records=100000 characters=%1 seconds=%2",
+    count _genericDuplicateText,
+    diag_tickTime - _genericStarted
+];
+[
+    (_genericDuplicateResult select 0) isNotEqualTo [] &&
+    {(count ([(_genericDuplicateResult select 0)] call RACA_fnc_flattenPresetClasses)) isEqualTo 1} &&
+    {(((_genericDuplicateResult select 2) findIf {(_x find "Read 100000 values") isEqualTo 0}) >= 0)},
+    "Generic SQF streams 100,000 duplicate quoted records without retaining a token corpus"
+] call _record;
+
 private _longLegalClass = "RACA_";
 for "_characterIndex" from 1 to 251 do {_longLegalClass = _longLegalClass + "x"};
 private _jsonRecords = [];
