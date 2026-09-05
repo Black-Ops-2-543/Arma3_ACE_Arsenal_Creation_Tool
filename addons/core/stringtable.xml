@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project name="RACA">
+  <Package name="Settings">
+    <Key ID="STR_RACA_SETTINGS_CATEGORY"><English>Restricted Arsenal Creation Assistant</English></Key>
+    <Key ID="STR_RACA_SETTINGS_CREATOR"><English>Creator preferences</English></Key>
+    <Key ID="STR_RACA_SETTINGS_SERVER"><English>Server and mission controls</English></Key>
+    <Key ID="STR_RACA_SETTING_PAGE_SIZE"><English>Catalogue page size</English></Key>
+    <Key ID="STR_RACA_SETTING_PAGE_SIZE_TIP"><English>Number of Creator catalogue results rendered per page.</English></Key>
+    <Key ID="STR_RACA_SETTING_SEARCH_MODE"><English>Default Search Mode</English></Key>
+    <Key ID="STR_RACA_SETTING_SEARCH_MODE_TIP"><English>Search mode used when a new Creator session has no saved or recovered view.</English></Key>
+    <Key ID="STR_RACA_SETTING_COMPATIBILITY"><English>Default Compatibility severity</English></Key>
+    <Key ID="STR_RACA_SETTING_COMPATIBILITY_TIP"><English>Finding severity shown when a new Compatibility Check opens.</English></Key>
+    <Key ID="STR_RACA_SETTING_ITEM_DETAILS"><English>Open Item Details on selection</English></Key>
+    <Key ID="STR_RACA_SETTING_ITEM_DETAILS_TIP"><English>Open Item Details after an ordinary primary-button single-row selection.</English></Key>
+    <Key ID="STR_RACA_SETTING_DRAFT_RECOVERY"><English>Persist draft recovery</English></Key>
+    <Key ID="STR_RACA_SETTING_DRAFT_RECOVERY_TIP"><English>Write new persistent recovery snapshots for unsaved Creator drafts.</English></Key>
+    <Key ID="STR_RACA_SETTING_GUIDANCE"><English>Show onboarding guidance</English></Key>
+    <Key ID="STR_RACA_SETTING_GUIDANCE_TIP"><English>Show optional first-use and onboarding guidance. Quick Start remains available.</English></Key>
+    <Key ID="STR_RACA_SETTING_STATUS"><English>Status verbosity</English></Key>
+    <Key ID="STR_RACA_SETTING_STATUS_TIP"><English>Choose concise, standard, or detailed local status wording.</English></Key>
+    <Key ID="STR_RACA_SETTING_ZEUS"><English>Enable Zeus modules</English></Key>
+    <Key ID="STR_RACA_SETTING_ZEUS_TIP"><English>Permit validated RACA Zeus operations. This server or mission setting is authoritative.</English></Key>
+    <Key ID="STR_RACA_SETTING_ZEUS_FALLBACK"><English>Allow Zeus profile-preset fallback</English></Key>
+    <Key ID="STR_RACA_SETTING_ZEUS_FALLBACK_TIP"><English>Permit server-profile fallback only after embedded mission configuration lookup fails.</English></Key>
+    <Key ID="STR_RACA_VALUE_BASIC"><English>Basic</English></Key>
+    <Key ID="STR_RACA_VALUE_ADVANCED"><English>Advanced</English></Key>
+    <Key ID="STR_RACA_VALUE_ERRORS"><English>Errors</English></Key>
+    <Key ID="STR_RACA_VALUE_WARNINGS"><English>Warnings</English></Key>
+    <Key ID="STR_RACA_VALUE_ALL"><English>All</English></Key>
+    <Key ID="STR_RACA_VALUE_CONCISE"><English>Concise</English></Key>
+    <Key ID="STR_RACA_VALUE_STANDARD"><English>Standard</English></Key>
+    <Key ID="STR_RACA_VALUE_DETAILED"><English>Detailed</English></Key>
+  </Package>
+</Project>

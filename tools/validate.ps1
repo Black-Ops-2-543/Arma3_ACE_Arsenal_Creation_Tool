@@ -610,6 +610,32 @@ if (Test-Path -LiteralPath $catalogPath -PathType Leaf) {
     }
 }
 
+$settingsRegistrationPath = Join-Path $addonsDirectory 'core\functions\settings\fn_registerSettings.sqf'
+$stringtablePath = Join-Path $addonsDirectory 'core\stringtable.xml'
+if (-not (Test-Path -LiteralPath $settingsRegistrationPath -PathType Leaf)) {
+    $failures.Add('CBA settings must be registered from the preInit Settings function group.')
+} else {
+    $settingsRegistration = Get-Content -Raw -LiteralPath $settingsRegistrationPath
+    foreach ($settingName in @(
+        'RACA_catalogPageSize', 'RACA_defaultSearchMode', 'RACA_defaultCompatibilitySeverity',
+        'RACA_openItemDetailsOnSelection', 'RACA_draftRecoveryEnabled', 'RACA_showOnboardingGuidance',
+        'RACA_statusVerbosity', 'RACA_enableZeusModules', 'RACA_allowZeusProfilePresetFallback'
+    )) {
+        if (([regex]::Matches($settingsRegistration, [regex]::Escape('"' + $settingName + '"'))).Count -ne 1) {
+            $failures.Add("CBA setting '$settingName' must be registered exactly once.")
+        }
+    }
+    if ($settingsRegistration -notmatch 'CBA_fnc_addSetting' -or
+        $settingsRegistration -match 'RACA_fnc_scanItems|createDisplay|saveProfileNamespace|remoteExec') {
+        $failures.Add('Settings preInit registration must be side-effect free outside CBA registration.')
+    }
+}
+if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
+    $failures.Add('CBA setting labels and tooltips require a localization resource.')
+} else {
+    try {[void][xml](Get-Content -Raw -LiteralPath $stringtablePath)} catch {$failures.Add("stringtable.xml is not valid XML: $($_.Exception.Message)")}
+}
+
 $portableImportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_decodePortablePreset.sqf'
 if (Test-Path -LiteralPath $portableImportPath -PathType Leaf) {
     $portableImport = Get-Content -Raw -LiteralPath $portableImportPath

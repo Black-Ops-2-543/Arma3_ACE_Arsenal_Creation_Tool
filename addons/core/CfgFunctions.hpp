@@ -19,6 +19,11 @@ class CfgFunctions {
             class preflightObjectConfig {};
         };
 
+        class Settings {
+            file = "\x\raca\addons\core\functions\settings";
+            class registerSettings {preInit = 1;};
+        };
+
         class Presets {
             file = "\x\raca\addons\core\functions\presets";
             class buildPortablePreset {};
