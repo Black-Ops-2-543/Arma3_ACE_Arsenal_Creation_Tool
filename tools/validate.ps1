@@ -687,6 +687,24 @@ if ((Test-Path -LiteralPath $creatorOnLoadPath -PathType Leaf) -and (Test-Path -
         $failures.Add('Search Mode transitions must finish through the normal catalogue refresh path.')
     }
 }
+
+$preflightOnLoadPath = Join-Path $addonsDirectory 'core\functions\ui\fn_preflightOnLoad.sqf'
+$preflightRefreshPath = Join-Path $addonsDirectory 'core\functions\ui\fn_preflightRefresh.sqf'
+if ((Test-Path -LiteralPath $preflightOnLoadPath -PathType Leaf) -and (Test-Path -LiteralPath $preflightRefreshPath -PathType Leaf)) {
+    $preflightOnLoad = Get-Content -Raw -LiteralPath $preflightOnLoadPath
+    $preflightRefresh = Get-Content -Raw -LiteralPath $preflightRefreshPath
+    if ($preflightOnLoad -notmatch 'RACA_defaultCompatibilitySeverity' -or
+        $preflightOnLoad -notmatch 'RACA_preflightDisplay') {
+        $failures.Add('A new Compatibility Check must use the typed severity preference and expose its live display safely.')
+    }
+    if ($settingsDispatcher -notmatch 'RACA_defaultCompatibilitySeverity' -or
+        $settingsDispatcher -match 'RACA_defaultCompatibilitySeverity[\s\S]{0,600}RACA_fnc_runCreatorDiagnostics') {
+        $failures.Add('Live Compatibility severity changes must filter cached analysis without recomputing diagnostics.')
+    }
+    if ($preflightRefresh -notmatch 'RACA_fnc_preflightSelectionChanged') {
+        $failures.Add('Compatibility filtering must revalidate selected-row action state after every refresh.')
+    }
+}
 if (-not (Test-Path -LiteralPath $stringtablePath -PathType Leaf)) {
     $failures.Add('CBA setting labels and tooltips require a localization resource.')
 } else {

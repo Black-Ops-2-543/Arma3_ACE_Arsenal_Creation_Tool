@@ -1342,7 +1342,7 @@ class RACA_RscDisplayPreflight {
     movingEnable = 0;
     enableSimulation = 1;
     onLoad = "(_this select 0) call RACA_fnc_preflightOnLoad";
-    onUnload = "uiNamespace setVariable ['RACA_preflightParent', displayNull]";
+    onUnload = "uiNamespace setVariable ['RACA_preflightParent', displayNull]; uiNamespace setVariable ['RACA_preflightDisplay', displayNull]";
 
     class controlsBackground {
         class Background: RscText {
@@ -1395,7 +1395,7 @@ class RACA_RscDisplayPreflight {
             y = "safeZoneY + 0.25 * safeZoneH";
             w = "0.20 * safeZoneW";
             h = "0.035 * safeZoneH";
-            onLBSelChanged = "ctrlParent (_this select 0) call RACA_fnc_preflightRefresh";
+            onLBSelChanged = "if !(ctrlParent (_this select 0) getVariable ['RACA_preflightFilterSuppressed', false]) then {ctrlParent (_this select 0) call RACA_fnc_preflightRefresh}";
         };
         class ListHeading: RscText {
             idc = -1;
