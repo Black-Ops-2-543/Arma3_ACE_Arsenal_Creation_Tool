@@ -40,7 +40,7 @@ if (_reason isEqualTo "" && {
 if (_reason isEqualTo "" && {
     !(["RACA_enableZeusModules"] call RACA_fnc_getSetting)
 }) then {
-    _reason = "Zeus modules are disabled by the authoritative server or mission setting.";
+    _reason = localize "STR_RACA_STATUS_ZEUS_DISABLED";
 };
 if (_reason isEqualTo "" && {_logic getVariable ["RACA_serverHandled", false]}) then {
     _reason = "This module placement was already handled."
@@ -71,7 +71,7 @@ private _changed = 0;
 // Re-read the authoritative setting at the final mutation boundary. A client
 // UI or a setting value captured earlier in the request cannot authorize work.
 if (_reason isEqualTo "" && {!(["RACA_enableZeusModules"] call RACA_fnc_getSetting)}) then {
-    _reason = "Zeus modules were disabled by the server before the operation committed.";
+    _reason = localize "STR_RACA_STATUS_ZEUS_DISABLED_COMMIT";
 };
 if (_reason isEqualTo "") then {
     _logic setVariable ["RACA_serverHandled", true, true];

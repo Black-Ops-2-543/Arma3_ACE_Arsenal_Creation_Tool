@@ -10,7 +10,7 @@ private _server = [_category, localize "STR_RACA_SETTINGS_SERVER"];
     "RACA_catalogPageSize", "LIST",
     [localize "STR_RACA_SETTING_PAGE_SIZE", localize "STR_RACA_SETTING_PAGE_SIZE_TIP"],
     _creator,
-    [[50, 100, 200, 400], ["50", "100", "200", "400"], 2],
+    [[50, 100, 200, 400], [localize "STR_RACA_VALUE_PAGE_50", localize "STR_RACA_VALUE_PAGE_100", localize "STR_RACA_VALUE_PAGE_200", localize "STR_RACA_VALUE_PAGE_400"], 2],
     false,
     {["RACA_catalogPageSize"] call RACA_fnc_dispatchSettingChange}
 ] call CBA_fnc_addSetting;

@@ -100,6 +100,26 @@ The open evidence gaps prevent the development build from being described as ful
 
 The add-on declares `A3_Modules_F`, `cba_main`, `ace_arsenal`, and `ace_interact_menu` as Core dependencies. The Eden add-on depends on `3DEN` and `RACA_Core`.
 
+### CBA Addon Options
+
+RACA registers these settings in **Options > Addon Options > Restricted Arsenal Creation Assistant** before its interfaces open:
+
+| Setting | Scope | Default | Effect and timing |
+| --- | --- | --- | --- |
+| Catalogue page size | Local profile | 200 | Uses 50, 100, 200, or 400 rows per Creator page. A live change preserves the focused class where possible. |
+| Default search mode | Local profile | Basic | Seeds a new Creator session. It does not overwrite a restored or explicitly selected Saved Filter. |
+| Default Compatibility severity | Local profile | Errors | Seeds a newly opened Compatibility Check. A live change filters the cached report without rerunning analysis. |
+| Open Item Details on selection | Local profile | Off | When enabled, a stable catalogue selection opens or refreshes the singleton details window after a short debounce. |
+| Enable persistent draft recovery | Local profile | On | Controls future recovery writes and offers. Turning it off clears only the recovery snapshot, not presets or the active draft. |
+| Show onboarding guidance | Local profile | On | Controls optional guidance surfaces. A live change refreshes visible guidance without changing authoring data. |
+| Status verbosity | Local profile | Standard | Chooses Concise, Standard, or Detailed optional status copy. Errors and explicit confirmations remain visible. |
+| Enable Zeus modules | Server/mission | On | Authorizes Zeus request handling. The server re-reads the authoritative value immediately before mutation. |
+| Allow Zeus profile-preset fallback | Server/mission | Off | Permits Assign to consult the server profile only after mission-embedded configuration lookup fails. |
+
+The two server/mission options support CBA mission and server forcing. Their server values are authoritative; changing a client-local copy cannot grant permission. All access goes through a typed accessor with the documented default when CBA has not initialized or a stored value is malformed. Live callbacks are debounced and generation-checked so stale work cannot repaint a newer Creator state.
+
+Settings are controls, not content migrations. Changing or upgrading them does not rewrite presets, tags, role packs, Saved Filters, Eden configurations, or mission objects. `RACA_catalogSearchMode_v1` remains a historical saved-view preference rather than being promoted to the new-session default. Legacy mission variables `RACA_allowZeusModules` and `RACA_allowZeusProfileFallback` are deliberately ignored as authorization inputs so old local or mission state cannot silently widen server authority.
+
 ### Installation
 
 Use a release package or build `@RestrictedArsenalCreationAssistant`, then enable CBA_A3, ACE3, RACA, and the desired content mods in the Arma launcher. RACA contains two PBOs:
@@ -257,7 +277,7 @@ The Creator stores limits with the preset and displays the active effective limi
 
 ### Preflight, diagnostic report, manifest, and support bundle
 
-**Check Compatibility** produces colour-coded Error, Warning, and Information entries. The report covers ACE/CBA/RACA Eden availability, active catalogue scope, malformed preset data, missing classes, duplicate entries, category/bucket corrections, and likely source mods/add-ons. **View Details** opens the Compatibility Check window on **Errors** every time, while the summary retains full counts. The five real columns—Severity, Code, Class, Source, and Message—align with their cells. **Copy Report** always copies the full report, **Check Again** reruns analysis, and **Show Available Item** appears only when the selected record names a class present in the current catalogue. Navigation preserves unrelated draft state and marks an older report stale when the draft fingerprint changes.
+**Check Compatibility** produces colour-coded Error, Warning, and Information entries. The report covers ACE/CBA/RACA Eden availability, active catalogue scope, malformed preset data, missing classes, duplicate entries, category/bucket corrections, and likely source mods/add-ons. **View Details** opens a new Compatibility Check at the configured default severity (**Errors** unless changed), while the summary retains full counts. A live severity change filters the cached report without recomputing it. The five real columns—Severity, Code, Class, Source, and Message—align with their cells. **Copy Report** always copies the full report, **Check Again** reruns analysis, and **Show Available Item** appears only when the selected record names a class present in the current catalogue. Navigation preserves unrelated draft state and marks an older report stale when the draft fingerprint changes.
 
 Two diagnostic exports extend this evidence:
 
@@ -431,7 +451,7 @@ RACA registers four global curator modules under **Restricted Arsenals**:
 
 | Module | Effect |
 | --- | --- |
-| Assign / Replace Restricted Arsenal | Resolves a mission-embedded configuration by stable ID or display name and assigns it to target objects. Module attributes provide configuration choice and player-facing slot name. Server-profile fallback is off unless the mission explicitly enables `RACA_allowZeusProfileFallback`. |
+| Assign / Replace Restricted Arsenal | Resolves a mission-embedded configuration by stable ID or display name and assigns it to target objects. Module attributes provide configuration choice and player-facing slot name. Server-profile fallback is off unless the authoritative **Allow Zeus profile-preset fallback** CBA option enables it. |
 | Clear Restricted Arsenal | Removes RACA configuration from targets. |
 | Enable / Disable Restricted Arsenal | Toggles a configured restricted arsenal's enabled state. |
 | Reset Arsenal Quotas | Clears quota records for the target configuration. |
@@ -440,7 +460,7 @@ The operator workflow is:
 
 1. Place a module on one or more synchronized target objects. For Assign, enter the mission configuration ID/name and optional player-facing slot name; for Toggle, choose enable or disable.
 2. The machine that owns the module submits one bounded request. Global duplicate executions do not submit again.
-3. The server verifies the requester is the server or currently assigned curator, verifies module type and `RACA_allowZeusModules`, accepts only synchronized objects editable by that curator, and rejects a repeated placement.
+3. The server verifies the requester is the server or currently assigned curator, verifies module type and the authoritative **Enable Zeus modules** CBA option, accepts only synchronized objects editable by that curator, rejects a repeated placement, and re-checks enablement immediately before mutation.
 4. Assign resolves the mission configuration library first and can fall back to an already registered embedded mission slot. Profile fallback is opt-in only. Clear/Toggle use the normal bulk runtime lifecycle; Reset clears only target-scoped quotas. There is no implicit no-target “reset all.”
 5. The server writes registry/audit changes, returns `RACA Zeus <request-id>: <accepted/rejected message>` through system chat and a hint, and deletes the consumed module.
 

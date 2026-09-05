@@ -193,9 +193,17 @@ Zeus receives four server-executed modules under **Restricted Arsenals**:
 - enable or disable a restricted arsenal; and
 - reset arsenal quotas.
 
-Missions can disable these modules through `RACA_allowZeusModules`.
+Servers and missions can disable these modules through the authoritative **Enable Zeus modules** CBA Addon Option. Server-profile preset fallback is separately disabled by default and never precedes embedded mission configuration lookup.
 
 A curator places a module on one or more target objects, supplies any requested configuration or display-name input, and confirms it. The client sends only that bounded request; the server revalidates authorization, mission policy, targets, and embedded configuration data, performs the change, returns a visible accepted/rejected result, and writes a structured `[RACA][ZEUS:<request-id>]` event for administrators.
+
+### CBA Addon Options
+
+RACA registers one **Restricted Arsenal Creation Assistant** category before Eden or mission interfaces open. Seven preferences are profile-local: catalogue page size (50/100/200/400; default 200), new-session Search Mode (Basic), new Compatibility severity (Errors), selection-driven Item Details (off), persistent draft recovery (on), optional onboarding guidance (on), and status verbosity (Standard). These affect only the local authoring interface. Saved views, restored navigation, and active report state keep their own semantics.
+
+Two options are server/mission controls: **Enable Zeus modules** (on) and **Allow Zeus profile-preset fallback** (off). CBA forcing applies to the authoritative server value; a client-local edit cannot grant server behavior. The server re-reads enablement immediately before mutation. Setting changes do not rewrite presets, tags, role packs, Saved Filters, Eden configurations, or mission objects.
+
+The former `RACA_catalogSearchMode_v1` value remains a historical Creator-view preference and is not migrated into the new-session default. The former mission variables `RACA_allowZeusModules` and `RACA_allowZeusProfileFallback` are no longer authorization inputs. This deliberate non-migration prevents a local profile or legacy mission variable from silently changing server authority.
 
 ## Installation requirements and deployment choices
 

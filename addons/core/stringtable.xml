@@ -30,5 +30,11 @@
     <Key ID="STR_RACA_VALUE_CONCISE"><English>Concise</English></Key>
     <Key ID="STR_RACA_VALUE_STANDARD"><English>Standard</English></Key>
     <Key ID="STR_RACA_VALUE_DETAILED"><English>Detailed</English></Key>
+    <Key ID="STR_RACA_VALUE_PAGE_50"><English>50</English></Key>
+    <Key ID="STR_RACA_VALUE_PAGE_100"><English>100</English></Key>
+    <Key ID="STR_RACA_VALUE_PAGE_200"><English>200</English></Key>
+    <Key ID="STR_RACA_VALUE_PAGE_400"><English>400</English></Key>
+    <Key ID="STR_RACA_STATUS_ZEUS_DISABLED"><English>Zeus modules are disabled by the authoritative server or mission setting.</English></Key>
+    <Key ID="STR_RACA_STATUS_ZEUS_DISABLED_COMMIT"><English>Zeus modules were disabled by the server before the operation committed.</English></Key>
   </Package>
 </Project>
