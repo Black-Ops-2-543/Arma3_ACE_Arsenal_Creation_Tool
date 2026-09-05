@@ -675,6 +675,31 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     }
 }
 
+$importCoordinatorPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importPreset.sqf'
+$importTelemetryPath = Join-Path $addonsDirectory 'core\functions\presets\fn_importTelemetry.sqf'
+$presetValidationPath = Join-Path $addonsDirectory 'core\functions\presets\fn_validatePreset.sqf'
+if (-not (Test-Path -LiteralPath $importTelemetryPath -PathType Leaf)) {
+    $failures.Add('Import telemetry must have a dedicated payload-free logger.')
+} elseif (Test-Path -LiteralPath $importCoordinatorPath -PathType Leaf) {
+    $importCoordinator = Get-Content -Raw -LiteralPath $importCoordinatorPath
+    $importTelemetry = Get-Content -Raw -LiteralPath $importTelemetryPath
+    foreach ($phase in @('clipboard_acquisition', 'format_detection', 'review_preparation', 'commit')) {
+        if ($importCoordinator -notmatch [regex]::Escape($phase)) {
+            $failures.Add("Import coordination is missing the '$phase' telemetry phase.")
+        }
+    }
+    foreach ($phase in @('lexical_scan', 'candidate_filtering', 'catalogue_resolution', 'unavailable_handling', 'preset_validation')) {
+        if ($sqfImport -notmatch [regex]::Escape($phase) -and $portableImport -notmatch [regex]::Escape($phase) -and
+            (Get-Content -Raw -LiteralPath $presetValidationPath) -notmatch [regex]::Escape($phase)) {
+            $failures.Add("Import decoding is missing the '$phase' telemetry phase.")
+        }
+    }
+    if ($importTelemetry -match 'copyFromClipboard|_text|_preset|profileName' -or
+        $importCoordinator -match 'elapsed=%2 result=%3') {
+        $failures.Add('Import telemetry must not log clipboard payloads, presets, profile names, or user-facing result text.')
+    }
+}
+
 $sqfExportPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatSqfExport.sqf'
 if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
     $sqfExport = Get-Content -Raw -LiteralPath $sqfExportPath
@@ -693,7 +718,6 @@ if (Test-Path -LiteralPath $sqfExportPath -PathType Leaf) {
     }
 }
 
-$presetValidationPath = Join-Path $addonsDirectory 'core\functions\presets\fn_validatePreset.sqf'
 if (Test-Path -LiteralPath $presetValidationPath -PathType Leaf) {
     $presetValidation = Get-Content -Raw -LiteralPath $presetValidationPath
     if ($presetValidation -notmatch 'RACA_INHERITANCE' -or

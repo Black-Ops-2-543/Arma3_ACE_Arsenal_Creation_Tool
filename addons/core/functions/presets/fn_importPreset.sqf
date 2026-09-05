@@ -9,22 +9,34 @@ private _id = (uiNamespace getVariable ["RACA_importSerial", 0]) + 1;
 uiNamespace setVariable ["RACA_importSerial", _id];
 _display setVariable ["RACA_importId", _id];
 private _dialog = _display createDisplay "RACA_ImportDialog";
-private _operation = [_display, _display getVariable ["RACA_generation", -1], _dialog, _id];
+private _telemetry = createHashMapFromArray [["sequence", 0], ["cancelPhase", ""], ["format", "SQF_LIST"]];
+private _operation = [_display, _display getVariable ["RACA_generation", -1], _dialog, _id, _telemetry];
 private _started = diag_tickTime;
 private _result = "";
+private _resultCode = "FAILED";
+private _committed = false;
+private _characters = 0;
+private _candidates = 0;
+private _available = 0;
+private _unavailable = 0;
 try {
     forceUnicode 1;
+    private _phaseStarted = diag_tickTime;
     private _text = copyFromClipboard;
+    _characters = count _text;
+    [_operation, "clipboard_acquisition", _phaseStarted, [["characters", _characters]]] call RACA_fnc_importTelemetry;
     if !([_operation, "Identifying input", count _text, count _text] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
+    _phaseStarted = diag_tickTime;
     private _first = (toArray _text) findIf {!(_x in [9,10,13,32])};
     private _trimmed = if (_first < 0) then {""} else {_text select [_first]};
     private _json = (_text find "RACA_PORTABLE_PRESET") >= 0 || {(_text find "RACA_PRESET") >= 0} || {(_trimmed select [0,1]) in ["[","{"]};
     // An ordinary SQF array of strings is accepted by the SQF lexer unless it
     // has a JSON transport signature. Objects are always JSON, never scripts.
     if (_json && {(_text find "RACA_") < 0} && {(_trimmed select [0,1]) isEqualTo "["}) then {_json = false};
-    private _parseStart = diag_tickTime;
+    private _format = ["SQF_LIST", "JSON"] select _json;
+    _telemetry set ["format", _format];
+    [_operation, "format_detection", _phaseStarted, [["format", _format], ["characters", _characters]]] call RACA_fnc_importTelemetry;
     private _decoded = if (_json) then {[_text, _operation] call RACA_fnc_decodePortablePreset} else {[_text, ctrlText (_display displayCtrl RACA_IDC_PRESET_NAME), _operation] call RACA_fnc_decodeSqfPreset};
-    diag_log format ["[RACA][IMPORT:%1] parse seconds=%2 characters=%3 format=%4", _id, diag_tickTime - _parseStart, count _text, ["SQF/list","JSON"] select _json];
     _decoded params ["_preset", "_metadata", "_warnings"];
     if (_preset isEqualTo []) then {throw (_warnings param [(count _warnings)-1, "Invalid import."])};
     if !([_operation, "Reviewing import", 1, 1] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
@@ -35,10 +47,15 @@ try {
     private _items = 0;
     {_items = _items + count _x} forEach (_preset select 3);
     private _missing = {_x find "Missing item:" isEqualTo 0} count _warnings;
+    _available = _items;
+    _unavailable = _missing;
+    _candidates = _telemetry getOrDefault ["candidates", _available + _unavailable];
+    _phaseStarted = diag_tickTime;
     (_dialog displayCtrl 1000) ctrlSetText format ["Review '%1': %2 authored items (%3 unavailable). %4 notice(s). %5\n%6", _name, _items, _missing, count _warnings, ["Create a new preset.", "This name already exists. Choose Overwrite, Import Copy, or Cancel."] select (_existing >= 0), (_warnings select [0,8]) joinString "\n"];
     (_dialog displayCtrl 1600) ctrlSetText (["Import", "Overwrite"] select (_existing >= 0));
     (_dialog displayCtrl 1600) ctrlEnable true;
     (_dialog displayCtrl 1601) ctrlEnable (_existing >= 0);
+    [_operation, "review_preparation", _phaseStarted, [["candidates", _candidates], ["available", _available], ["unavailable", _unavailable], ["warnings", count _warnings]]] call RACA_fnc_importTelemetry;
     waitUntil {uiSleep 0.05; isNull _dialog || {(_dialog getVariable ["RACA_choice", ""]) isNotEqualTo ""}};
     if (isNull _dialog || {isNull _display}) then {throw "Import cancelled."};
     private _choice = _dialog getVariable ["RACA_choice", ""];
@@ -57,6 +74,7 @@ try {
     if (_composition isNotEqualTo [] && {[_name, _composition select 2, _library] call RACA_fnc_wouldCreateCycle}) then {throw "The final import name would create circular inheritance."};
     if !(_baseline isEqualTo (call RACA_fnc_getPresetLibrary)) then {throw "The preset library changed during review. Retry the import."};
     if !([_operation, "Committing", 1, 1] call RACA_fnc_importCheckpoint) then {throw "Import cancelled."};
+    _phaseStarted = diag_tickTime;
     private _revision = if (_existing >= 0) then {(([_library select _existing] call RACA_fnc_getRuntimePolicy) select 4) + 1} else {1};
     _preset pushBack ["RACA_IMPORT_PROVENANCE", 1, +([_preset] call RACA_fnc_getRuntimePolicy), +_metadata];
     _preset = [_preset, "", uiNamespace getVariable ["RACA_itemCatalog", []], _revision] call RACA_fnc_setPresetRevision;
@@ -69,16 +87,31 @@ try {
         profileNamespace setVariable ["RACA_presetLibrary_v1", _library];
         saveProfileNamespace;
     };
+    _committed = true;
+    [_operation, "commit", _phaseStarted, [["committed", "YES"], ["available", _available], ["unavailable", _unavailable]]] call RACA_fnc_importTelemetry;
     _dialog closeDisplay 1;
     [_display] call RACA_fnc_refreshPresetCombo;
     private _index = _library findIf {toLowerANSI (_x select 2) isEqualTo toLowerANSI _name};
     (_display displayCtrl RACA_IDC_PRESET_LIST) lbSetCurSel (_index+1);
     [_display] call RACA_fnc_loadSelectedPreset;
     _result = format ["Imported '%1': %2 authored items; %3 unavailable preserved. %4 notice(s).", _name, _items, _missing, count _warnings];
-} catch {_result = format ["%1 No uncommitted import changes were saved.", _exception]};
+    _resultCode = "SUCCESS";
+} catch {
+    _result = format ["%1 No uncommitted import changes were saved.", _exception];
+    _resultCode = ["FAILED", "CANCELLED"] select ((_exception find "cancelled") >= 0);
+};
 if (!isNull _dialog) then {_dialog closeDisplay 2};
 if (!isNull _display) then {
     _display setVariable ["RACA_importBusy", false];
     [_display, _result] call RACA_fnc_setStatus;
 };
-diag_log format ["[RACA][IMPORT:%1] elapsed=%2 result=%3", _id, diag_tickTime - _started, _result];
+private _terminalPhase = if (_resultCode isEqualTo "CANCELLED") then {_telemetry getOrDefault ["cancelPhase", "unknown"]} else {"complete"};
+[_operation, _terminalPhase, _started, [
+    ["format", _telemetry getOrDefault ["format", "SQF_LIST"]],
+    ["characters", _characters],
+    ["candidates", _candidates],
+    ["available", _available],
+    ["unavailable", _unavailable],
+    ["committed", ["NO", "YES"] select _committed],
+    ["result", _resultCode]
+], true] call RACA_fnc_importTelemetry;

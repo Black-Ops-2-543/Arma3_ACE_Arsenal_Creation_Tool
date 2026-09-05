@@ -9,7 +9,7 @@ if (_text isEqualTo "") exitWith {[[], [], ["The clipboard is empty."]]};
 
 private _parseStarted = diag_tickTime;
 private _decoded = fromJSON _text;
-diag_log format ["[RACA][IMPORT] native fromJSON seconds=%1 characters=%2 (non-cancellable native call)", diag_tickTime - _parseStarted, count _text];
+[_operation, "lexical_scan", _parseStarted, []] call RACA_fnc_importTelemetry;
 if !([_operation, "Validating JSON", 0, 1] call RACA_fnc_importCheckpoint) exitWith {[[], [], ["Import cancelled."]]};
 if (isNil "_decoded") exitWith {[[], [], ["The clipboard does not contain valid JSON."]]};
 if !(_decoded isEqualType []) exitWith {[[], [], ["The JSON root must be an array."]]};
@@ -64,8 +64,13 @@ if (({_x < 32 || {_x isEqualTo 127}} count toArray _rawName) > 0) exitWith {
     [[], [], _warnings + ["Preset name contains unsupported control characters."]]
 };
 
+private _validationStarted = diag_tickTime;
 ([_rawPreset, _operation] call RACA_fnc_validatePreset) params ["_validated", "_validationWarnings"];
 _warnings append _validationWarnings;
+private _available = 0;
+if (_validated isNotEqualTo []) then {{_available = _available + count _x} forEach (_validated select 3)};
+private _unavailable = {_x find "Missing item:" isEqualTo 0} count _validationWarnings;
+[_operation, "preset_validation", _validationStarted, [["available", _available], ["unavailable", _unavailable], ["warnings", count _warnings]]] call RACA_fnc_importTelemetry;
 if (_validated isEqualTo []) exitWith {[[], [], _warnings]};
 if ((_warnings findIf {_x find "unsafe class" >= 0 || {_x find "non-text class" >= 0}}) >= 0) exitWith {[[], [], _warnings + ["Unsafe or non-text cargo was rejected; no preset was imported."]]};
 

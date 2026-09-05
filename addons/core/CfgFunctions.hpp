@@ -43,6 +43,7 @@ class CfgFunctions {
             class getPresetLibrary {};
             class importPreset {};
             class importCheckpoint {};
+            class importTelemetry {};
             class isSafeClassName {};
             class loadSelectedPreset {};
             class getRuntimePolicy {};

@@ -18,6 +18,9 @@ if ((count _sourceBuckets) isNotEqualTo 4) exitWith {[[], ["Preset cargo buckets
 private _cleanBuckets = [[], [], [], []];
 private _seen = createHashMap;
 private _cancelled = false;
+private _telemetry = _operation param [4, createHashMap, [createHashMap]];
+private _phaseStarted = diag_tickTime;
+private _candidates = [];
 
 {
     private _classes = _x;
@@ -32,16 +35,9 @@ private _cancelled = false;
                 if ([_className] call RACA_fnc_isSafeClassName) then {
                     private _key = toLowerANSI _className;
                     if !(_seen getOrDefault [_key, false]) then {
-                    _seen set [_key, true];
-                    ([_className] call RACA_fnc_classifyCached) params ["_actualBucket"];
-
-                    if (_actualBucket < 0) then {
-                        _warnings pushBack format ["Missing item: %1", _className];
-                        (_cleanBuckets select _sourceBucketIndex) pushBack _className;
-                    } else {
-                        (_cleanBuckets select _actualBucket) pushBack _className;
+                        _seen set [_key, true];
+                        _candidates pushBack [_className, _sourceBucketIndex];
                     };
-                };
                 } else {
                     _warnings pushBackUnique "An unsafe class name was rejected.";
                 };
@@ -52,6 +48,27 @@ private _cancelled = false;
     };
 } forEach _sourceBuckets;
 if (_cancelled) exitWith {[[], ["Import cancelled."]]};
+_telemetry set ["candidates", count _candidates];
+[_operation, "candidate_filtering", _phaseStarted, [["candidates", count _candidates]]] call RACA_fnc_importTelemetry;
+
+_phaseStarted = diag_tickTime;
+private _missingCount = 0;
+{
+    if ((_forEachIndex mod 256) isEqualTo 0 && {!([_operation, "Resolving catalogue classes", _forEachIndex, count _candidates] call RACA_fnc_importCheckpoint)}) exitWith {_cancelled = true};
+    _x params ["_className", "_sourceBucketIndex"];
+    ([_className] call RACA_fnc_classifyCached) params ["_actualBucket"];
+    if (_actualBucket < 0) then {
+        _missingCount = _missingCount + 1;
+        _warnings pushBack format ["Missing item: %1", _className];
+        (_cleanBuckets select _sourceBucketIndex) pushBack _className;
+    } else {
+        (_cleanBuckets select _actualBucket) pushBack _className;
+    };
+} forEach _candidates;
+if (_cancelled) exitWith {[[], ["Import cancelled."]]};
+private _availableCount = (count _candidates) - _missingCount;
+[_operation, "catalogue_resolution", _phaseStarted, [["candidates", count _candidates], ["available", _availableCount], ["unavailable", _missingCount]]] call RACA_fnc_importTelemetry;
+[_operation, "unavailable_handling", diag_tickTime, [["unavailable", _missingCount]]] call RACA_fnc_importTelemetry;
 
 {_x sort true} forEach _cleanBuckets;
 private _validatedPreset = ["RACA_PRESET", 1, _name, _cleanBuckets];
