@@ -223,6 +223,7 @@ class CfgFunctions {
             class registerObject {};
             class receiveAdminSnapshot {};
             class receiveAdminAuditPage {};
+            class receiveAdminCommandResult {};
             class refreshObjectAdminSummary {};
             class receiveAdminAccess {};
             class receiveQuotaStatus {};

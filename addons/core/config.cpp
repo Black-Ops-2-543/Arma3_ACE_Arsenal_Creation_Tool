@@ -38,6 +38,7 @@ class CfgRemoteExec {
         class RACA_fnc_requestAdminSnapshot {allowedTargets = 2;};
         class RACA_fnc_receiveAdminSnapshot {allowedTargets = 1;};
         class RACA_fnc_receiveAdminAuditPage {allowedTargets = 1;};
+        class RACA_fnc_receiveAdminCommandResult {allowedTargets = 1;};
         class RACA_fnc_requestAdminAccess {allowedTargets = 2;};
         class RACA_fnc_receiveAdminAccess {allowedTargets = 1;};
         class RACA_fnc_requestQuotaStatus {allowedTargets = 2;};
@@ -99,6 +100,14 @@ class CfgVehicles {
                 control = "Checkbox";
                 expression = "_this setVariable ['RACA_enable', _value, true]";
                 defaultValue = "true";
+            };
+            class AllowPartial {
+                displayName = "Allow partial application";
+                tooltip = "Unchecked uses all-or-nothing preflight. Check only when valid targets should proceed while rejected targets remain unchanged.";
+                property = "RACA_ModuleAllowPartial";
+                control = "Checkbox";
+                expression = "_this setVariable ['RACA_allowPartial', _value, true]";
+                defaultValue = "false";
             };
             class ModuleDescription: ModuleDescription {};
         };

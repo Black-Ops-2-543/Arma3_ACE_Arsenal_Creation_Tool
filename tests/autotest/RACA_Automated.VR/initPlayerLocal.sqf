@@ -41,6 +41,8 @@ params ["_player"];
         {!isNil "RACA_fnc_edenParseConfigurationEnvelope"} &&
         {!isNil "RACA_fnc_edenEditorOnUnload"} &&
         {!isNil "RACA_fnc_handleZeusModuleRequest"} &&
+        {!isNil "RACA_fnc_bulkUpdateObjects"} &&
+        {!isNil "RACA_fnc_receiveAdminCommandResult"} &&
         {!isNil "RACA_fnc_requestZeusModule"} &&
         {!isNil "RACA_fnc_copyTextAndLog"} &&
         {!isNil "RACA_fnc_getCompatibleMagazines"} &&
@@ -70,6 +72,8 @@ params ["_player"];
         {!isNil "RACA_fnc_edenParseConfigurationEnvelope"} &&
         {!isNil "RACA_fnc_edenEditorOnUnload"} &&
         {!isNil "RACA_fnc_handleZeusModuleRequest"} &&
+        {!isNil "RACA_fnc_bulkUpdateObjects"} &&
+        {!isNil "RACA_fnc_receiveAdminCommandResult"} &&
         {!isNil "RACA_fnc_requestZeusModule"} &&
         {!isNil "RACA_fnc_copyTextAndLog"} &&
         {!isNil "RACA_fnc_getCompatibleMagazines"} &&
@@ -393,6 +397,30 @@ params ["_player"];
     ];
     ([_objectConfig, _catalog] call RACA_fnc_preflightObjectConfig) params ["_canApply", "_normalizedConfig", "_preflightEntries", "_preflightSummary"];
     [_canApply && {_normalizedConfig isNotEqualTo []}, "Valid object configuration passes fail-closed preflight", format ["summary=%1", _preflightSummary]] call _record;
+
+    private _atomicBox=createVehicle ["Box_NATO_Ammo_F",[4262,4195,0],[],0,"CAN_COLLIDE"];
+    private _atomicResult=[[_atomicBox,objNull],"assign",_normalizedConfig,true,"atomic"] call RACA_fnc_bulkUpdateObjects;
+    [
+        !(_atomicResult param [4,true]) &&
+        {(_atomicResult param [6,-1]) isEqualTo 0} &&
+        {(_atomicResult param [8,0]) isEqualTo 1} &&
+        {(_atomicBox getVariable ["RACA_objectConfig",[]]) isEqualTo []},
+        "Atomic multi-target preflight leaves every target unchanged when one target is rejected",
+        str _atomicResult
+    ] call _record;
+    private _partialResult=[[_atomicBox,objNull],"assign",_normalizedConfig,true,"partial"] call RACA_fnc_bulkUpdateObjects;
+    [
+        (_partialResult param [4,false]) &&
+        {(_partialResult param [6,0]) isEqualTo 1} &&
+        {(_partialResult param [8,0]) isEqualTo 1} &&
+        {((_partialResult param [10,[]]) findIf {(_x select 1) isEqualTo "CHANGED"})>=0} &&
+        {((_partialResult param [10,[]]) findIf {(_x select 1) isEqualTo "REJECTED"})>=0} &&
+        {(_atomicBox getVariable ["RACA_objectConfig",[]]) isNotEqualTo []},
+        "Explicit partial mode reports changed and rejected outcomes per target",
+        str _partialResult
+    ] call _record;
+    [[_atomicBox],"clear",[],true,"atomic"] call RACA_fnc_bulkUpdateObjects;
+    deleteVehicle _atomicBox;
 
     private _longName = "";
     for "_index" from 1 to 129 do {_longName = _longName + "x"};

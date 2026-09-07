@@ -25,7 +25,8 @@ if (_destructive) then {
 };
 if (!_confirmed) exitWith {false};
 private _targets = if (_global) then {[]} else {[_target]};
-[player, _operation, _targets, []] remoteExecCall ["RACA_fnc_adminCommand", 2];
+private _requestId=format ["a%1_%2",clientOwner,floor (diag_tickTime*1000)];
+[player, _operation, _targets, [], "atomic", _requestId] remoteExecCall ["RACA_fnc_adminCommand", 2];
 [_operation] spawn {
     disableSerialization;
     params ["_operation"];

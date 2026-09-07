@@ -9,6 +9,7 @@ if (!isServer) exitWith {false};
 private _sender = if (_localOwner >= 0) then {_localOwner} else {remoteExecutedOwner};
 private _requestId = format ["z%1_%2", floor (diag_tickTime * 1000), floor random 1000000];
 private _op = toUpperANSI _operation;
+private _applyMode=["atomic","partial"] select (_logic getVariable ["RACA_allowPartial",false]);
 private _expected = switch _op do {
     case "ASSIGN": {"RACA_ModuleAssign"};
     case "CLEAR": {"RACA_ModuleClear"};
@@ -53,6 +54,7 @@ private _editableTargets = if (isNull _requestCurator) then {[]} else {
     curatorEditableObjects _requestCurator
 };
 private _validTargets = [];
+private _prefilterOutcomes=[];
 {
     private _candidate = _x;
     if (
@@ -60,14 +62,27 @@ private _validTargets = [];
         {!(_candidate isKindOf "Module_F")} &&
         {_candidate in _linkedTargets} &&
         {isNull _requestCurator || {_candidate in _editableTargets}}
-    ) then {_validTargets pushBackUnique _candidate};
+    ) then {
+        if (_candidate in _validTargets) then {
+            _prefilterOutcomes pushBack [[_candidate] call RACA_fnc_getRuntimeObjectId,"UNCHANGED","Duplicate target was ignored."]
+        } else {
+            _validTargets pushBack _candidate
+        }
+    } else {
+        private _targetId=if (isNull _candidate) then {format ["target:%1",_forEachIndex+1]} else {[_candidate] call RACA_fnc_getRuntimeObjectId};
+        _prefilterOutcomes pushBack [_targetId,"REJECTED","Target was not linked, editable, or still present."];
+    };
 } forEach _targets;
-private _rejectedTargets = (count _targets) - (count _validTargets);
+private _rejectedTargets={(_x select 1) isEqualTo "REJECTED"} count _prefilterOutcomes;
 if (_reason isEqualTo "" && {_validTargets isEqualTo []}) then {
     _reason = "Place the module on at least one valid target. Reset All is available only through the explicit administration UI.";
 };
+if (_reason isEqualTo "" && {_applyMode isEqualTo "atomic"} && {_rejectedTargets>0}) then {
+    _reason=format ["Atomic preflight rejected %1 target(s); no targets were changed.",_rejectedTargets];
+};
 
 private _changed = 0;
+private _bulkResult=[];
 // Re-read the authoritative setting at the final mutation boundary. A client
 // UI or a setting value captured earlier in the request cannot authorize work.
 if (_reason isEqualTo "" && {!(["RACA_enableZeusModules"] call RACA_fnc_getSetting)}) then {
@@ -77,17 +92,15 @@ if (_reason isEqualTo "") then {
     _logic setVariable ["RACA_serverHandled", true, true];
     switch _op do {
         case "CLEAR": {
-            _changed = [_validTargets, "clear", [], true] call RACA_fnc_bulkUpdateObjects
+            _bulkResult=[_validTargets,"clear",[],true,_applyMode] call RACA_fnc_bulkUpdateObjects
         };
         case "TOGGLE": {
             private _enable = _logic getVariable ["RACA_enable", true];
             private _mode = ["disable", "enable"] select _enable;
-            _changed = [_validTargets, _mode, [], true] call RACA_fnc_bulkUpdateObjects;
+            _bulkResult=[_validTargets,_mode,[],true,_applyMode] call RACA_fnc_bulkUpdateObjects;
         };
         case "RESET": {
-            {
-                _changed = _changed + (["all", _x] call RACA_fnc_resetQuotas)
-            } forEach _validTargets;
+            _bulkResult=[_validTargets,"reset",[],true,_applyMode] call RACA_fnc_bulkUpdateObjects;
         };
         case "ASSIGN": {
             private _choice = _logic getVariable ["RACA_presetName", ""];
@@ -174,31 +187,50 @@ if (_reason isEqualTo "") then {
                     _choice
                 ];
             } else {
-                _changed = [_validTargets, "assign", _config, true] call RACA_fnc_bulkUpdateObjects;
+                _bulkResult=[_validTargets,"assign",_config,true,_applyMode] call RACA_fnc_bulkUpdateObjects;
             };
         };
     };
 };
 
+if (_bulkResult isNotEqualTo []) then {
+    _bulkResult set [5,count _targets];
+    if (_prefilterOutcomes isNotEqualTo []) then {
+        _bulkResult set [7,(_bulkResult select 7)+({(_x select 1) isEqualTo "UNCHANGED"} count _prefilterOutcomes)];
+        _bulkResult set [8,(_bulkResult select 8)+_rejectedTargets];
+        _bulkResult set [10,(_bulkResult select 10)+_prefilterOutcomes];
+    };
+    _changed=_bulkResult param [6,0];
+    if !(_bulkResult param [4,false]) then {
+        _reason="The all-or-nothing target plan was rejected or rolled back; no planned target changes were retained.";
+    };
+};
+
+if (_bulkResult isEqualTo []) then {
+    private _unchanged=[];
+    {_unchanged pushBack [[_x] call RACA_fnc_getRuntimeObjectId,"UNCHANGED",_reason]} forEach _validTargets;
+    _bulkResult=["RACA_BULK_RESULT",1,toLowerANSI _op,_applyMode,false,count _targets,0,count _unchanged+({(_x select 1) isEqualTo "UNCHANGED"} count _prefilterOutcomes),_rejectedTargets,false,_unchanged+_prefilterOutcomes];
+};
+
 private _accepted = _reason isEqualTo "";
 private _message = if (_accepted) then {
-    format ["%1 accepted for %2 target(s): %3 change(s), %4 rejected input(s).", _op, count _validTargets, _changed, _rejectedTargets]
+    format ["%1 %2: %3 changed, %4 unchanged, %5 rejected.",_op,toUpperANSI _applyMode,_bulkResult param [6,0],_bulkResult param [7,0],_bulkResult param [8,0]]
 } else {
     format ["%1 rejected: %2", _op, _reason]
 };
 diag_log format [
     "[RACA][ZEUS:%1] owner=%2 operation=%3 targets=%4 changed=%5 rejected=%6 accepted=%7 reason=%8",
-    _requestId, _sender, _op, count _validTargets, _changed, _rejectedTargets, _accepted, toJSON _reason
+    _requestId,_sender,_op,count _validTargets,_changed,_bulkResult param [8,_rejectedTargets],_accepted,toJSON [_reason,_bulkResult]
 ];
 [
     format ["ZEUS_%1", _op], objNull, _validTargets param [0, objNull], "",
-    [_requestId, _sender, count _validTargets, _changed, _rejectedTargets, _accepted, _reason]
+    [_requestId,_sender,_applyMode,_accepted,_bulkResult,_reason]
 ] call RACA_fnc_logEvent;
 if (_sender > 2) then {
-    [_requestId, _message, _accepted] remoteExecCall ["RACA_fnc_receiveZeusModuleResult", _sender]
+    [_requestId,_message,_accepted,_bulkResult] remoteExecCall ["RACA_fnc_receiveZeusModuleResult",_sender]
 } else {
     if (hasInterface) then {
-        [_requestId, _message, _accepted] call RACA_fnc_receiveZeusModuleResult
+        [_requestId,_message,_accepted,_bulkResult] call RACA_fnc_receiveZeusModuleResult
     };
     private _curatorOwners = [];
     {
@@ -208,7 +240,7 @@ if (_sender > 2) then {
         };
     } forEach allCurators;
     {
-        [_requestId, _message, _accepted] remoteExecCall ["RACA_fnc_receiveZeusModuleResult", _x]
+        [_requestId,_message,_accepted,_bulkResult] remoteExecCall ["RACA_fnc_receiveZeusModuleResult",_x]
     } forEach _curatorOwners;
 };
 if (!isNull _logic) then {deleteVehicle _logic};
