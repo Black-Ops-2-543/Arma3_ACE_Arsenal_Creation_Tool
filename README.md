@@ -182,7 +182,7 @@ The generated reusable SQF export is intentionally simpler. It creates a standal
 
 ### Administration and Zeus
 
-Authorized server administrators can use an ACE self-interaction dashboard to inspect configured objects, sessions, quota records, and recent audit events. Server-side authorization is checked for snapshots and commands rather than relying on a hidden client button.
+Authorized server administrators can use an ACE self-interaction dashboard to inspect configured objects, sessions, quota records, and recent audit events. Object summaries and audit history are fetched in revisioned pages, so a large mission is not silently truncated. Server-side authorization is checked for every page and command rather than relying on a hidden client button.
 
 The dashboard also includes a guided multiplayer rehearsal that distinguishes server, listen-host, initial-client, and distinct JIP evidence.
 
@@ -195,7 +195,7 @@ Zeus receives four server-executed modules under **Restricted Arsenals**:
 
 Servers and missions can disable these modules through the authoritative **Enable Zeus modules** CBA Addon Option. Server-profile preset fallback is separately disabled by default and never precedes embedded mission configuration lookup.
 
-A curator places a module on one or more target objects, supplies any requested configuration or display-name input, and confirms it. The client sends only that bounded request; the server revalidates authorization, mission policy, targets, and embedded configuration data, performs the change, returns a visible accepted/rejected result, and writes a structured `[RACA][ZEUS:<request-id>]` event for administrators.
+A curator places a module on one or more target objects, supplies any requested configuration or display-name input, chooses whether partial application is allowed, and confirms it. The default is atomic: if any synchronized target is invalid, no target changes. Explicit partial mode applies valid targets and reports every changed, unchanged, and rejected target. The client sends only that bounded request; the server revalidates authorization, mission policy, targets, and embedded configuration data, performs the change, returns the structured outcome, and writes a correlated `[RACA][ZEUS:<request-id>]` event for administrators.
 
 ### CBA Addon Options
 
@@ -261,6 +261,8 @@ For the schemas, persistence locations, normalization rules, and complete securi
 
 RACA is currently version `0.11.0-dev`. The **September 4, 2026** consolidated build is source-complete for the current diagnostic docket. It passed static validation, a clean Core/Eden PBO build, and 97/97 deterministic packaged-engine assertions. A dedicated server and one initial remote client also passed the rehearsal probes. That is meaningful evaluation evidence, but it is not the same as completing every release gate.
 
+The September 7 master-docket candidate adds scalable import telemetry and recovery, localized CBA settings, catalogue/tag/cache improvements, bounded copy queues, stronger runtime session reconciliation, paged administration, atomic multi-target changes, and stable Compatibility selection. Its first packaged run exposed an indexed-import control-flow defect and an excessive generic-SQF memory peak; both are corrected in source and the clean PBO build passes static validation. A replacement engine run is intentionally pending and the candidate is not represented as runtime-cleared. See the [September 7 test log](docs/TEST_LOG_2026-09-07.md).
+
 | Gate | Latest evidence |
 | --- | --- |
 | Static validation and clean PBO build | **Pass — September 4** |
@@ -300,6 +302,8 @@ Use the focused documents below when you need a formal format specification, tes
 - [Portable preset format](docs/PORTABLE_PRESET_FORMAT.md) — JSON envelope, SQF/class-list compatibility, and interchange examples.
 - [In-game release checklist](docs/IN_GAME_TEST_CHECKLIST.md) — complete Creator, Eden, runtime, multiplayer, and JIP acceptance protocol.
 - [September 4 test log](docs/TEST_LOG_2026-09-04.md) — current hashes, 97/97 engine result, performance measurements, Zeus excerpts, and redacted multiplayer evidence.
+- [September 7 test log](docs/TEST_LOG_2026-09-07.md) — master-docket candidate build, first-run defects, corrections, and pending replacement runtime matrix.
+- [Master docket status](docs/MASTER_DOCKET_STATUS_2026-09-07.md) — task-by-task implementation and commit map.
 - [Consolidated implementation record](docs/CONSOLIDATED_IMPLEMENTATION_2026-09-04.md) — requirement packages, evidence boundaries, and remaining manual gates.
 - [September 2 targeted test log](docs/TEST_LOG_2026-09-02.md) and [September 1 test log](docs/TEST_LOG_2026-09-01.md) — historical evidence for earlier builds.
 - [Development acceptance evidence](docs/DEVELOPMENT_ACCEPTANCE.md) — latest clean-tree development-package evidence.

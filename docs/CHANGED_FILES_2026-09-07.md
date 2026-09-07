@@ -1,0 +1,102 @@
++# Master Docket Changed Files — September 7, 2026
+
+Comparison base: `69d4890ba97fd768ead4f9894306218bb23cfd3b` (parent of `I-01`).
+
+Candidate implementation head at capture: `297d24bb7b68bb0136a3e652760354c41821832a`.
+
+This inventory contains every path changed by the I/C/A implementation sequence and its first packaged-engine correction. Generated `build/` and `dist/` artifacts are intentionally excluded from Git.
+
+- `M  README.md`
+- `M  addons/core/CfgFunctions.hpp`
+- `M  addons/core/config.cpp`
+- `M  addons/core/functions/catalog/fn_indexCatalog.sqf`
+- `M  addons/core/functions/presets/fn_applyBasePreset.sqf`
+- `A  addons/core/functions/presets/fn_decodeGeneratedSqfLiteral.sqf`
+- `M  addons/core/functions/presets/fn_decodePortablePreset.sqf`
+- `M  addons/core/functions/presets/fn_decodeSqfPreset.sqf`
+- `M  addons/core/functions/presets/fn_flattenCurrentPreset.sqf`
+- `M  addons/core/functions/presets/fn_formatSqfExport.sqf`
+- `A  addons/core/functions/presets/fn_getImportResourcePolicy.sqf`
+- `M  addons/core/functions/presets/fn_importCheckpoint.sqf`
+- `M  addons/core/functions/presets/fn_importPreset.sqf`
+- `A  addons/core/functions/presets/fn_importTelemetry.sqf`
+- `M  addons/core/functions/presets/fn_loadSelectedPreset.sqf`
+- `A  addons/core/functions/presets/fn_resolveCatalogClass.sqf`
+- `M  addons/core/functions/presets/fn_validatePreset.sqf`
+- `A  addons/core/functions/runtime/fn_acknowledgeSession.sqf`
+- `M  addons/core/functions/runtime/fn_adminCommand.sqf`
+- `M  addons/core/functions/runtime/fn_adminCopyAudit.sqf`
+- `M  addons/core/functions/runtime/fn_adminExecute.sqf`
+- `M  addons/core/functions/runtime/fn_applyObjectConfig.sqf`
+- `A  addons/core/functions/runtime/fn_buildRuntimeCargo.sqf`
+- `M  addons/core/functions/runtime/fn_bulkUpdateObjects.sqf`
+- `M  addons/core/functions/runtime/fn_cancelObjectSessions.sqf`
+- `M  addons/core/functions/runtime/fn_finishSession.sqf`
+- `M  addons/core/functions/runtime/fn_initRuntime.sqf`
+- `M  addons/core/functions/runtime/fn_openAuthorized.sqf`
+- `A  addons/core/functions/runtime/fn_receiveAdminAuditPage.sqf`
+- `A  addons/core/functions/runtime/fn_receiveAdminCommandResult.sqf`
+- `M  addons/core/functions/runtime/fn_receiveAdminSnapshot.sqf`
+- `A  addons/core/functions/runtime/fn_refreshObjectAdminSummary.sqf`
+- `M  addons/core/functions/runtime/fn_registerObject.sqf`
+- `M  addons/core/functions/runtime/fn_requestAdminSnapshot.sqf`
+- `M  addons/core/functions/runtime/fn_requestLoadoutApply.sqf`
+- `M  addons/core/functions/runtime/fn_requestOpen.sqf`
+- `M  addons/core/functions/runtime/fn_resetQuotas.sqf`
+- `M  addons/core/functions/runtime/fn_unregisterObject.sqf`
+- `A  addons/core/functions/settings/fn_dispatchSettingChange.sqf`
+- `A  addons/core/functions/settings/fn_formatStatus.sqf`
+- `A  addons/core/functions/settings/fn_getSetting.sqf`
+- `A  addons/core/functions/settings/fn_registerSettings.sqf`
+- `M  addons/core/functions/templates/fn_applyRoleTemplate.sqf`
+- `A  addons/core/functions/ui/fn_applyCatalogTagDelta.sqf`
+- `A  addons/core/functions/ui/fn_applyGuidancePreference.sqf`
+- `M  addons/core/functions/ui/fn_catalogPage.sqf`
+- `M  addons/core/functions/ui/fn_catalogTagMembersRefresh.sqf`
+- `M  addons/core/functions/ui/fn_catalogTagsExecute.sqf`
+- `M  addons/core/functions/ui/fn_catalogTagsOnLoad.sqf`
+- `M  addons/core/functions/ui/fn_catalogTagsRefresh.sqf`
+- `M  addons/core/functions/ui/fn_clearSelection.sqf`
+- `M  addons/core/functions/ui/fn_copyTextAndLog.sqf`
+- `M  addons/core/functions/ui/fn_creatorOnLoad.sqf`
+- `M  addons/core/functions/ui/fn_getCatalogTags.sqf`
+- `M  addons/core/functions/ui/fn_itemDetailsOnLoad.sqf`
+- `A  addons/core/functions/ui/fn_itemDetailsOnUnload.sqf`
+- `M  addons/core/functions/ui/fn_itemDetailsToggleFavorite.sqf`
+- `M  addons/core/functions/ui/fn_itemDetailsToggleIncluded.sqf`
+- `M  addons/core/functions/ui/fn_offerDraftRecovery.sqf`
+- `M  addons/core/functions/ui/fn_openItemDetails.sqf`
+- `M  addons/core/functions/ui/fn_preflightOnLoad.sqf`
+- `M  addons/core/functions/ui/fn_preflightRefresh.sqf`
+- `M  addons/core/functions/ui/fn_preflightRemoveUnavailable.sqf`
+- `M  addons/core/functions/ui/fn_preflightSelectionChanged.sqf`
+- `A  addons/core/functions/ui/fn_queueCatalogTagRefresh.sqf`
+- `M  addons/core/functions/ui/fn_quickStartApply.sqf`
+- `M  addons/core/functions/ui/fn_refreshCatalogTagIndex.sqf`
+- `M  addons/core/functions/ui/fn_refreshItemList.sqf`
+- `M  addons/core/functions/ui/fn_restoreCatalogView.sqf`
+- `M  addons/core/functions/ui/fn_restoreCreatorHistory.sqf`
+- `M  addons/core/functions/ui/fn_runCreatorDiagnostics.sqf`
+- `M  addons/core/functions/ui/fn_saveDraftRecovery.sqf`
+- `M  addons/core/functions/ui/fn_setCategoryLimit.sqf`
+- `M  addons/core/functions/ui/fn_setItemLimit.sqf`
+- `M  addons/core/functions/ui/fn_setStatus.sqf`
+- `M  addons/core/functions/ui/fn_setVisibleSelection.sqf`
+- `M  addons/core/functions/ui/fn_switchCreatorTab.sqf`
+- `M  addons/core/functions/ui/fn_toggleFavorite.sqf`
+- `M  addons/core/functions/ui/fn_toggleRow.sqf`
+- `M  addons/core/functions/zeus/fn_handleZeusModuleRequest.sqf`
+- `M  addons/core/functions/zeus/fn_receiveZeusModuleResult.sqf`
+- `M  addons/core/script_component.hpp`
+- `A  addons/core/stringtable.xml`
+- `M  addons/core/ui/RscDisplayCreator.hpp`
+- `M  docs/IMPLEMENTATION_WIKI.md`
+- `M  docs/PORTABLE_PRESET_FORMAT.md`
+- `M  tests/autotest/RACA_Automated.VR/functions/fn_consolidatedLargeImportTests.sqf`
+- `M  tests/autotest/RACA_Automated.VR/functions/fn_consolidatedSqfLexerTests.sqf`
+- `M  tests/autotest/RACA_Automated.VR/initPlayerLocal.sqf`
+- `A  tests/fixtures/rpt-copy-v2-sample.rpt`
+- `A  tests/fixtures/rpt-copy-v2-tampered.rpt`
+- `M  tools/reconstruct-rpt-copy.ps1`
+- `M  tools/validate.ps1`
+

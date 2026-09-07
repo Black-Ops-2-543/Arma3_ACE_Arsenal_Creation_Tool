@@ -8,7 +8,7 @@ and no `<AutoTest result="FAILED">` record. This unattended gate covers packaged
 registration and core behavior; it complements, but does not replace, the
 visual Creator, Eden, Zeus, and multiplayer checks below.
 
-**Latest automated evidence:** the September 4 packaged build passed 97/97 assertions, exact Unicode clipboard/RPT reconstruction, and dedicated SERVER + initial CLIENT rehearsal probes. The boxes below remain unchecked because the complete visual/native-editor/Curator/distinct-JIP release matrix was not performed. See `TEST_LOG_2026-09-04.md`.
+**Latest complete automated evidence:** the September 4 packaged build passed 97/97 assertions, exact Unicode clipboard/RPT reconstruction, and dedicated SERVER + initial CLIENT rehearsal probes. The first September 7 master-docket candidate run exposed import defects that were corrected in source; its replacement packaged-engine run remains pending. The boxes below remain unchecked because neither that rerun nor the complete visual/native-editor/Curator/distinct-JIP release matrix has been performed. See `TEST_LOG_2026-09-07.md` and `TEST_LOG_2026-09-04.md`.
 
 ## Test flow
 

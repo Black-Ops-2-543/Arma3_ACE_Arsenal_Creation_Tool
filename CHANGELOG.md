@@ -22,6 +22,9 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Profile-wide catalogue tags with multi-row assignment, search/filter integration, item-detail context, and backward-compatible saved views.
 - Debounced, profile-persistent unsaved-draft recovery for creator names, selections, inheritance state, and quantity limits.
 - Mission-wide Eden compatibility states and a copyable per-object preflight report.
+- Nine localized CBA Addon Options covering local authoring defaults and server-authoritative Zeus policy, including live setting dispatch and safe legacy non-migration.
+- Versioned import telemetry, strict generated-SQF recognition, bounded parsing resources, and integrity-checked queued RPT-copy reconstruction.
+- Paged administration snapshots and audit retrieval with revision-aware per-object summaries.
 
 ### Changed
 
@@ -34,6 +37,10 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Import decoding now enforces documented character, reference, metadata, quoted-value, and token limits atomically.
 - Eden embeds complete standalone preset snapshots so deployed missions do not depend on an author's profile or inheritance chain.
 - Runtime policy and open-session state remain server-local; clients receive only action metadata required to render interactions.
+- Generic SQF recovery now scans bounded character windows, retains only unique candidates and bounded review samples, and resolves loaded cargo through the catalogue index.
+- Catalogue presentation/search caches and tag delta updates now invalidate by explicit revisions instead of rebuilding unrelated state.
+- Multi-object runtime and Zeus updates default to atomic all-or-nothing application; operators may explicitly allow partial application and receive per-target outcomes.
+- Runtime session closure now waits for a client acknowledgement, reconciles the final loadout authoritatively, and expires disconnected or unresponsive sessions through bounded cleanup.
 
 ### Fixed
 
@@ -55,6 +62,10 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Live Creator acceptance now opens Quick Start and profile managers, inspects an item, toggles favorites, and completes undo/redo.
 - Automated runtime acceptance now covers access-policy evaluation, missing-content degradation, distance denial, exhausted exact/category policies, administrator authorization, and atomic unregister cleanup.
 - Automated runtime acceptance now covers stacked container quantities, unauthorized and over-quota rollback, expired-session cleanup, UID-aware reset boundaries, and personal-loadout rejection/deletion.
+- Catalogue import resolution no longer falls through to the unavailable result after finding a valid indexed row.
+- Compatibility refresh retains the selected finding by stable fingerprint and clears stale details/actions when the active severity becomes empty.
+- Administration snapshots no longer truncate large registries or audit histories, and zero-length audit requests no longer return an unintended record.
+- Atomic bulk-update failures now restore every accepted target and related registry/quota/session state instead of leaving a partially changed target set.
 
 ## [0.9.2]
 

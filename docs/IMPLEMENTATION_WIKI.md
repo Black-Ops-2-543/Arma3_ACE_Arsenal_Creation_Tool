@@ -307,7 +307,7 @@ To use a reusable SQF output, save it as `raca_arsenal.sqf` in the mission folde
 
 The JSON schema and examples are documented in [Portable preset format](PORTABLE_PRESET_FORMAT.md). Clipboard import is intentionally single-player only because Arma disables `copyFromClipboard` in multiplayer. Import recognizes RACA JSON first; when no RACA signature is present, its lexer reads quoted strings and ignores line/block comments without compiling or executing the source. It handles common arrays combined with `+`, `append`, or `arrayIntersect`, but cannot recover class names computed at runtime. Generated SQF writes preset metadata only as safe line comments.
 
-There is no fixed 20,000/50,000 record or 2,000,000-character authoring ceiling. Work is checkpointed so cancellation and engine resource failures remain atomic. The September 4 engine matrix processed 19,999, 20,000, 20,001, 40,280, 50,001, and 100,000-record class-list fixtures plus a 2.4 MB/100,000-record JSON fixture; see [the test log](TEST_LOG_2026-09-04.md) for timings and the duplicate-heavy-fixture caveat.
+There is no fixed 20,000/50,000 record or 2,000,000-character authoring ceiling. Generated RACA SQF uses a strict versioned literal reader; generic SQF recovery scans bounded 65,536-character windows, de-duplicates before catalogue resolution, and retains only bounded missing-class samples and warning rows. Plain class-list and JSON paths preserve their format-specific behavior. All work is checkpointed so cancellation and engine resource failures remain atomic. Named safeguards limit total input characters, one quoted literal, generic candidate count, retained unavailable samples, and review output; exceeding one explains the specific resource and recommends JSON, a class list, or a narrower migration source. The September 4 engine matrix processed 19,999, 20,000, 20,001, 40,280, 50,001, and 100,000-record class-list fixtures plus a 2.4 MB/100,000-record JSON fixture; see [the test log](TEST_LOG_2026-09-04.md) for those baseline timings. The September 7 replacement matrix for the new parser remains pending in [its candidate log](TEST_LOG_2026-09-07.md).
 
 ## Eden Mission Arsenal Tool
 
@@ -437,13 +437,13 @@ For runtime-configured arsenals, players can save, list, apply, and delete perso
 
 ### Audit log and administrator dashboard
 
-The runtime records events with severity and context. Authenticated server administrators can use an ACE self-interaction dashboard to inspect configured objects, live sessions, quota records, and recent audit events; issue requests; and copy audit evidence. Authorization is checked server-side, not merely by hiding a client button. The dashboard also provides guided listen-host/client/JIP rehearsal snapshots and probes for multiplayer evidence gathering.
+The runtime records events with severity and context. Authenticated server administrators can use an ACE self-interaction dashboard to inspect configured objects, live sessions, quota records, and recent audit events; issue requests; and copy audit evidence. Registry summaries and audit records use separate revisioned pages, and per-object summaries refresh when configurations, sessions, quotas, expiry, respawn, or disconnect state changes. Copy Audit requests every page for one frozen revision before producing the complete report. Authorization and page bounds are checked server-side, not merely by hiding a client button. The dashboard also provides guided listen-host/client/JIP rehearsal snapshots and probes for multiplayer evidence gathering.
 
 ## Administration and Zeus
 
 ### Runtime administration
 
-The runtime administration flow comprises request/response access checks, snapshots, commands, refresh, and audit copying. It is designed to expose enough current state to an authorized administrator while retaining policy enforcement at the server. Relevant command paths include object refresh/bulk update, quota reset, session cancellation, audit inspection, and rehearsal execution.
+The runtime administration flow comprises request/response access checks, revisioned object-summary pages, independently paged audit history, structured command outcomes, refresh, and complete audit copying. It is designed to scale without silently dropping objects or older retained audit rows while retaining policy enforcement at the server. Relevant command paths include object refresh/bulk update, quota reset, session cancellation, audit inspection, and rehearsal execution.
 
 ### Zeus modules
 
@@ -458,11 +458,11 @@ RACA registers four global curator modules under **Restricted Arsenals**:
 
 The operator workflow is:
 
-1. Place a module on one or more synchronized target objects. For Assign, enter the mission configuration ID/name and optional player-facing slot name; for Toggle, choose enable or disable.
+1. Place a module on one or more synchronized target objects. For Assign, enter the mission configuration ID/name and optional player-facing slot name; for Toggle, choose enable or disable. Leave **Allow partial application** off for atomic behavior, or enable it only when applying valid targets while explicitly reporting invalid ones is desired.
 2. The machine that owns the module submits one bounded request. Global duplicate executions do not submit again.
 3. The server verifies the requester is the server or currently assigned curator, verifies module type and the authoritative **Enable Zeus modules** CBA option, accepts only synchronized objects editable by that curator, rejects a repeated placement, and re-checks enablement immediately before mutation.
-4. Assign resolves the mission configuration library first and can fall back to an already registered embedded mission slot. Profile fallback is opt-in only. Clear/Toggle use the normal bulk runtime lifecycle; Reset clears only target-scoped quotas. There is no implicit no-target “reset all.”
-5. The server writes registry/audit changes, returns `RACA Zeus <request-id>: <accepted/rejected message>` through system chat and a hint, and deletes the consumed module.
+4. Assign resolves the mission configuration library first and can fall back to an already registered embedded mission slot. Profile fallback is opt-in only. Assign/Clear/Toggle preflight the entire target set. Atomic mode changes none when any target is rejected; explicit partial mode changes valid targets and reports each rejection. Reset clears only target-scoped quotas. There is no implicit no-target “reset all.”
+5. The server writes registry/audit changes, returns `RACA Zeus <request-id>` with accepted/requested/changed/unchanged/rejected/rollback counts and per-target outcomes through system chat and a hint, and deletes the consumed module.
 
 The wrapper functions are `moduleAssign`, `moduleClear`, `moduleToggle`, and `moduleResetQuotas`; the bridge is `requestZeusModule`, `handleZeusModuleRequest`, and `receiveZeusModuleResult`. All changes go through the same server runtime lifecycle rather than a separate unrestricted client path.
 
@@ -528,7 +528,7 @@ RACA is intentionally defensive at every data boundary.
 
 ### Automated and manual evidence
 
-The repository contains an isolated automated Creator/Eden/runtime mission and a separate multiplayer rehearsal mission. The September 4 packaged run passed `97/97` assertions with no RACA/script error and covered the consolidated catalogue, interchange, Creator-dialog, Eden-data, runtime, and Zeus-handler contracts. The dedicated rehearsal passed server and initial-client probes; the distinct-JIP role remained waiting because Arma rejected a second process using the same Steam identity. Visual/native-editor/Curator scenarios remain separate. See the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [In-game release checklist](IN_GAME_TEST_CHECKLIST.md).
+The repository contains an isolated automated Creator/Eden/runtime mission and a separate multiplayer rehearsal mission. The September 4 packaged run passed `97/97` assertions with no RACA/script error and covered the consolidated catalogue, interchange, Creator-dialog, Eden-data, runtime, and Zeus-handler contracts. The dedicated rehearsal passed server and initial-client probes; the distinct-JIP role remained waiting because Arma rejected a second process using the same Steam identity. A September 7 master-docket run found and isolated an indexed-import fall-through plus a generic-lexer memory peak. Both are corrected in source and the replacement package passes static validation/clean build, but its engine rerun is still pending; see [the September 7 test log](TEST_LOG_2026-09-07.md). Visual/native-editor/Curator scenarios remain separate. See also the [September 4 test log](TEST_LOG_2026-09-04.md), [consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md), and [In-game release checklist](IN_GAME_TEST_CHECKLIST.md).
 
 The checklist is deliberately broader than a code test: it covers start-up, Creator UI, catalogue semantics, selection regressions, persistence, inheritance, imports, Eden data integrity, object compatibility checks, ACE interaction behavior, access/quotas/loadouts, administrator paths, Zeus, host/client synchronization, dedicated server, and real JIP.
 
@@ -591,10 +591,10 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | Area | Functions |
 | --- | --- |
 | Object and policy | `normalizeObjectConfig`, `normalizeAccess`, `normalizeLimits`, `preflightObjectConfig`, `applyObjectConfig`, `applyPreset`, `registerObject`, `unregisterObject`, `getMissionRegistry`, `getRuntimeObjectId`, `bulkUpdateObjects`. |
-| ACE actions and sessions | `buildActionManifest`, `registerActions`, `requestOpen`, `openAuthorized`, `finishSession`, `cancelObjectSessions`, `previewPreset`, `pruneObjectQuotas`. |
+| ACE actions and sessions | `buildActionManifest`, `registerActions`, `requestOpen`, `openAuthorized`, `acknowledgeSession`, `finishSession`, `cancelObjectSessions`, `previewPreset`, `pruneObjectQuotas`. |
 | Access and quotas | `evaluateAccess`, `countLoadout`, `requestQuotaStatus`, `receiveQuotaStatus`, `resetQuotas`, `normalizeAccess`, `normalizeLimits`. |
 | Player loadouts | `applyPlayerLoadout`, `requestLoadoutApply`, `applyAuthorizedLoadout`, `applyCorrectedLoadout`, `savePlayerLoadout`, `listPlayerLoadouts`, `deletePlayerLoadout`. |
-| Administration and audit | `isAdminAuthorized`, `logEvent`, `adminOnLoad`, `adminRefresh`, `adminExecute`, `adminCommand`, `adminCopyAudit`, `requestAdminAccess`, `receiveAdminAccess`, `requestAdminSnapshot`, `receiveAdminSnapshot`. |
+| Administration and audit | `isAdminAuthorized`, `logEvent`, `adminOnLoad`, `adminRefresh`, `adminExecute`, `adminCommand`, `adminCopyAudit`, `requestAdminAccess`, `receiveAdminAccess`, `requestAdminSnapshot`, `receiveAdminSnapshot`, `receiveAdminAuditPage`, `receiveAdminCommandResult`, `refreshObjectAdminSummary`. |
 | Multiplayer rehearsal | `openRehearsal`, `rehearsalOnLoad`, `rehearsalRefresh`, `rehearsalExecute`, `rehearsalCopy`, `buildRehearsalSnapshot`, `requestRehearsal`, `rehearsalClientReady`, `rehearsalProbeClient`, `receiveRehearsalProbe`, `receiveRehearsalSnapshot`, `sendRehearsalSnapshot`. |
 | Lifecycle | `initRuntime` (pre-init), `initClient` (post-init). |
 
@@ -604,7 +604,7 @@ All functions are registered under the `RACA` CfgFunctions tag. The following ma
 | --- | --- |
 | Preset construction and persistence | `buildPreset`, `validatePreset`, `migratePreset`, `saveCurrentPreset`, `loadSelectedPreset`, `deletePreset`, `getPresetLibrary`, `removePresetFromLibrary`, `refreshPresetCombo`, `setPresetRevision`, `archivePreset`, `getPresetHistory`. |
 | Inheritance and flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `getRuntimePolicy`. |
-| Interchange | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `exportPreset`, `importPreset`, `importCheckpoint`, `decodeSqfPreset`, `formatSqfExport`, `isSafeClassName`, `buildModManifest`, `buildSupportBundle`. |
+| Interchange | `buildPortablePreset`, `decodePortablePreset`, `decodeGeneratedSqfLiteral`, `formatPortableJson`, `exportPreset`, `importPreset`, `importCheckpoint`, `importTelemetry`, `getImportResourcePolicy`, `resolveCatalogClass`, `decodeSqfPreset`, `formatSqfExport`, `isSafeClassName`, `buildModManifest`, `buildSupportBundle`. |
 | Creator UX | `creatorOnLoad`, `creatorOnUnload`, `creatorKeyDown`, `refreshItemList`, `catalogPage`, `refreshCategoryCombo`, `refreshSourceCombo`, `toggleRow`, `resolveCreatorSelection`, `setVisibleSelection`, `clearSelection`, `setSortMode`, `setSearchMode`, `setCatalogView`, `captureCatalogView`, `restoreCatalogView`, `setStatus`, `updateSummary`, `switchCreatorTab`, `pushCreatorHistory`, `captureCreatorState`, `restoreCreatorHistory`, `refreshHistoryButtons`, `requestCreatorClose`. |
 | Creator enhancements | `openQuickStart`, `quickStartOnLoad`, `quickStartApply`, `applySelectedRoleTemplate`, `refreshRoleTemplateCombo`, `openRolePacks`, role-pack CRUD/refresh/select functions, `toggleFavorite`, item-detail functions, tag functions, saved-view functions, draft recovery functions, limit functions, preflight/diagnostic functions, comparison/history restore functions. |
 
@@ -630,10 +630,10 @@ The tables above explain the responsibilities. This index supplies the exact reg
 | Catalogue | `classifyClass`, `classifyCached`, `scanItems`, `indexCatalog`, `getCompatibleMagazines` |
 | Diagnostics | `analyzeEnvironment`, `analyzePreset`, `formatDiagnosticReport`, `preflightObjectConfig` |
 | Templates | `applyRoleTemplate`, `applyTemplateParameters`, `getRolePacks`, `getRoleTemplates` |
-| Preset build/validation | `buildPreset`, `validatePreset`, `migratePreset`, `isSafeClassName`, `getRuntimePolicy` |
+| Preset build/validation | `buildPreset`, `validatePreset`, `migratePreset`, `isSafeClassName`, `getRuntimePolicy`, `resolveCatalogClass`, `getImportResourcePolicy` |
 | Preset library/history | `getPresetLibrary`, `refreshPresetCombo`, `loadSelectedPreset`, `saveCurrentPreset`, `confirmPresetDeletion`, `presetDeletionOnLoad`, `deletePreset`, `removePresetFromLibrary`, `setPresetRevision`, `archivePreset`, `getPresetHistory` |
 | Inheritance/flattening | `applyBasePreset`, `getComposition`, `wouldCreateCycle`, `fingerprintPreset`, `flattenPreset`, `flattenCurrentPreset`, `flattenPresetClasses`, `refreshBaseCombo` |
-| Interchange and support | `buildPortablePreset`, `decodePortablePreset`, `formatPortableJson`, `formatSqfExport`, `decodeSqfPreset`, `exportPreset`, `importPreset`, `importCheckpoint`, `buildModManifest`, `buildSupportBundle` |
+| Interchange and support | `buildPortablePreset`, `decodePortablePreset`, `decodeGeneratedSqfLiteral`, `formatPortableJson`, `formatSqfExport`, `decodeSqfPreset`, `exportPreset`, `importPreset`, `importCheckpoint`, `importTelemetry`, `buildModManifest`, `buildSupportBundle` |
 
 </details>
 
@@ -660,9 +660,9 @@ The tables above explain the responsibilities. This index supplies the exact reg
 | Group | Registered functions |
 | --- | --- |
 | Runtime initialization/registry | `initRuntime`, `initClient`, `getMissionRegistry`, `getRuntimeObjectId`, `normalizeObjectConfig`, `normalizeAccess`, `normalizeLimits`, `registerObject`, `unregisterObject`, `applyObjectConfig`, `applyPreset`, `bulkUpdateObjects` |
-| Runtime sessions/actions | `buildActionManifest`, `registerActions`, `requestOpen`, `openAuthorized`, `finishSession`, `cancelObjectSessions`, `previewPreset` |
+| Runtime sessions/actions | `buildActionManifest`, `registerActions`, `requestOpen`, `openAuthorized`, `acknowledgeSession`, `finishSession`, `cancelObjectSessions`, `previewPreset` |
 | Runtime security/loadouts/quotas | `evaluateAccess`, `countLoadout`, `pruneObjectQuotas`, `resetQuotas`, `requestQuotaStatus`, `receiveQuotaStatus`, `requestLoadoutApply`, `applyAuthorizedLoadout`, `applyCorrectedLoadout`, `applyPlayerLoadout`, `savePlayerLoadout`, `listPlayerLoadouts`, `deletePlayerLoadout` |
-| Runtime admin/audit | `isAdminAuthorized`, `logEvent`, `adminOnLoad`, `adminRefresh`, `adminExecute`, `adminCommand`, `adminCopyAudit`, `requestAdminAccess`, `receiveAdminAccess`, `requestAdminSnapshot`, `receiveAdminSnapshot` |
+| Runtime admin/audit | `isAdminAuthorized`, `logEvent`, `adminOnLoad`, `adminRefresh`, `adminExecute`, `adminCommand`, `adminCopyAudit`, `requestAdminAccess`, `receiveAdminAccess`, `requestAdminSnapshot`, `receiveAdminSnapshot`, `receiveAdminAuditPage`, `receiveAdminCommandResult`, `refreshObjectAdminSummary` |
 | Runtime rehearsal | `openRehearsal`, `rehearsalOnLoad`, `rehearsalRefresh`, `rehearsalExecute`, `rehearsalCopy`, `buildRehearsalSnapshot`, `requestRehearsal`, `rehearsalClientReady`, `rehearsalProbeClient`, `receiveRehearsalProbe`, `receiveRehearsalSnapshot`, `sendRehearsalSnapshot` |
 | Zeus | `moduleAssign`, `moduleClear`, `moduleToggle`, `moduleResetQuotas`, `requestZeusModule`, `handleZeusModuleRequest`, `receiveZeusModuleResult` |
 | Eden attribute/configuration/editor | `edenAttributeOnLoad`, `edenAttributeLoad`, `edenAttributeSave`, `edenPopulate`, `edenUpdateSummary`, `edenRefresh`, `edenClearAttribute`, `edenGetConfigurations`, `edenGetConfigurationState`, `edenParseConfigurationEnvelope`, `edenIsSafeConfigurationId`, `edenGenerateConfigurationId`, `edenCopyLibraryRecovery`, `edenRepairConfigurations`, `validateConfigurationForAssignment`, `edenStoreConfigurations`, `edenConfigurationToObjectConfig`, `edenOpenEditor`, `edenEditorOnLoad`, `edenEditorOnUnload`, `edenSwitchTab`, `edenEditorRefresh`, `edenEditorAddSlot`, `edenEditorRemoveSlot`, `edenEditorMoveSlot`, `edenEditorSelectSlot`, `edenEditorCommitSlot`, `edenEditorAddCondition`, `edenEditorRemoveCondition`, `edenEditorApply` |
@@ -675,6 +675,7 @@ The tables above explain the responsibilities. This index supplies the exact reg
 The source and recorded acceptance evidence demonstrate substantial implementation coverage, but a player-facing documentation claim should distinguish code from field proof.
 
 - The September 4 packaged mission passed 97/97 assertions and the dedicated SERVER/initial CLIENT probes passed.
+- The first September 7 candidate run is retained as failed evidence: it exposed an indexed-import fall-through and high generic-SQF memory use. Corrected source/build evidence exists, but no replacement engine result is claimed until the user authorizes another Arma launch.
 - A distinct Steam identity/machine for JIP was unavailable. The attempted second local client was rejected as the same Steam identity, so that gate is **Unknown**, not passed.
 - The final session could not observe native Arma pixels through its available computer-control surface. Resolution-specific no-blink/layout screenshots, full native Eden recovery/fallback/large-object flows, actual Curator placement, and final player-facing ACE content inspection remain open.
 - The 100,000-record catalogue retains complete results, but the measured 3.549 s initial render misses the proposed 250 ms visible-result target; this is a documented performance constraint rather than a hidden cap.
@@ -687,6 +688,8 @@ The source and recorded acceptance evidence demonstrate substantial implementati
 - [Portable preset format](PORTABLE_PRESET_FORMAT.md) — JSON/SQF/class-list interchange details and examples.
 - [In-game release checklist](IN_GAME_TEST_CHECKLIST.md) — complete player/editor/runtime test protocol.
 - [September 4 test log](TEST_LOG_2026-09-04.md) — current packaged-engine, performance, Zeus, clipboard, and multiplayer evidence.
+- [September 7 test log](TEST_LOG_2026-09-07.md) — master-docket candidate, first-run failures, corrections, and pending replacement runtime evidence.
+- [Master docket status](MASTER_DOCKET_STATUS_2026-09-07.md) — task-by-task implementation and commit map.
 - [Consolidated implementation record](CONSOLIDATED_IMPLEMENTATION_2026-09-04.md) — solution-package status and remaining evidence classes.
 - [Development acceptance evidence](DEVELOPMENT_ACCEPTANCE.md) — current recorded acceptance results and their limits.
 - [September 2 targeted test log](TEST_LOG_2026-09-02.md) and [September 1 test log](TEST_LOG_2026-09-01.md) — historical evidence for earlier builds.
