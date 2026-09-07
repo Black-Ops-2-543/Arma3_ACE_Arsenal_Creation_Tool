@@ -1403,15 +1403,35 @@ if (Test-Path -LiteralPath $countLoadoutPath -PathType Leaf) {
 
 $adminSnapshotPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_requestAdminSnapshot.sqf'
 $adminUiPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_adminRefresh.sqf'
-if (-not (Test-Path -LiteralPath $adminSnapshotPath -PathType Leaf) -or -not (Test-Path -LiteralPath $adminUiPath -PathType Leaf)) {
-    $failures.Add("Authenticated runtime administration must provide both a server snapshot endpoint and a client dashboard renderer.")
+$adminAuditReceiverPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_receiveAdminAuditPage.sqf'
+$runtimeInitPath = Join-Path $addonsDirectory 'core\functions\runtime\fn_initRuntime.sqf'
+if (-not (Test-Path -LiteralPath $adminSnapshotPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $adminUiPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $adminAuditReceiverPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $runtimeInitPath -PathType Leaf)) {
+    $failures.Add("Authenticated runtime administration must provide the server snapshot endpoint, client dashboard renderer, audit-page receiver, and runtime state initialization.")
 }
 else {
     $adminSnapshot = Get-Content -Raw -LiteralPath $adminSnapshotPath
+    $adminAuditReceiver = Get-Content -Raw -LiteralPath $adminAuditReceiverPath
+    $runtimeInit = Get-Content -Raw -LiteralPath $runtimeInitPath
     if ($adminSnapshot -notmatch 'owner _unit isNotEqualTo remoteExecutedOwner' -or
         $adminSnapshot -notmatch 'RACA_fnc_isAdminAuthorized' -or
         $adminSnapshot -match 'RACA_objectConfig') {
         $failures.Add("The administration snapshot must bind to the requesting owner, recheck authorization, and avoid broadcasting full object configurations.")
+    }
+    if ($adminSnapshot -notmatch 'RACA_adminAuditExportSnapshots' -or
+        $adminSnapshot -notmatch 'diag_tickTime' -or
+        $adminSnapshot -notmatch '_snapshot\s*=\s*\[_requestId' -or
+        $adminSnapshot -notmatch '_snapshots deleteAt _ownerKey' -or
+        $runtimeInit -notmatch 'RACA_adminAuditExportSnapshots') {
+        $failures.Add("Complete audit export must use initialized, expiring, per-owner frozen server snapshots and release them after the final page.")
+    }
+    if ($adminAuditReceiver -notmatch '_expectedTotal' -or
+        $adminAuditReceiver -notmatch '_cursor isNotEqualTo count _all' -or
+        $adminAuditReceiver -notmatch 'count _all\) isNotEqualTo _expectedTotal' -or
+        $adminAuditReceiver -notmatch 'RACA_adminAuditExport') {
+        $failures.Add("Audit-page assembly must enforce stable totals, contiguous cursors, exact final counts, and explicit client-state cleanup.")
     }
 }
 

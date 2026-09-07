@@ -2,6 +2,7 @@ missionNamespace setVariable ["RACA_missionRegistry", createHashMap];
 missionNamespace setVariable ["RACA_quotaState", createHashMap];
 missionNamespace setVariable ["RACA_openSessions", createHashMap];
 missionNamespace setVariable ["RACA_auditLog", []];
+missionNamespace setVariable ["RACA_adminAuditExportSnapshots", createHashMap];
 if (isServer) then {
     missionNamespace setVariable ["RACA_rehearsalState", createHashMap];
     addMissionEventHandler ["EntityRespawned", {

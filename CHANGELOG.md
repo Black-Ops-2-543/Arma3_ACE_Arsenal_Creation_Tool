@@ -24,7 +24,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Mission-wide Eden compatibility states and a copyable per-object preflight report.
 - Nine localized CBA Addon Options covering local authoring defaults and server-authoritative Zeus policy, including live setting dispatch and safe legacy non-migration.
 - Versioned import telemetry, strict generated-SQF recognition, bounded parsing resources, and integrity-checked queued RPT-copy reconstruction.
-- Paged administration snapshots and audit retrieval with revision-aware per-object summaries.
+- Paged administration audit retrieval, frozen complete exports, and revision-aware per-object summaries.
 
 ### Changed
 

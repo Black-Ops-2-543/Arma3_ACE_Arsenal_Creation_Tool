@@ -182,7 +182,7 @@ The generated reusable SQF export is intentionally simpler. It creates a standal
 
 ### Administration and Zeus
 
-Authorized server administrators can use an ACE self-interaction dashboard to inspect configured objects, sessions, quota records, and recent audit events. Object summaries and audit history are fetched in revisioned pages, so a large mission is not silently truncated. Server-side authorization is checked for every page and command rather than relying on a hidden client button.
+Authorized server administrators can use an ACE self-interaction dashboard to inspect configured objects, sessions, quota records, and recent audit events. Object counters use revisioned cached summaries, while audit history is fetched in bounded pages and a complete export is assembled from one frozen retained range. Server-side authorization is checked for every page and command rather than relying on a hidden client button.
 
 The dashboard also includes a guided multiplayer rehearsal that distinguishes server, listen-host, initial-client, and distinct JIP evidence.
 
