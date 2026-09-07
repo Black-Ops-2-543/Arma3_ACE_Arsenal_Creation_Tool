@@ -5,6 +5,13 @@ if (isNull _list) exitWith {false};
 private _display = ctrlParent _list;
 private _row = lnbCurSelRow _list;
 private _entry = (_display getVariable ["RACA_preflightRows", []]) param [_row, []];
+private _fingerprint=if (_entry isEqualTo []) then {""} else {
+    toLowerANSI str [
+        _entry param [0,""],_entry param [1,""],_entry param [2,""],
+        _entry param [3,""],_entry param [4,""],_entry param [5,""]
+    ]
+};
+_display setVariable ["RACA_preflightSelectedFingerprint",_fingerprint];
 private _className = _entry param [3, "", [""]];
 private _available = _className isNotEqualTo "" && {
     (uiNamespace getVariable ["RACA_itemCatalog", []]) findIf {

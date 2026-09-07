@@ -22,6 +22,14 @@ private _filter = toUpperANSI (if (_selection < 0) then {"ALL"} else {_filterCon
 if (_filter isEqualTo "") then {_filter = "ALL";};
 private _visible = if (_filter isEqualTo "ALL") then {+_entries} else {_entries select {(_x select 0) isEqualTo _filter}};
 private _list = _display displayCtrl RACA_IDC_PREFLIGHT_LIST;
+private _priorFingerprint=_display getVariable ["RACA_preflightSelectedFingerprint",""];
+private _fingerprintFor={
+    params ["_entry"];
+    toLowerANSI str [
+        _entry param [0,""],_entry param [1,""],_entry param [2,""],
+        _entry param [3,""],_entry param [4,""],_entry param [5,""]
+    ]
+};
 lnbClear _list;
 
 {
@@ -39,6 +47,7 @@ lnbClear _list;
     private _nl = toString [10];
     if (_className isNotEqualTo "") then {_metadata pushBack format ["Class: %1", _className]};
     private _row = _list lnbAddRow [_severity, _code, _message, _className, _source];
+    _list lnbSetData [[_row,0],[_x] call _fingerprintFor];
     private _color = switch (_severity) do {
         case "ERROR": {[1, 0.42, 0.38, 1]};
         case "WARNING": {[1, 0.82, 0.35, 1]};
@@ -49,7 +58,13 @@ lnbClear _list;
     {_list lnbSetTooltip [[_row, _x], _tooltip]} forEach [0, 1, 2, 3, 4];
 } forEach _visible;
 _display setVariable ["RACA_preflightRows", _visible];
-if (_visible isNotEqualTo []) then {_list lnbSetCurSelRow 0};
+private _restoreRow=if (_priorFingerprint isEqualTo "") then {-1} else {_visible findIf {([_x] call _fingerprintFor) isEqualTo _priorFingerprint}};
+if (_restoreRow>=0) then {
+    _list lnbSetCurSelRow _restoreRow
+} else {
+    _display setVariable ["RACA_preflightSelectedFingerprint",""];
+    _list lnbSetCurSelRow -1;
+};
 [_list] call RACA_fnc_preflightSelectionChanged;
 
 _counts params ["_errors", "_warnings", "_info"];

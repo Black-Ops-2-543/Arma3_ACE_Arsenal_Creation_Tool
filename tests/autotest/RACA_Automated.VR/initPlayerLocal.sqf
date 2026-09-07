@@ -1098,6 +1098,46 @@ params ["_player"];
         {(_preflightListControl lnbText [0, 1]) isEqualTo "EMPTY_PRESET"},
         "Compatibility defaults to Errors and blocks an empty draft without a UI script error"
     ] call _record;
+    if (!isNull _preflightDisplay) then {
+        private _actualDiagnostics=uiNamespace getVariable ["RACA_creatorDiagnostics",[]];
+        private _warning=["WARNING","STABLE_WARNING","Stable warning","arifle_MX_F","Arma 3","A3_Weapons_F"];
+        private _information=["INFO","STABLE_INFO","Stable information","FirstAidKit","Arma 3","A3_Characters_F"];
+        private _syntheticFingerprint=_actualDiagnostics param [2,[]];
+        private _filterControl=_preflightDisplay displayCtrl 2120;
+        _preflightDisplay setVariable ["RACA_preflightFilterSuppressed",true];
+        _filterControl lbSetCurSel 0;
+        _preflightDisplay setVariable ["RACA_preflightFilterSuppressed",false];
+        uiNamespace setVariable ["RACA_creatorDiagnostics",[[true,[_warning,_information],[0,1,1]],"",_syntheticFingerprint]];
+        [_preflightDisplay] call RACA_fnc_preflightRefresh;
+        _preflightListControl lnbSetCurSelRow 0;
+        [_preflightListControl] call RACA_fnc_preflightSelectionChanged;
+        ctrlSetFocus _preflightListControl;
+        uiNamespace setVariable ["RACA_creatorDiagnostics",[[true,[_information,_warning],[0,1,1]],"",_syntheticFingerprint]];
+        [_preflightDisplay] call RACA_fnc_preflightRefresh;
+        private _preservedRow=lnbCurSelRow _preflightListControl;
+        private _preservedCode=((_preflightDisplay getVariable ["RACA_preflightRows",[]]) param [_preservedRow,[]]) param [1,""];
+        private _focusPreserved=(focusedCtrl _preflightDisplay) isEqualTo _preflightListControl;
+        [
+            _preservedCode isEqualTo "STABLE_WARNING" && {_focusPreserved},
+            "Compatibility refresh preserves the same visible finding and keyboard focus",
+            format ["row=%1 code=%2 focus=%3",_preservedRow,_preservedCode,_focusPreserved]
+        ] call _record;
+        _preflightDisplay setVariable ["RACA_preflightFilterSuppressed",true];
+        _filterControl lbSetCurSel 1;
+        _preflightDisplay setVariable ["RACA_preflightFilterSuppressed",false];
+        [_preflightDisplay] call RACA_fnc_preflightRefresh;
+        private _showItem=_preflightDisplay displayCtrl 1660;
+        private _details=_preflightDisplay displayCtrl 1031;
+        [
+            (lnbCurSelRow _preflightListControl)<0 &&
+            {!ctrlEnabled _showItem} &&
+            {!ctrlShown _showItem} &&
+            {(ctrlText _details) find "No result is selected" >= 0} &&
+            {(ctrlText _preflightSummaryControl) find "Errors: none" >= 0},
+            "Compatibility clears stale actions and reports an empty Errors filter without selecting another severity"
+        ] call _record;
+        uiNamespace setVariable ["RACA_creatorDiagnostics",_actualDiagnostics];
+    };
     if (!isNull _preflightDisplay) then {_preflightDisplay closeDisplay 2};
     if (!isNull _creatorDisplay) then {_creatorDisplay closeDisplay 2};
     if (_wasOnboardingMissing) then {profileNamespace setVariable ["RACA_onboardingSeen_v1", nil]} else {profileNamespace setVariable ["RACA_onboardingSeen_v1", _oldOnboarding]};
