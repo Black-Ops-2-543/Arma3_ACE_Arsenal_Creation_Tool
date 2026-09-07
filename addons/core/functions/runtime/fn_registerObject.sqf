@@ -9,4 +9,5 @@ private _registry = missionNamespace getVariable ["RACA_missionRegistry", create
 private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
 _registry set [_objectId, [_object, _normalized, vehicleVarName _object, typeOf _object, _objectId]];
 missionNamespace setVariable ["RACA_missionRegistry", _registry];
+[_object,_normalized] call RACA_fnc_refreshObjectAdminSummary;
 true

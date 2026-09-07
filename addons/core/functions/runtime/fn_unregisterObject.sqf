@@ -6,4 +6,6 @@ private _objectId = [_object] call RACA_fnc_getRuntimeObjectId;
 _registry deleteAt _objectId;
 missionNamespace setVariable ["RACA_missionRegistry", _registry];
 [_object, []] call RACA_fnc_pruneObjectQuotas;
+_object setVariable ["RACA_adminSummary",nil,false];
+_object setVariable ["RACA_adminSummaryRevision",nil,false];
 true

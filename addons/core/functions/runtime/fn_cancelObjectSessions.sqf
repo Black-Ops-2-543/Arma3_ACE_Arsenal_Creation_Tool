@@ -18,4 +18,5 @@ private _removed = 0;
     };
 } forEach keys _sessions;
 missionNamespace setVariable ["RACA_openSessions", _sessions];
+[_object] call RACA_fnc_refreshObjectAdminSummary;
 _removed

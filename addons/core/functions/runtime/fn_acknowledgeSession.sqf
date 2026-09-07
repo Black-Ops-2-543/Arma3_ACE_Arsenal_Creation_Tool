@@ -22,6 +22,8 @@ switch (toLowerANSI _state) do {
     case "failed": {
         if (_current isEqualTo "opening") then {
             _sessions deleteAt _sessionId;
+            missionNamespace setVariable ["RACA_openSessions",_sessions];
+            [_session select 0] call RACA_fnc_refreshObjectAdminSummary;
             ["SESSION_FAILED",_unit,_session select 0,(_session select 2) select 0,[_sessionId,"ACE display did not open"]] call RACA_fnc_logEvent;
         };
     };

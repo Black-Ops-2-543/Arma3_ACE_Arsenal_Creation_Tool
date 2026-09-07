@@ -8,22 +8,32 @@ if (isServer) then {
         params ["_newEntity", "_oldEntity"];
         _newEntity setVariable ["RACA_lifeIndex", (_oldEntity getVariable ["RACA_lifeIndex", 0]) + 1, true];
         private _sessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+        private _changedObjects = [];
         {
             private _record = _sessions get _x;
-            if ((_record param [1, objNull]) isEqualTo _oldEntity) then {_sessions deleteAt _x};
+            if ((_record param [1, objNull]) isEqualTo _oldEntity) then {
+                _changedObjects pushBackUnique (_record param [0,objNull]);
+                _sessions deleteAt _x;
+            };
         } forEach keys _sessions;
         missionNamespace setVariable ["RACA_openSessions", _sessions];
+        {if (!isNull _x) then {[_x] call RACA_fnc_refreshObjectAdminSummary}} forEach _changedObjects;
         ["respawn", objNull, "", getPlayerUID _newEntity] call RACA_fnc_resetQuotas;
         ["RESPAWN", _newEntity, objNull, "", ["Old arsenal sessions discarded"]] call RACA_fnc_logEvent;
     }];
     addMissionEventHandler ["HandleDisconnect", {
         params ["_unit", "_id", "_uid"];
         private _sessions = missionNamespace getVariable ["RACA_openSessions", createHashMap];
+        private _changedObjects = [];
         {
             private _record = _sessions get _x;
-            if ((_record param [1, objNull]) isEqualTo _unit) then {_sessions deleteAt _x};
+            if ((_record param [1, objNull]) isEqualTo _unit) then {
+                _changedObjects pushBackUnique (_record param [0,objNull]);
+                _sessions deleteAt _x;
+            };
         } forEach keys _sessions;
         missionNamespace setVariable ["RACA_openSessions", _sessions];
+        {if (!isNull _x) then {[_x] call RACA_fnc_refreshObjectAdminSummary}} forEach _changedObjects;
         ["DISCONNECT", _unit, objNull, "", [_uid, "Open sessions discarded"]] call RACA_fnc_logEvent;
         false
     }];
@@ -42,6 +52,8 @@ if (isServer) then {
                         [_unit, _record param [3, []], "A stale restricted arsenal session was closed; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
                     };
                     _sessions deleteAt _x;
+                    missionNamespace setVariable ["RACA_openSessions",_sessions];
+                    if (!isNull _object) then {[_object] call RACA_fnc_refreshObjectAdminSummary};
                 };
             } forEach keys _sessions;
             missionNamespace setVariable ["RACA_openSessions", _sessions];

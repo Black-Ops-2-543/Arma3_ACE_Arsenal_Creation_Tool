@@ -3,11 +3,12 @@ params [
     ["_authorized", false, [true]],
     ["_message", "", [""]],
     ["_objects", [], [[]]],
-    ["_audit", [], [[]]]
+    ["_audit", [], [[]]],
+    ["_auditMeta",[],[[]]]
 ];
 if (!hasInterface || {isRemoteExecuted && {remoteExecutedOwner isNotEqualTo 2}} || {!isRemoteExecuted && {!isServer}}) exitWith {false};
 if (!_authorized) exitWith {systemChat format ["RACA: %1", _message]; false};
-private _snapshot = [_message, _objects, _audit, systemTimeUTC];
+private _snapshot = [_message, _objects, _audit, systemTimeUTC,_auditMeta];
 uiNamespace setVariable ["RACA_adminSnapshot", _snapshot];
 private _display = findDisplay RACA_IDD_ADMIN;
 if (isNull _display) then {

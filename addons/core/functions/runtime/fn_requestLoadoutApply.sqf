@@ -42,6 +42,7 @@ if (_restricted isNotEqualTo []) exitWith {
 private _sessionId = format ["loadout:%1:%2:%3", netId _unit, floor (diag_tickTime * 1000), floor random 1000000];
 _sessions set [_sessionId, [_object, _unit, _slot, getUnitLoadout _unit, owner _unit, diag_tickTime]];
 missionNamespace setVariable ["RACA_openSessions", _sessions];
+[_object,_config] call RACA_fnc_refreshObjectAdminSummary;
 [_unit, _loadout, _sessionId, format ["Applied saved loadout '%1'.", _name]] remoteExecCall ["RACA_fnc_applyAuthorizedLoadout", owner _unit];
 ["LOADOUT_APPLY", _unit, _object, _slotId, [_name]] call RACA_fnc_logEvent;
 true

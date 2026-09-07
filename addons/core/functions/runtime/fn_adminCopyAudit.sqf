@@ -1,12 +1,8 @@
 #include "..\..\script_component.hpp"
 params [["_display", displayNull, [displayNull]]];
 if (isNull _display) exitWith {false};
-private _snapshot = _display getVariable ["RACA_adminSnapshot", []];
-private _audit = _snapshot param [2, []];
-if (_audit isEqualTo []) exitWith {(_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText "There are no audit records to copy."; false};
-private _lines = ["RACA runtime audit export", format ["Exported: %1", systemTimeUTC]];
-{_lines pushBack str _x} forEach _audit;
-forceUnicode 1;
-[(_lines joinString toString [13, 10]), "Runtime audit"] call RACA_fnc_copyTextAndLog;
-(_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText format ["Copied %1 recent audit records to the clipboard.", count _audit];
+private _requestId=format ["%1:%2",clientOwner,floor (diag_tickTime*1000)];
+uiNamespace setVariable ["RACA_adminAuditExport",[_requestId,[]]];
+(_display displayCtrl RACA_IDC_ADMIN_STATUS) ctrlSetText "Requesting the complete retained audit range in ordered pages...";
+[player,0,250,"EXPORT",_requestId] remoteExecCall ["RACA_fnc_requestAdminSnapshot",2];
 true

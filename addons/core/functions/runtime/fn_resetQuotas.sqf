@@ -21,4 +21,7 @@ private _removed = 0;
     };
 } forEach keys _quota;
 missionNamespace setVariable ["RACA_quotaState", _quota];
+if (isNull _object) then {
+    {{private _registered=_x param [0,objNull]; if (!isNull _registered) then {[_registered] call RACA_fnc_refreshObjectAdminSummary}} forEach call RACA_fnc_getMissionRegistry};
+} else {[_object] call RACA_fnc_refreshObjectAdminSummary};
 _removed

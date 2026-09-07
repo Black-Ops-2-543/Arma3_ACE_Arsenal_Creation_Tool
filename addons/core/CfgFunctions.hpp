@@ -222,6 +222,8 @@ class CfgFunctions {
             class registerActions {};
             class registerObject {};
             class receiveAdminSnapshot {};
+            class receiveAdminAuditPage {};
+            class refreshObjectAdminSummary {};
             class receiveAdminAccess {};
             class receiveQuotaStatus {};
             class receiveRehearsalProbe {};

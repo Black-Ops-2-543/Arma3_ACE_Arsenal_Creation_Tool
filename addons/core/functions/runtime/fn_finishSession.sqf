@@ -20,6 +20,7 @@ if ((count _reportedSerialized) > 100000) exitWith {
     [_unit,_session select 3,"The reported final loadout exceeded the reconciliation safety limit; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout",owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions",_sessions];
+    [_session select 0] call RACA_fnc_refreshObjectAdminSummary;
     ["RECONCILE_REJECTED",_unit,_session select 0,(_session select 2) select 0,[_sessionId,"oversize client snapshot"]] call RACA_fnc_logEvent;
     false
 };
@@ -34,6 +35,7 @@ if (isNull _object) exitWith {
     [_unit, _before, "The arsenal object no longer exists; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];
+    [_object] call RACA_fnc_refreshObjectAdminSummary;
     ["SESSION_CANCELLED",_unit,objNull,(_slot select 0),[_sessionId,"object deleted"]] call RACA_fnc_logEvent;
     false
 };
@@ -41,6 +43,7 @@ if (diag_tickTime > (_session param [7,_startedAt + 900])) exitWith {
     [_unit, _before, "The arsenal session expired; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout", owner _unit];
     _sessions deleteAt _sessionId;
     missionNamespace setVariable ["RACA_openSessions", _sessions];
+    [_object] call RACA_fnc_refreshObjectAdminSummary;
     ["SESSION_EXPIRED",_unit,_object,(_slot select 0),[_sessionId]] call RACA_fnc_logEvent;
     false
 };
@@ -57,6 +60,7 @@ if ((str _after) isNotEqualTo _reportedSerialized) exitWith {
         [_unit,_before,"The server could not confirm the final arsenal loadout in time; your previous loadout was restored."] remoteExecCall ["RACA_fnc_applyCorrectedLoadout",owner _unit];
         _sessions deleteAt _sessionId;
         missionNamespace setVariable ["RACA_openSessions",_sessions];
+        [_object] call RACA_fnc_refreshObjectAdminSummary;
         ["RECONCILE_TIMEOUT",_unit,_object,_slot select 0,[_sessionId,_reconcileAttempt]] call RACA_fnc_logEvent;
     };
     false
@@ -164,4 +168,5 @@ if (!_accepted) then {
 
 _sessions deleteAt _sessionId;
 missionNamespace setVariable ["RACA_openSessions", _sessions];
+[_object] call RACA_fnc_refreshObjectAdminSummary;
 _accepted
