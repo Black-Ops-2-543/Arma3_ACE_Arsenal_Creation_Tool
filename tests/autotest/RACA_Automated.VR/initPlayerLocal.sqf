@@ -129,6 +129,12 @@ params ["_player"];
     uiNamespace setVariable ["RACA_itemCatalog", _catalog];
     [(count _catalog) > 100, "ACE catalogue scan returns loaded equipment", format ["items=%1", count _catalog]] call _record;
     [(_catalog findIf {(_x select 1) isEqualTo "arifle_MX_F"}) >= 0, "Catalogue includes a known vanilla weapon"] call _record;
+    (["arifle_MX_F"] call RACA_fnc_resolveCatalogClass) params ["_knownBucket", "_knownRow"];
+    [
+        _knownBucket isEqualTo 1 && {_knownRow >= 0},
+        "Catalogue index resolves a known ACE Arsenal class",
+        format ["bucket=%1 row=%2", _knownBucket, _knownRow]
+    ] call _record;
 
     private _rawPreset = [
         "RACA_PRESET",

@@ -23,6 +23,17 @@ private _quotedMarkers = "private _items = [" + _quote + "not" + _slash + _slash
     ([_quotedMarkerPreset] call RACA_fnc_flattenPresetClasses) isEqualTo ["FirstAidKit"],
     "SQF lexer treats comment markers and doubled quotes inside strings as string data"
 ] call _record;
+
+private _boundaryPadding = [];
+_boundaryPadding resize 65535;
+_boundaryPadding = toString (_boundaryPadding apply {120});
+private _boundaryComment = _boundaryPadding + _slash + _slash + " " + _quote +
+    "hgun_P07_F" + _quote + toString [10] + _quote + "FirstAidKit" + _quote;
+([_boundaryComment, "Chunk Boundary"] call RACA_fnc_decodeSqfPreset) params ["_boundaryPreset"];
+[
+    ([_boundaryPreset] call RACA_fnc_flattenPresetClasses) isEqualTo ["FirstAidKit"],
+    "SQF lexer preserves comment state when a delimiter crosses a read-window boundary"
+] call _record;
 private _malformedBlockText = "[" + _quote + "arifle_MX_F" + _quote + "] " + _slash + _star + " unfinished";
 private _malformedStringText = "[" + _quote + "arifle_MX_F]";
 private _malformedBlock = [_malformedBlockText, "Malformed Block"] call RACA_fnc_decodeSqfPreset;
@@ -54,7 +65,11 @@ private _generatedWarnings = _generatedDecode select 2;
     "Versioned RACA SQF uses the strict literal-array fast path"
 ] call _record;
 
-private _brokenGenerated = _generatedText regexReplace ["private _arsenalItems = \\[", "private _arsenalItems = call {"];
+private _declaration = "private _arsenalItems = [";
+private _declarationStart = _generatedText find _declaration;
+private _brokenGenerated = (_generatedText select [0, _declarationStart]) +
+    "private _arsenalItems = call {" +
+    (_generatedText select [_declarationStart + count _declaration]);
 private _brokenDecode = [_brokenGenerated, "Broken Fast Path"] call RACA_fnc_decodeSqfPreset;
 [
     (_brokenDecode select 0) isEqualTo [] &&
