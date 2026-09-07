@@ -26,17 +26,17 @@ Source plan: `RACA_MASTER_IMPLEMENTATION_SOLUTION_TASKS_2026-09-05.md` in the pa
 | A-03 Incremental cancellable tags | Implemented | `4e7cbad` `perf(tags): apply cancellable incremental updates` |
 | A-04 Bounded tag deltas | Implemented | `6beb685` `feat(tags): replace snapshots with bounded deltas` |
 | A-05 Bounded RPT-copy queue | Implemented | `a3a88fd` `feat(clipboard): bound and report RPT copy queue` |
-| A-06 Strong RPT-copy integrity | Implemented | `b5acefc` `feat(clipboard): verify versioned RPT copy integrity` |
+| A-06 Strong RPT-copy integrity | Implemented; host reconstruction hardened | `b5acefc`, hardened by `316b2be` and `ec0de0d` |
 | A-07 Cached runtime cargo | Implemented | `d03d24a` `perf(runtime): cache resolved arsenal cargo` |
 | A-08 Session lifecycle | Implemented | `81231a6` `feat(runtime): track ACE arsenal session lifecycle` |
 | A-09 Final-loadout reconciliation | Implemented | `db02e9f` `feat(runtime): reconcile authoritative final loadouts` |
-| A-10 Scalable administration/audit | Implemented | `3127fe2` `feat(admin): scale snapshots and complete audit export` |
+| A-10 Scalable administration/audit | Implemented; complete exports frozen | `3127fe2`, corrected by `1d7d18f` |
 | A-11 Atomic/partial target updates | Implemented | `ab50108` `feat(runtime): make multi-target updates atomic` |
 | A-12 Stable Compatibility selection | Implemented | `cd7df08` `fix(diagnostics): preserve compatibility selection` |
 | V-01 Runtime matrix and delivery | In progress | Static/build pass; corrected packaged-engine rerun pending |
 
 ## Current boundary
 
-The 27 implementation tasks are committed and pushed to `main`. Static validation and a clean two-PBO build pass at corrected commit `297d24b`. The first September 7 engine run failed/incomplete and found defects that are now corrected; the replacement engine and dedicated-server runs must be completed before the version/package is finalized. Native visual, native Eden, actual Curator-placement, and distinct-account JIP rows remain explicitly open rather than inferred.
+The 27 implementation tasks and subsequent source-audit corrections are committed and pushed to `main` through `1d7d18f`. Static validation and a clean two-PBO build pass. The corrected isolated autotest and multiplayer rehearsal are staged but have not been launched, in accordance with the operator's hold. The first September 7 engine run failed/incomplete and found defects that are now corrected; the replacement engine and dedicated-server runs must be completed before the version/package is finalized. Native visual, native Eden, actual Curator-placement, and distinct-account JIP rows remain explicitly open rather than inferred.
 
 See [the September 7 candidate test log](TEST_LOG_2026-09-07.md) for retained evidence and [the changed-file inventory](CHANGED_FILES_2026-09-07.md) for scope.
