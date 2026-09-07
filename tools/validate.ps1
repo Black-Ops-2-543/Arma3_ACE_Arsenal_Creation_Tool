@@ -811,6 +811,7 @@ if (Test-Path -LiteralPath $portableExportPath -PathType Leaf) {
 
 $portableJsonFormatPath = Join-Path $addonsDirectory 'core\functions\presets\fn_formatPortableJson.sqf'
 $clipboardRecoveryPath = Join-Path $repositoryRoot 'tools\reconstruct-rpt-copy.ps1'
+$clipboardRecoveryTestPath = Join-Path $repositoryRoot 'tools\test-reconstruct-rpt-copy.ps1'
 if (-not (Test-Path -LiteralPath $clipboardRecoveryPath -PathType Leaf)) {
     $failures.Add("The RPT clipboard archive must include its integrity-checking reconstruction utility.")
 }
@@ -822,6 +823,15 @@ else {
         $reconstructorSource -notmatch 'P24X2' -or $reconstructorSource -notmatch 'Duplicate' -or
         $reconstructorSource -notmatch 'legacy additive checksum') {
         $failures.Add("The RPT reconstruction utility must retain v2 valid/tampered fixtures, strong digest checks, duplicate rejection, and a legacy-integrity warning.")
+    }
+    if (-not (Test-Path -LiteralPath $clipboardRecoveryTestPath -PathType Leaf)) {
+        $failures.Add("The RPT reconstruction utility must include its executable integrity regression matrix.")
+    } else {
+        try {
+            $null = & $clipboardRecoveryTestPath
+        } catch {
+            $failures.Add("The RPT reconstruction integrity regression matrix failed: $($_.Exception.Message)")
+        }
     }
 }
 $directClipboardUse = Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File -Filter '*.sqf' |

@@ -20,7 +20,7 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
     if ($line -match '\[RACA\]\[COPY:(\d+)\] BEGIN version=2 .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS digest=(P24X2-\d+-\d+)') {
         $id = [int] $Matches[1]
         if ($jobs.ContainsKey($id)) { $jobs[$id].Ambiguous = $true; continue }
-        $jobs[$id] = [ordered]@{ Id=$id; Version=2; Units=[int]$Matches[2]; ChunkCount=[int]$Matches[3]; Digest=$Matches[4]; Chunks=@{}; Duplicate=$false; Ambiguous=$false; Complete=$false }
+        $jobs[$id] = [ordered]@{ Id=$id; Version=2; Units=[int]$Matches[2]; ChunkCount=[int]$Matches[3]; Digest=$Matches[4]; Chunks=@{}; LastChunk=0; Duplicate=$false; OutOfOrder=$false; Ambiguous=$false; Complete=$false }
         continue
     }
     if ($line -match '\[RACA\]\[COPY:(\d+)\] BEGIN .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS checksum=(\d+)') {
@@ -33,7 +33,9 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
             ChunkCount = [int] $Matches[3]
             Checksum = [int] $Matches[4]
             Chunks = @{}
+            LastChunk = 0
             Duplicate = $false
+            OutOfOrder = $false
             Ambiguous = $false
             Complete = $false
         }
@@ -43,10 +45,18 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
         $id = [int] $Matches[1]
         if ($jobs.ContainsKey($id)) {
             $chunkNumber = [int] $Matches[2]
-            if ($jobs[$id].Chunks.ContainsKey($chunkNumber) -or [int]$Matches[3] -ne $jobs[$id].ChunkCount) {
+            if ($jobs[$id].Complete) {
+                $jobs[$id].Ambiguous = $true
+            } elseif ($jobs[$id].Chunks.ContainsKey($chunkNumber)) {
                 $jobs[$id].Duplicate = $true
+            } elseif ([int]$Matches[3] -ne $jobs[$id].ChunkCount -or $chunkNumber -lt 1 -or $chunkNumber -gt $jobs[$id].ChunkCount) {
+                $jobs[$id].Ambiguous = $true
             } else {
+                if ($chunkNumber -ne ($jobs[$id].LastChunk + 1)) {
+                    $jobs[$id].OutOfOrder = $true
+                }
                 $jobs[$id].Chunks[$chunkNumber] = @($Matches[4] | ConvertFrom-Json)
+                $jobs[$id].LastChunk = $chunkNumber
             }
         }
         continue
@@ -54,6 +64,7 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
     if ($line -match '\[RACA\]\[COPY:(\d+)\] END version=2 units=(\d+) chunks=(\d+) digest=(P24X2-\d+-\d+)') {
         $id = [int] $Matches[1]
         if ($jobs.ContainsKey($id)) {
+            if ($jobs[$id].Complete) { $jobs[$id].Ambiguous = $true }
             $jobs[$id].Complete = $true
             if ([int]$Matches[2] -ne $jobs[$id].Units -or [int]$Matches[3] -ne $jobs[$id].ChunkCount -or $Matches[4] -ne $jobs[$id].Digest) { $jobs[$id].Ambiguous = $true }
         }
@@ -62,7 +73,9 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
     if ($line -match '\[RACA\]\[COPY:(\d+)\] END units=(\d+) chunks=(\d+) checksum=(\d+)') {
         $id = [int] $Matches[1]
         if ($jobs.ContainsKey($id)) {
+            if ($jobs[$id].Complete) { $jobs[$id].Ambiguous = $true }
             $jobs[$id].Complete = $true
+            if ([int]$Matches[2] -ne $jobs[$id].Units -or [int]$Matches[3] -ne $jobs[$id].ChunkCount -or [int]$Matches[4] -ne $jobs[$id].Checksum) { $jobs[$id].Ambiguous = $true }
         }
     }
 }
@@ -75,8 +88,8 @@ $selected = if ($PSBoundParameters.ContainsKey('CopyId')) {
 if ($null -eq $selected -or -not $selected.Complete) {
     throw 'No completed RACA copy job matched the request.'
 }
-if ($selected.Ambiguous -or $selected.Duplicate) {
-    throw "Copy $($selected.Id) contains duplicate, conflicting, or ambiguous envelope/chunk records."
+if ($selected.Ambiguous -or $selected.Duplicate -or $selected.OutOfOrder) {
+    throw "Copy $($selected.Id) contains duplicate, reordered, conflicting, or ambiguous envelope/chunk records."
 }
 if ($selected.Chunks.Count -ne $selected.ChunkCount) {
     throw "Copy $($selected.Id) is incomplete: expected $($selected.ChunkCount) chunks, found $($selected.Chunks.Count)."

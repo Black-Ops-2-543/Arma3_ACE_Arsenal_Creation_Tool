@@ -66,6 +66,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Compatibility refresh retains the selected finding by stable fingerprint and clears stale details/actions when the active severity becomes empty.
 - Administration snapshots no longer truncate large registries or audit histories, and zero-length audit requests no longer return an unintended record.
 - Atomic bulk-update failures now restore every accepted target and related registry/quota/session state instead of leaving a partially changed target set.
+- RPT-copy reconstruction now rejects reordered chunks, duplicate/end-after-completion records, late chunks, missing chunks, substitutions, and mismatched legacy envelopes instead of normalizing ambiguous evidence.
 
 ## [0.9.2]
 
