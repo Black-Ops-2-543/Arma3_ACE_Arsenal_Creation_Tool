@@ -55,7 +55,8 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
                 if ($chunkNumber -ne ($jobs[$id].LastChunk + 1)) {
                     $jobs[$id].OutOfOrder = $true
                 }
-                $jobs[$id].Chunks[$chunkNumber] = @($Matches[4] | ConvertFrom-Json)
+                $decodedChunk = ConvertFrom-Json -InputObject $Matches[4]
+                $jobs[$id].Chunks[$chunkNumber] = [int[]] $decodedChunk
                 $jobs[$id].LastChunk = $chunkNumber
             }
         }
