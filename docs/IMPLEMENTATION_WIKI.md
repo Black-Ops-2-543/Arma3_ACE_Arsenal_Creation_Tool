@@ -468,7 +468,7 @@ The wrapper functions are `moduleAssign`, `moduleClear`, `moduleToggle`, and `mo
 
 ### Zeus troubleshooting
 
-Copy the request ID from the visible `RACA Zeus ...` result, then search the **server** RPT for `[RACA][ZEUS:<request-id>]`. The event records operation, accepted target/change/rejection counts, `accepted=true|false`, and a reason. A visible “not current authorized curator” maps to an authorization rejection; “module identity” maps to a module/operation mismatch; “disabled by the mission” maps to `RACA_allowZeusModules=false`; “place the module on at least one valid target” means no synchronized editable target survived validation; and “mission configuration ... was not found” means no mission-library/registered match was available and profile fallback was disabled. Share the request ID, message, operation, and redacted event—never player UIDs or unrelated RPT identity lines.
+Copy the request ID from the visible `RACA Zeus ...` result, then search the **server** RPT for `[RACA][ZEUS:<request-id>]`. The event records operation, accepted target/change/rejection counts, `accepted=true|false`, and a reason. A visible “not current authorized curator” maps to an authorization rejection; “module identity” maps to a module/operation mismatch; “disabled by the authoritative server or mission setting” maps to the server-forced `RACA_enableZeusModules=false` CBA setting; “place the module on at least one valid target” means no synchronized editable target survived validation; and “mission configuration ... was not found” means no mission-library/registered match was available and profile fallback was disabled. Share the request ID, message, operation, and redacted event—never player UIDs or unrelated RPT identity lines.
 
 ## Data formats and persistence boundaries
 
@@ -549,7 +549,7 @@ On the September 4 target machine, the final `0.11.0-dev` package processed clas
 | `tools/validate.ps1` | Static/configuration/SQF validation. Run before calling a build/release valid. |
 | `tools/build.ps1` | Builds Core and Eden PBOs, verifies `x\\raca\\addons\\<name>\\` PBO prefixes, copies metadata, and writes SHA-256 checksums. Its clean target is guarded to remain under the repository build directory. |
 | `tools/prepare-autotest.ps1` | Recursively stages the isolated automatic mission, profile, and required CBA/ACE/RACA launch arguments. It supports the tested Windows PowerShell 5.1 environment. |
-| `tools/reconstruct-rpt-copy.ps1` | Reconstructs one exact clipboard payload from versioned Unicode-safe RPT records, rejects malformed v2 chunk sets, and reports weaker legacy integrity explicitly. |
+| `tools/reconstruct-rpt-copy.ps1` | Reconstructs one exact clipboard payload from versioned Unicode-safe RPT records, verifies float-safe v3 plus compatible v2 envelopes, rejects malformed chunk sets, and reports weaker v1 legacy integrity explicitly. |
 | `tools/prepare-multiplayer-smoke.ps1` | Stages server/client profiles, rehearsal mission, server configuration, and launch arguments for a local smoke test. |
 | `tools/release.ps1` | Requires a clean tree, matching version metadata, validation, PBO checksums, and release archive/report generation. Development versions need the explicit `-AllowDevelopmentVersion` switch. |
 

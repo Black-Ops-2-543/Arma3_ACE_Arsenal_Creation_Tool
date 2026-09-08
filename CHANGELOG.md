@@ -37,7 +37,7 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Import decoding now enforces documented character, reference, metadata, quoted-value, and token limits atomically.
 - Eden embeds complete standalone preset snapshots so deployed missions do not depend on an author's profile or inheritance chain.
 - Runtime policy and open-session state remain server-local; clients receive only action metadata required to render interactions.
-- Generic SQF recovery now streams native offset-based structural-token scans, short-circuits already validated duplicate candidates, retains only unique candidates and bounded review samples, and resolves loaded cargo through the catalogue index.
+- Generic SQF recovery now uses bounded native literal batches for ordinary legacy arrays, falls back to bounded stateful structural-token scans for mixed/commented input, short-circuits validated duplicates, and retains only unique candidates plus bounded review samples.
 - Catalogue presentation/search caches and tag delta updates now invalidate by explicit revisions instead of rebuilding unrelated state.
 - Multi-object runtime and Zeus updates default to atomic all-or-nothing application; operators may explicitly allow partial application and receive per-target outcomes.
 - Runtime session closure now waits for a client acknowledgement, reconciles the final loadout authoritatively, and expires disconnected or unresponsive sessions through bounded cleanup.
@@ -67,6 +67,8 @@ All notable changes to Restricted Arsenal Creation Assistant are recorded here. 
 - Administration snapshots no longer truncate large registries or audit histories, and zero-length audit requests no longer return an unintended record.
 - Atomic bulk-update failures now restore every accepted target and related registry/quota/session state instead of leaving a partially changed target set.
 - RPT-copy reconstruction now rejects reordered chunks, duplicate/end-after-completion records, late chunks, missing chunks, substitutions, and mismatched legacy envelopes instead of normalizing ambiguous evidence.
+- Clipboard recovery now emits decimal copy IDs and a float-safe v3 dual digest that reconstructs exactly outside Arma while retaining compatible v2 and explicitly weaker v1 readers.
+- Creator startup now rebuilds the catalogue-tag index with an explicit empty argument, and the 100,000-row filter loop preserves responsiveness without exceeding its settled performance budget.
 
 ## [0.9.2]
 

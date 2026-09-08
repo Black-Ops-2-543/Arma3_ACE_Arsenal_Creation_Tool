@@ -209,7 +209,7 @@ The flow separates authoring, Eden persistence, runtime behavior, and multiplaye
 - [ ] A client joining in progress sees the same restricted contents.
 - [ ] On a dedicated server, Zeus Assign/Replace can resolve a preset already embedded in another registered mission object even when the server profile library is empty.
 - [ ] Place each Zeus module on a valid configured object, valid unconfigured object, multiple targets, no target, an object not editable by the curator, and a missing configuration. Verify visible accepted/rejected results, exact registry/ACE interaction effect, audit record, and `[RACA][ZEUS:<request-id>]` server-RPT event.
-- [ ] Zeus requests accept only the current assigned curator and synchronized editable targets, reject module/operation mismatch and duplicate handling, respect `RACA_allowZeusModules`, and never interpret no-target Reset as a global reset.
+- [ ] Zeus requests accept only the current assigned curator and synchronized editable targets, reject module/operation mismatch and duplicate handling, respect the authoritative `RACA_enableZeusModules` CBA setting, and never interpret no-target Reset as a global reset.
 - [ ] Repeat the full Zeus matrix on listen host, dedicated server with empty profile and embedded mission configuration, and a distinct joining curator/client. Match each visible request ID to the server RPT without recording player UIDs.
 
 ## Release gate
