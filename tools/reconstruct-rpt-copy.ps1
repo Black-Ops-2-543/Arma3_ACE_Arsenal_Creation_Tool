@@ -5,8 +5,8 @@ param(
     [string] $RptPath,
 
     [Parameter()]
-    [ValidateRange(1, [int]::MaxValue)]
-    [int] $CopyId,
+    [ValidatePattern('^[0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?$')]
+    [string] $CopyId,
 
     [Parameter()]
     [string] $OutputPath
@@ -15,19 +15,30 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $jobs = @{}
+$sequence = 0
 
 foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPath))) {
-    if ($line -match '\[RACA\]\[COPY:(\d+)\] BEGIN version=2 .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS digest=(P24X2-\d+-\d+)') {
-        $id = [int] $Matches[1]
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] BEGIN version=3 .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS digest=(P23X2-\d+-\d+)') {
+        $id = [string] $Matches[1]
         if ($jobs.ContainsKey($id)) { $jobs[$id].Ambiguous = $true; continue }
-        $jobs[$id] = [ordered]@{ Id=$id; Version=2; Units=[int]$Matches[2]; ChunkCount=[int]$Matches[3]; Digest=$Matches[4]; Chunks=@{}; LastChunk=0; Duplicate=$false; OutOfOrder=$false; Ambiguous=$false; Complete=$false }
+        $sequence++
+        $jobs[$id] = [ordered]@{ Id=$id; Sequence=$sequence; Version=3; Units=[int]$Matches[2]; ChunkCount=[int]$Matches[3]; Digest=$Matches[4]; Chunks=@{}; LastChunk=0; Duplicate=$false; OutOfOrder=$false; Ambiguous=$false; Complete=$false }
         continue
     }
-    if ($line -match '\[RACA\]\[COPY:(\d+)\] BEGIN .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS checksum=(\d+)') {
-        $id = [int] $Matches[1]
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] BEGIN version=2 .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS digest=(P24X2-\d+-\d+)') {
+        $id = [string] $Matches[1]
         if ($jobs.ContainsKey($id)) { $jobs[$id].Ambiguous = $true; continue }
+        $sequence++
+        $jobs[$id] = [ordered]@{ Id=$id; Sequence=$sequence; Version=2; Units=[int]$Matches[2]; ChunkCount=[int]$Matches[3]; Digest=$Matches[4]; Chunks=@{}; LastChunk=0; Duplicate=$false; OutOfOrder=$false; Ambiguous=$false; Complete=$false }
+        continue
+    }
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] BEGIN .* units=(\d+) chunks=(\d+) encoding=CODEPOINTS checksum=(\d+)') {
+        $id = [string] $Matches[1]
+        if ($jobs.ContainsKey($id)) { $jobs[$id].Ambiguous = $true; continue }
+        $sequence++
         $jobs[$id] = [ordered]@{
             Id = $id
+            Sequence = $sequence
             Version = 1
             Units = [int] $Matches[2]
             ChunkCount = [int] $Matches[3]
@@ -41,8 +52,8 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
         }
         continue
     }
-    if ($line -match '\[RACA\]\[COPY:(\d+)\] CHUNK (\d+)/(\d+) (\[.*\])') {
-        $id = [int] $Matches[1]
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] CHUNK (\d+)/(\d+) (\[.*\])') {
+        $id = [string] $Matches[1]
         if ($jobs.ContainsKey($id)) {
             $chunkNumber = [int] $Matches[2]
             if ($jobs[$id].Complete) {
@@ -62,8 +73,17 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
         }
         continue
     }
-    if ($line -match '\[RACA\]\[COPY:(\d+)\] END version=2 units=(\d+) chunks=(\d+) digest=(P24X2-\d+-\d+)') {
-        $id = [int] $Matches[1]
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] END version=3 units=(\d+) chunks=(\d+) digest=(P23X2-\d+-\d+)') {
+        $id = [string] $Matches[1]
+        if ($jobs.ContainsKey($id)) {
+            if ($jobs[$id].Complete) { $jobs[$id].Ambiguous = $true }
+            $jobs[$id].Complete = $true
+            if ($jobs[$id].Version -ne 3 -or [int]$Matches[2] -ne $jobs[$id].Units -or [int]$Matches[3] -ne $jobs[$id].ChunkCount -or $Matches[4] -ne $jobs[$id].Digest) { $jobs[$id].Ambiguous = $true }
+        }
+        continue
+    }
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] END version=2 units=(\d+) chunks=(\d+) digest=(P24X2-\d+-\d+)') {
+        $id = [string] $Matches[1]
         if ($jobs.ContainsKey($id)) {
             if ($jobs[$id].Complete) { $jobs[$id].Ambiguous = $true }
             $jobs[$id].Complete = $true
@@ -71,8 +91,8 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
         }
         continue
     }
-    if ($line -match '\[RACA\]\[COPY:(\d+)\] END units=(\d+) chunks=(\d+) checksum=(\d+)') {
-        $id = [int] $Matches[1]
+    if ($line -match '\[RACA\]\[COPY:([0-9]+(?:\.[0-9]+e[+-]?[0-9]+)?)\] END units=(\d+) chunks=(\d+) checksum=(\d+)') {
+        $id = [string] $Matches[1]
         if ($jobs.ContainsKey($id)) {
             if ($jobs[$id].Complete) { $jobs[$id].Ambiguous = $true }
             $jobs[$id].Complete = $true
@@ -84,7 +104,7 @@ foreach ($line in [System.IO.File]::ReadLines((Resolve-Path -LiteralPath $RptPat
 $selected = if ($PSBoundParameters.ContainsKey('CopyId')) {
     $jobs[$CopyId]
 } else {
-    $jobs.Values | Where-Object Complete | Sort-Object Id | Select-Object -Last 1
+    $jobs.Values | Where-Object Complete | Sort-Object Sequence | Select-Object -Last 1
 }
 if ($null -eq $selected -or -not $selected.Complete) {
     throw 'No completed RACA copy job matched the request.'
@@ -111,11 +131,25 @@ for ($chunkNumber = 1; $chunkNumber -le $selected.ChunkCount; $chunkNumber++) {
         $unitCount++
         $checksum = ($checksum + $value) % 16777213
         $position = $unitCount - 1
-        $digestA = (($digestA * 257) + $value + $position) % 16777213
-        $digestB = (($digestB * 263) + $value + ($position * 3)) % 16777199
+        if ($selected.Version -eq 3) {
+            $digestA = ($digestA * 2) % 8388593
+            $digestA = ($digestA + $value) % 8388593
+            $digestA = ($digestA + ($position % 4093)) % 8388593
+            $digestB = ($digestB * 3) % 5592403
+            $digestB = ($digestB + $value) % 5592403
+            $digestB = ($digestB + (($position % 4093) * 3)) % 5592403
+        } else {
+            $digestA = (($digestA * 257) + $value + $position) % 16777213
+            $digestB = (($digestB * 263) + $value + ($position * 3)) % 16777199
+        }
     }
 }
-if ($selected.Version -eq 2) {
+if ($selected.Version -eq 3) {
+    $digest = "P23X2-$digestA-$digestB"
+    if ($unitCount -ne $selected.Units -or $digest -ne $selected.Digest) {
+        throw "Copy $($selected.Id) failed v3 integrity validation (units $unitCount/$($selected.Units), digest $digest/$($selected.Digest))."
+    }
+} elseif ($selected.Version -eq 2) {
     $digest = "P24X2-$digestA-$digestB"
     if ($unitCount -ne $selected.Units -or $digest -ne $selected.Digest) {
         throw "Copy $($selected.Id) failed v2 integrity validation (units $unitCount/$($selected.Units), digest $digest/$($selected.Digest))."

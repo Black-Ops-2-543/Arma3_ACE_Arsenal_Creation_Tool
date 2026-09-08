@@ -16,10 +16,10 @@ function Write-Fixture {
 }
 
 function Assert-Rejected {
-    param([string] $Name, [string[]] $Lines, [string] $Expected)
+    param([string] $Name, [string[]] $Lines, [string] $Expected, [string] $CopyId = '42')
     $path = Write-Fixture -Name $Name -Lines $Lines
     try {
-        $null = & $reconstructor -RptPath $path -CopyId 42
+        $null = & $reconstructor -RptPath $path -CopyId $CopyId
         throw "Fixture '$Name' was accepted."
     } catch {
         if ($_.Exception.Message -eq "Fixture '$Name' was accepted." -or $_.Exception.Message -notmatch $Expected) {
@@ -38,6 +38,27 @@ $validPath = Write-Fixture -Name 'valid' -Lines @($begin, $chunk1, $chunk2, $end
 $valid = & $reconstructor -RptPath $validPath -CopyId 42
 if ($valid -ne "A$([char]0x03A9)`r`n") {
     throw 'Valid v2 fixture did not reconstruct exactly.'
+}
+
+$v3Begin = '[RACA][COPY:44] BEGIN version=3 context="fixture" units=4 chunks=2 encoding=CODEPOINTS digest=P23X2-1679979-4977291'
+$v3Chunk1 = '[RACA][COPY:44] CHUNK 1/2 [65,937]'
+$v3Chunk2 = '[RACA][COPY:44] CHUNK 2/2 [13,10]'
+$v3End = '[RACA][COPY:44] END version=3 units=4 chunks=2 digest=P23X2-1679979-4977291'
+$v3Path = Write-Fixture -Name 'v3-valid' -Lines @($v3Begin, $v3Chunk1, $v3Chunk2, $v3End)
+$v3 = & $reconstructor -RptPath $v3Path -CopyId 44
+if ($v3 -ne "A$([char]0x03A9)`r`n") {
+    throw 'Valid float-safe v3 fixture did not reconstruct exactly.'
+}
+Assert-Rejected -Name 'v3-tampered' -Lines @($v3Begin, '[RACA][COPY:44] CHUNK 1/2 [65,938]', $v3Chunk2, $v3End) -Expected 'v3 integrity validation' -CopyId '44'
+
+$scientificId = '9.1158e+08'
+$scientificLines = @($begin, $chunk1, $chunk2, $end) | ForEach-Object {
+    $_.Replace('COPY:42', "COPY:$scientificId")
+}
+$scientificPath = Write-Fixture -Name 'scientific-id' -Lines $scientificLines
+$scientific = & $reconstructor -RptPath $scientificPath -CopyId $scientificId
+if ($scientific -ne "A$([char]0x03A9)`r`n") {
+    throw 'A historical scientific-notation copy ID did not reconstruct exactly.'
 }
 
 Assert-Rejected -Name 'tampered' -Lines @($begin, $chunk1, '[RACA][COPY:42] CHUNK 2/2 [14,10]', $end) -Expected 'integrity validation'
@@ -74,4 +95,4 @@ if ($legacyText.Count -ne 1 -or $legacyText[0] -cne "A$([char]0x03A9)`r`n") {
         Remove-Item -LiteralPath $resolvedTestRoot -Recurse -Force
     }
 }
-Write-Host 'RPT copy reconstruction tests passed (valid, tampered, reordered, duplicate, missing, substitution, envelope, and legacy cases).'
+Write-Host 'RPT copy reconstruction tests passed (v3, v2, scientific-ID, tampered, reordered, duplicate, missing, substitution, envelope, and legacy cases).'

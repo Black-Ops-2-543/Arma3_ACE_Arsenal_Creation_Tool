@@ -820,9 +820,9 @@ else {
     $tamperedCopyFixture = Join-Path $repositoryRoot 'tests\fixtures\rpt-copy-v2-tampered.rpt'
     $reconstructorSource = Get-Content -Raw -LiteralPath $clipboardRecoveryPath
     if (-not (Test-Path -LiteralPath $copyFixture) -or -not (Test-Path -LiteralPath $tamperedCopyFixture) -or
-        $reconstructorSource -notmatch 'P24X2' -or $reconstructorSource -notmatch 'Duplicate' -or
+        $reconstructorSource -notmatch 'P23X2' -or $reconstructorSource -notmatch 'P24X2' -or $reconstructorSource -notmatch 'Duplicate' -or
         $reconstructorSource -notmatch 'legacy additive checksum') {
-        $failures.Add("The RPT reconstruction utility must retain v2 valid/tampered fixtures, strong digest checks, duplicate rejection, and a legacy-integrity warning.")
+        $failures.Add("The RPT reconstruction utility must retain v3/v2 fixtures, strong digest checks, duplicate rejection, and a legacy-integrity warning.")
     }
     if (-not (Test-Path -LiteralPath $clipboardRecoveryTestPath -PathType Leaf)) {
         $failures.Add("The RPT reconstruction utility must include its executable integrity regression matrix.")
@@ -840,6 +840,15 @@ $directClipboardUse = Get-ChildItem -LiteralPath $addonsDirectory -Recurse -File
 if ($directClipboardUse) {
     $failures.Add("All clipboard writes must route through fn_copyTextAndLog.sqf so the exact payload is archived to RPT.")
 }
+$copyHelperPath = Join-Path $addonsDirectory 'core\functions\ui\fn_copyTextAndLog.sqf'
+if (Test-Path -LiteralPath $copyHelperPath -PathType Leaf) {
+    $copyHelperSource = Get-Content -Raw -LiteralPath $copyHelperPath
+    if ($copyHelperSource -notmatch 'mod 999999' -or
+        $copyHelperSource -notmatch 'private _decimalString' -or
+        $copyHelperSource -notmatch '\[_digestA\] call _decimalString') {
+        $failures.Add('RPT copy IDs and v3 digest components must serialize as stable decimal text instead of scientific notation.')
+    }
+}
 if (Test-Path -LiteralPath $portableJsonFormatPath -PathType Leaf) {
     $portableJsonFormat = Get-Content -Raw -LiteralPath $portableJsonFormatPath
     if ($portableJsonFormat -notmatch '\btoJSON\b') {
@@ -855,7 +864,7 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     }
     if ($sqfImport -match '2000000|50000|20000' -or
         $sqfImport -notmatch 'RACA_fnc_importCheckpoint' -or
-        $sqfImport -notmatch 'case\s+"//"' -or
+        $sqfImport -notmatch '_token isEqualTo "//"' -or
         $sqfImport -notmatch 'BLOCKCOMMENT' -or
         $sqfImport -notmatch '\bregexFind\b' -or
         $sqfImport -notmatch '\bRACA_fnc_resolveCatalogClass\b') {
@@ -868,8 +877,9 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
         $failures.Add('SQF import must try the strict generated-export fast path before generic recovery.')
     }
     if ($sqfImport -match 'private\s+_values\s*=\s*\[' -or
-        $sqfImport -notmatch '\[_text select \[_literalStart, _quoteOffset - _literalStart\]\] call _consume' -or
-        $sqfImport -notmatch 'regexFind \[_tokenPattern, _offset\]' -or
+        $sqfImport -notmatch '\[_text select \[_literalStart, _tokenOffset - _literalStart\]\] call _consume' -or
+        $sqfImport -notmatch '_chunk regexFind \[_tokenPattern\]' -or
+        $sqfImport -notmatch 'private _chunkSize = 65536' -or
         $sqfImport -notmatch '_missingSamples' -or
         $sqfImport -notmatch '_missingCount') {
         $failures.Add('Generic SQF recovery must consume completed strings immediately and retain only bounded unavailable samples.')
@@ -1880,7 +1890,7 @@ if (-not $SkipSqf) {
                     # retaining the real data-only engine commands in source.
                     $temporaryLintTarget = Join-Path $sqfFile.DirectoryName ('.' + $sqfFile.BaseName + '.raca-lint-' + [guid]::NewGuid().ToString('N') + $sqfFile.Extension)
                     $lintSource = $sqfSource -replace '\bfromJSON\b', 'parseSimpleArray' -replace '\btoJSON\b', 'str'
-                    $lintSource = $lintSource -replace 'case\s+"/\*"', 'case "BLOCKCOMMENT"'
+                    $lintSource = $lintSource -replace '"/\*"', '"BLOCKCOMMENT_TOKEN"'
                     $lintSource = $lintSource -replace '(?m)^(\s*)private\s+(_[A-Za-z0-9]+)\s*=.*\bregexFind\b.*;$', '${1}private ${2} = [[['''', 0]]];'
                     [System.IO.File]::WriteAllText($temporaryLintTarget, $lintSource, [System.Text.UTF8Encoding]::new($false))
                     $lintTarget = $temporaryLintTarget

@@ -7,7 +7,9 @@
 params [["_text", "", [""]], ["_context", "RACA export", [""]]];
 forceUnicode 1;
 copyToClipboard _text;
-private _id = (uiNamespace getVariable ["RACA_copySerial", floor (random 1900000000)]) + 1;
+// Keep the marker below Arma's scientific-notation formatting threshold so
+// operators can paste the exact visible ID into the host reconstructor.
+private _id = ((uiNamespace getVariable ["RACA_copySerial", floor (random 900000)]) mod 999999) + 1;
 uiNamespace setVariable ["RACA_copySerial", _id];
 private _states = uiNamespace getVariable ["RACA_copyStates",createHashMap];
 private _estimatedBytes = (count toArray _text) * 4;
@@ -51,16 +53,35 @@ if !(uiNamespace getVariable ["RACA_copyWorker", false]) then {
             private _digestA = 104729;
             private _digestB = 130363;
             {
-                _digestA = ((_digestA * 257) + _x + _forEachIndex) mod 16777213;
-                _digestB = ((_digestB * 263) + _x + (_forEachIndex * 3)) mod 16777199;
+                // Each multiplication remains below 2^24, Arma's exact
+                // integer range. Apply the modulus before subsequent additions
+                // so the host can reproduce the digest without float drift.
+                _digestA = (_digestA * 2) mod 8388593;
+                _digestA = (_digestA + _x) mod 8388593;
+                _digestA = (_digestA + (_forEachIndex mod 4093)) mod 8388593;
+                _digestB = (_digestB * 3) mod 5592403;
+                _digestB = (_digestB + _x) mod 5592403;
+                _digestB = (_digestB + ((_forEachIndex mod 4093) * 3)) mod 5592403;
             } forEach _codes;
-            private _digest = format ["P24X2-%1-%2",_digestA,_digestB];
-            diag_log format ["[RACA][COPY:%1] BEGIN version=2 context=%2 units=%3 chunks=%4 encoding=CODEPOINTS digest=%5", _id, toJSON _context, count _codes, _chunks, _digest];
+            private _decimalString = {
+                params ["_number"];
+                private _remaining = floor _number;
+                if (_remaining isEqualTo 0) exitWith {"0"};
+                private _digits = [];
+                while {_remaining > 0} do {
+                    _digits pushBack (toString [48 + (_remaining mod 10)]);
+                    _remaining = floor (_remaining / 10);
+                };
+                reverse _digits;
+                _digits joinString ""
+            };
+            private _digest = format ["P23X2-%1-%2",[_digestA] call _decimalString,[_digestB] call _decimalString];
+            diag_log format ["[RACA][COPY:%1] BEGIN version=3 context=%2 units=%3 chunks=%4 encoding=CODEPOINTS digest=%5", _id, toJSON _context, count _codes, _chunks, _digest];
             for "_i" from 0 to (_chunks - 1) do {
                 diag_log format ["[RACA][COPY:%1] CHUNK %2/%3 %4", _id, _i+1, _chunks, toJSON (_codes select [_i*96,96])];
                 if ((_i mod 32) isEqualTo 0) then {uiSleep 0.001};
             };
-            diag_log format ["[RACA][COPY:%1] END version=2 units=%2 chunks=%3 digest=%4", _id, count _codes, _chunks, _digest];
+            diag_log format ["[RACA][COPY:%1] END version=3 units=%2 chunks=%3 digest=%4", _id, count _codes, _chunks, _digest];
             _state set [0,"complete"];
             _state set [4,""];
             _states set [str _id,_state];
