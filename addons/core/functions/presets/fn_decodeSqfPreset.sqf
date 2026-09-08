@@ -35,14 +35,24 @@ private _consume = {
         _resourceError = format ["Generic recovery candidate resource exceeded: more than %1 quoted/list values were scanned. Use portable JSON, a plain class list, or a narrowed migration source.", _maxGenericCandidates];
     };
     private _filterStarted = diag_tickTime;
+    private _key = toLowerANSI _candidate;
+    // Only safe classes enter _seen, so a known case-insensitive key can skip
+    // repeated identifier validation and catalogue resolution immediately.
+    // Duplicate-heavy legacy arsenals otherwise pay the full validation cost
+    // for every repeated token even though only the first can affect output.
+    if (_seen getOrDefault [_key, false]) exitWith {
+        _ignored = _ignored + 1;
+        _filterSeconds = _filterSeconds + (diag_tickTime - _filterStarted);
+    };
     private _isSqfIdentifier = (_candidate select [0,1]) isEqualTo "_" || {(_candidate find "_fnc_") >= 0};
     private _safe = [_candidate] call RACA_fnc_isSafeClassName && {!_isSqfIdentifier};
-    private _key = if (_safe) then {toLowerANSI _candidate} else {""};
-    private _new = _safe && {!(_seen getOrDefault [_key, false])};
-    _filterSeconds = _filterSeconds + (diag_tickTime - _filterStarted);
-    if (!_new) exitWith {_ignored = _ignored + 1};
+    if (!_safe) exitWith {
+        _ignored = _ignored + 1;
+        _filterSeconds = _filterSeconds + (diag_tickTime - _filterStarted);
+    };
 
     _seen set [_key, true];
+    _filterSeconds = _filterSeconds + (diag_tickTime - _filterStarted);
     _candidateCount = _candidateCount + 1;
     if ((_candidateCount mod 256) isEqualTo 0 && {!([_operation, "Resolving catalogue classes", _candidateCount, _readCount max _candidateCount] call RACA_fnc_importCheckpoint)}) exitWith {
         _cancelled = true;
