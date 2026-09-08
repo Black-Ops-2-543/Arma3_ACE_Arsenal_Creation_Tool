@@ -64,7 +64,7 @@ if (_newFilter) then {
     _results = [];
     if (_unresolvedEffective isEqualTo [] || {_override isNotEqualTo []}) then {
         {
-            if ((_forEachIndex mod 512) isEqualTo 0) then {
+            if ((_forEachIndex mod 4096) isEqualTo 0) then {
                 uiSleep 0.001;
                 _stale = isNull _display || {(_display getVariable ["RACA_renderRequest",-1]) isNotEqualTo _request};
             };

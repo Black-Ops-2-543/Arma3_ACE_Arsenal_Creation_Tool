@@ -98,70 +98,151 @@ if (_generatedMatched) then {
         } forEach _characters;
         _characters = [];
     } else {
+        private _doubleQuote = toString [34];
+        private _singleQuote = toString [39];
+        private _hasDoubleQuote = (_text find _doubleQuote) >= 0;
+        private _hasSingleQuote = (_text find _singleQuote) >= 0;
+        private _fastQuote = "";
+        if (
+            (_text find "//") < 0 &&
+            {(_text find "/*") < 0}
+        ) then {
+            if (_hasDoubleQuote && {!_hasSingleQuote} && {(_text find (_doubleQuote + _doubleQuote)) < 0}) then {
+                _fastQuote = _doubleQuote;
+            };
+            if (_hasSingleQuote && {!_hasDoubleQuote} && {(_text find (_singleQuote + _singleQuote)) < 0}) then {
+                _fastQuote = _singleQuote;
+            };
+        };
+
+        if (_fastQuote isNotEqualTo "") then {
+            // Common legacy arrays use one quote style and contain no comments
+            // or doubled-quote escapes. Match complete literals in bounded
+            // native batches, carrying only one unfinished literal across a
+            // boundary. This keeps 100,000-record migration linear without a
+            // whole-input token corpus.
+            private _offset = 0;
+            private _chunkSize = 65536;
+            private _carry = "";
+            private _carryStart = -1;
+            private _quotePattern = "[" + _fastQuote + "]";
+            private _literalPattern = _fastQuote + "[^" + _fastQuote + "]*" + _fastQuote;
+            while {_offset < _textLength && {!_cancelled} && {_resourceError isEqualTo ""}} do {
+                _cancelled = !([_operation, "Reading SQF", _offset, _textLength] call RACA_fnc_importCheckpoint);
+                private _mainLength = _chunkSize min (_textLength - _offset);
+                private _scanBase = [_offset, _carryStart] select (_carry isNotEqualTo "");
+                private _scan = _carry + (_text select [_offset, _mainLength]);
+                private _quoteMatches = _scan regexFind [_quotePattern];
+                private _literalMatches = _scan regexFind [_literalPattern];
+                {
+                    private _literal = (_x select 0) select 0;
+                    private _literalLength = (count _literal) - 2;
+                    if (_literalLength > _maxLiteralCharacters) exitWith {
+                        _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
+                    };
+                    [_literal select [1, _literalLength]] call _consume;
+                    if (_cancelled || {_resourceError isNotEqualTo ""}) exitWith {};
+                } forEach _literalMatches;
+                if ((count _quoteMatches mod 2) isEqualTo 1 && {_resourceError isEqualTo ""}) then {
+                    private _lastQuoteOffset = (((_quoteMatches select ((count _quoteMatches) - 1)) select 0) select 1);
+                    _carryStart = _scanBase + _lastQuoteOffset;
+                    _carry = _scan select [_lastQuoteOffset];
+                    if (((count _carry) - 1) > _maxLiteralCharacters) then {
+                        _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
+                    };
+                } else {
+                    _carry = "";
+                    _carryStart = -1;
+                };
+                _quoteMatches = [];
+                _literalMatches = [];
+                _scan = "";
+                _offset = _offset + _mainLength;
+            };
+            if (_carry isNotEqualTo "" && {_resourceError isEqualTo ""}) then {
+                _state = ["SINGLE", "DOUBLE"] select (_fastQuote isEqualTo _doubleQuote);
+                _start = _carryStart;
+            };
+        } else {
         private _offset = 0;
-        // regexFind performs the scan natively and accepts an absolute start
-        // offset. Request only the next structural token so generic recovery
-        // remains streaming instead of retaining a global match/token corpus.
-        private _tokenPattern = "[""']|[/][/]|[/][*]/";
+        private _chunkSize = 65536;
+        private _literalStart = -1;
+        private _quote = "";
+        private _skipThrough = -1;
+        // Ask the native regex engine for structural tokens in one bounded
+        // window at a time. One look-ahead character lets two-character
+        // comment delimiters cross a window boundary; matches in that overlap
+        // are consumed by the following window. Only the completed literal is
+        // sliced from the source, so no global token or character corpus is
+        // retained.
+        private _tokenPattern = "[""']|[/][/]|[/][*]|[*][/]|[\r\n]";
         while {_offset < _textLength && {!_cancelled} && {_resourceError isEqualTo ""}} do {
-            private _matches = _text regexFind [_tokenPattern, _offset];
-            if (_matches isEqualTo []) then {
-                _offset = _textLength;
-            } else {
-                private _tokenRecord = (_matches select 0) select 0;
+            _cancelled = !([_operation, "Reading SQF", _offset, _textLength] call RACA_fnc_importCheckpoint);
+            private _mainLength = _chunkSize min (_textLength - _offset);
+            private _chunk = _text select [_offset, (_mainLength + 1) min (_textLength - _offset)];
+            private _matches = _chunk regexFind [_tokenPattern];
+            {
+                private _tokenRecord = _x select 0;
                 private _token = _tokenRecord select 0;
-                private _tokenOffset = _tokenRecord select 1;
-                _cancelled = !([_operation, "Reading SQF", _tokenOffset, _textLength] call RACA_fnc_importCheckpoint);
-                if (!_cancelled) then {
-                    switch (_token) do {
-                        case "//": {
-                            private _lineEndMatches = _text regexFind ["[\r\n]/", _tokenOffset + 2];
-                            _offset = if (_lineEndMatches isEqualTo []) then {_textLength} else {(((_lineEndMatches select 0) select 0) select 1) + 1};
-                        };
-                        case "/*": {
-                            _state = "BLOCKCOMMENT";
-                            _start = _tokenOffset;
-                            private _blockEndMatches = _text regexFind ["[*][/]/", _tokenOffset + 2];
-                            if (_blockEndMatches isEqualTo []) then {
-                                _offset = _textLength;
-                            } else {
-                                _offset = (((_blockEndMatches select 0) select 0) select 1) + 2;
-                                _state = "NORMAL";
-                            };
-                        };
-                        default {
-                            private _quote = _token;
-                            _state = ["SINGLE", "DOUBLE"] select (_quote isEqualTo '"');
-                            _start = _tokenOffset;
-                            private _literalStart = _tokenOffset + 1;
-                            private _searchOffset = _literalStart;
-                            private _closed = false;
-                            while {!_closed && {_searchOffset < _textLength} && {_resourceError isEqualTo ""}} do {
-                                private _quoteMatches = _text regexFind [_quote + "/", _searchOffset];
-                                if (_quoteMatches isEqualTo []) then {
-                                    _searchOffset = _textLength;
+                private _localOffset = _tokenRecord select 1;
+                if (_localOffset < _mainLength) then {
+                    private _tokenOffset = _offset + _localOffset;
+                    if (_tokenOffset > _skipThrough) then {
+                        switch (_state) do {
+                            case "NORMAL": {
+                                if (_token isEqualTo "//") then {
+                                    _state = "LINECOMMENT";
                                 } else {
-                                    private _quoteOffset = (((_quoteMatches select 0) select 0) select 1);
-                                    private _doubled = (_text select [_quoteOffset + 1, 1]) isEqualTo _quote;
-                                    if (_doubled) then {
-                                        _searchOffset = _quoteOffset + 2;
+                                    if (_token isEqualTo "/*") then {
+                                        _state = "BLOCKCOMMENT";
+                                        _start = _tokenOffset;
                                     } else {
-                                        if ((_quoteOffset - _literalStart) > _maxLiteralCharacters) then {
-                                            _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
-                                        } else {
-                                            [_text select [_literalStart, _quoteOffset - _literalStart]] call _consume;
+                                        if (_token in ["'", '"']) then {
+                                            _quote = _token;
+                                            _state = ["SINGLE", "DOUBLE"] select (_quote isEqualTo '"');
+                                            _start = _tokenOffset;
+                                            _literalStart = _tokenOffset + 1;
                                         };
-                                        _offset = _quoteOffset + 1;
-                                        _state = "NORMAL";
-                                        _closed = true;
                                     };
                                 };
                             };
-                            if (!_closed && {_resourceError isEqualTo ""}) then {_offset = _textLength};
+                            case "LINECOMMENT": {
+                                if (_token in [toString [10], toString [13]]) then {_state = "NORMAL"};
+                            };
+                            case "BLOCKCOMMENT": {
+                                if (_token isEqualTo "*/") then {
+                                    _state = "NORMAL";
+                                    _skipThrough = _tokenOffset + 1;
+                                };
+                            };
+                            default {
+                                if (_token isEqualTo _quote) then {
+                                    private _doubled = (_text select [_tokenOffset + 1, 1]) isEqualTo _quote;
+                                    if (_doubled) then {
+                                        _skipThrough = _tokenOffset + 1;
+                                    } else {
+                                        if ((_tokenOffset - _literalStart) > _maxLiteralCharacters) then {
+                                            _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
+                                        } else {
+                                            [_text select [_literalStart, _tokenOffset - _literalStart]] call _consume;
+                                        };
+                                        _state = "NORMAL";
+                                        _literalStart = -1;
+                                    };
+                                };
+                            };
                         };
                     };
                 };
+                if (_cancelled || {_resourceError isNotEqualTo ""}) exitWith {};
+            } forEach _matches;
+            _matches = [];
+            _chunk = "";
+            _offset = _offset + _mainLength;
+            if (_state in ["SINGLE", "DOUBLE"] && {_literalStart >= 0} && {(_offset - _literalStart) > _maxLiteralCharacters}) then {
+                _resourceError = format ["SQF literal resource exceeded: a quoted value is longer than %1 characters. Use portable JSON, a plain class list, or a narrowed migration source.", _maxLiteralCharacters];
             };
+        };
         };
     };
 };

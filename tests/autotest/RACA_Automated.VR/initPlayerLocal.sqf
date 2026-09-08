@@ -839,18 +839,19 @@ params ["_player"];
         "Zeus Assign rejects a missing mission configuration without profile fallback"
     ] call _record;
 
-    missionNamespace setVariable ["RACA_allowZeusModules", false];
+    private _previousZeusSetting = missionNamespace getVariable ["RACA_enableZeusModules", true];
+    missionNamespace setVariable ["RACA_enableZeusModules", false];
     private _disabledLogic = _zeusLogicGroup createUnit ["RACA_ModuleClear", [4259, 4195, 0], [], 0, "NONE"];
     _disabledLogic synchronizeObjectsAdd [_zeusTarget];
     _disabledLogic setVariable ["RACA_serverHandled", false, true];
     private _zeusBlocked = [_disabledLogic, [_zeusTarget], true] call RACA_fnc_moduleClear;
     private _disabledResult = missionNamespace getVariable ["RACA_lastZeusResult", []];
-    missionNamespace setVariable ["RACA_allowZeusModules", true];
+    missionNamespace setVariable ["RACA_enableZeusModules", _previousZeusSetting];
     [
         !_zeusBlocked &&
         {!(_disabledResult param [2, true])} &&
-        {((_disabledResult param [1, ""]) find "disabled by the mission") >= 0},
-        "Mission policy can disable Zeus modules with an observable rejection"
+        {((_disabledResult param [1, ""]) find "disabled by the authoritative") >= 0},
+        "Authoritative CBA policy can disable Zeus modules with an observable rejection"
     ] call _record;
 
     private _clearLogic = _zeusLogicGroup createUnit ["RACA_ModuleClear", [4259, 4195, 0], [], 0, "NONE"];

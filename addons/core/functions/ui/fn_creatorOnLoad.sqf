@@ -45,7 +45,7 @@ private _favorites = createHashMap;
 } forEach _favoriteClasses;
 uiNamespace setVariable ["RACA_catalogFavorites", _favorites];
 uiNamespace setVariable ["RACA_favoritesRevision",0];
-call RACA_fnc_refreshCatalogTagIndex;
+[] call RACA_fnc_refreshCatalogTagIndex;
 
 [_display] call RACA_fnc_refreshCategoryCombo;
 

@@ -85,7 +85,7 @@ switch (_operationKey) do {
         profileNamespace setVariable ["RACA_catalogTagState_v2", ["RACA_TAG_STATE",2,profileNamespace getVariable ["RACA_catalogTagsRevision_v1",0],+_next,+_history,+(profileNamespace getVariable ["RACA_catalogTagRedo_v2",[]])]];
         saveProfileNamespace;
         uiNamespace setVariable ["RACA_catalogTagsCacheRevision", -1];
-        call RACA_fnc_refreshCatalogTagIndex;
+        [] call RACA_fnc_refreshCatalogTagIndex;
         if (!isNull _parent) then {
             [_parent] call RACA_fnc_refreshSourceCombo;
             [_parent] call RACA_fnc_refreshItemList;
@@ -108,7 +108,7 @@ switch (_operationKey) do {
         profileNamespace setVariable ["RACA_catalogTagState_v2",["RACA_TAG_STATE",2,_revision,+_next,+_history,+_redo]];
         saveProfileNamespace;
         uiNamespace setVariable ["RACA_catalogTagsCacheRevision",-1];
-        call RACA_fnc_refreshCatalogTagIndex;
+        [] call RACA_fnc_refreshCatalogTagIndex;
         [_display] call RACA_fnc_catalogTagsRefresh;
         ["Reapplied the last undone catalogue-tag edit."] call _setStatus;
     };
