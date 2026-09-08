@@ -855,8 +855,9 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
     }
     if ($sqfImport -match '2000000|50000|20000' -or
         $sqfImport -notmatch 'RACA_fnc_importCheckpoint' -or
-        $sqfImport -notmatch 'LINECOMMENT' -or
+        $sqfImport -notmatch 'case\s+"//"' -or
         $sqfImport -notmatch 'BLOCKCOMMENT' -or
+        $sqfImport -notmatch '\bregexFind\b' -or
         $sqfImport -notmatch '\bRACA_fnc_resolveCatalogClass\b') {
         $failures.Add("Legacy SQF import must use a comment-aware, measured, cancellable lexer without obsolete arbitrary size ceilings.")
     }
@@ -867,7 +868,8 @@ if (Test-Path -LiteralPath $sqfImportPath -PathType Leaf) {
         $failures.Add('SQF import must try the strict generated-export fast path before generic recovery.')
     }
     if ($sqfImport -match 'private\s+_values\s*=\s*\[' -or
-        $sqfImport -notmatch '\[toString _buffer\] call _consume' -or
+        $sqfImport -notmatch '\[_text select \[_literalStart, _quoteOffset - _literalStart\]\] call _consume' -or
+        $sqfImport -notmatch 'regexFind \[_tokenPattern, _offset\]' -or
         $sqfImport -notmatch '_missingSamples' -or
         $sqfImport -notmatch '_missingCount') {
         $failures.Add('Generic SQF recovery must consume completed strings immediately and retain only bounded unavailable samples.')
@@ -1872,12 +1874,14 @@ if (-not $SkipSqf) {
 
             try {
                 $sqfSource = Get-Content -Raw -LiteralPath $sqfFile.FullName
-                if ($sqfSource -match '\b(?:fromJSON|toJSON)\b') {
-                    # SQFLint 0.12.4 predates Arma 3's 2.18 JSON commands. Give
-                    # it syntax-equivalent unary commands while retaining the
-                    # real, data-only engine commands in the shipped source.
+                if ($sqfSource -match '\b(?:fromJSON|toJSON|regexFind)\b') {
+                    # SQFLint 0.12.4 predates Arma 3's JSON and regex commands.
+                    # Give it syntax-equivalent unary/binary commands while
+                    # retaining the real data-only engine commands in source.
                     $temporaryLintTarget = Join-Path $sqfFile.DirectoryName ('.' + $sqfFile.BaseName + '.raca-lint-' + [guid]::NewGuid().ToString('N') + $sqfFile.Extension)
                     $lintSource = $sqfSource -replace '\bfromJSON\b', 'parseSimpleArray' -replace '\btoJSON\b', 'str'
+                    $lintSource = $lintSource -replace 'case\s+"/\*"', 'case "BLOCKCOMMENT"'
+                    $lintSource = $lintSource -replace '(?m)^(\s*)private\s+(_[A-Za-z0-9]+)\s*=.*\bregexFind\b.*;$', '${1}private ${2} = [[['''', 0]]];'
                     [System.IO.File]::WriteAllText($temporaryLintTarget, $lintSource, [System.Text.UTF8Encoding]::new($false))
                     $lintTarget = $temporaryLintTarget
                 }
